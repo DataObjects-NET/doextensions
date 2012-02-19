@@ -37,3 +37,4 @@ Manual\Temp\*
 Release.Files\*
 
 _Build
+*.dotCover

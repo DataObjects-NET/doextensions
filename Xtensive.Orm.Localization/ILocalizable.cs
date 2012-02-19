@@ -6,15 +6,16 @@
 
 namespace Xtensive.Orm.Localization
 {
-  /// <summary>
-  /// Defines localization contract.
-  /// </summary>
-  /// <typeparam name="T">Entity</typeparam>
-  public interface ILocalizable<T> where T : Localization
-  {
-    ///<summary>
-    /// Set of localizations.
-    ///</summary>
-    LocalizationSet<T> Localizations { get; }
-  }
+    /// <summary>
+    /// Defines localization contract.
+    /// </summary>
+    /// <typeparam name="T">Entity</typeparam>
+    public interface ILocalizable<T>
+        where T : Localization
+    {
+        ///<summary>
+        /// Set of localizations.
+        ///</summary>
+        LocalizationSet<T> Localizations { get; }
+    }
 }
