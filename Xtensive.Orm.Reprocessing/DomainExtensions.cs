@@ -23,7 +23,7 @@ namespace Xtensive.Orm.Reprocessing
     /// Executes a reprocessable task.
     /// </summary>
     /// <param name="domain">The domain of the task.</param>
-    /// <param name="func">The task with <see cref="T"/> result.</param>
+    /// <param name="func">The task with T result.</param>
     /// <typeparam name="T">Return type of the task.</typeparam>
     /// <returns>The task result.</returns>
     public static T Execute<T>(this Domain domain, Func<Session, T> func)
@@ -47,7 +47,7 @@ namespace Xtensive.Orm.Reprocessing
     /// </summary>
     /// <param name="domain">The domain of the task.</param>
     /// <param name="strategy">Execute strategy of the task.</param>
-    /// <param name="func">The task with <see cref="T"/> result.</param>
+    /// <param name="func">The task with T result.</param>
     /// <typeparam name="T">Return type of the task.</typeparam>
     /// <returns>The task result.</returns>
     public static T Execute<T>(this Domain domain, IExecuteActionStrategy strategy, Func<Session, T> func)
@@ -72,7 +72,7 @@ namespace Xtensive.Orm.Reprocessing
     /// </summary>
     /// <param name="domain">The domain of the task.</param>
     /// <param name="isolationLevel">Isolation level of the task.</param>
-    /// <param name="func">Task with <see cref="T"/> result.</param>
+    /// <param name="func">Task with T result.</param>
     /// <typeparam name="T">Return type of the task.</typeparam>
     /// <returns>The task result.</returns>
     public static T Execute<T>(this Domain domain, IsolationLevel isolationLevel, Func<Session, T> func)
@@ -99,7 +99,7 @@ namespace Xtensive.Orm.Reprocessing
     /// <param name="domain">The domain.</param>
     /// <param name="isolationLevel">Isolation level of the task.</param>
     /// <param name="strategy">Execute strategy of the task.</param>
-    /// <param name="func">The task with <see cref="T"/> result.</param>
+    /// <param name="func">The task with T result.</param>
     /// <typeparam name="T">Return type of the task.</typeparam>
     /// <returns>The task result.</returns>
     public static T Execute<T>(
@@ -133,7 +133,7 @@ namespace Xtensive.Orm.Reprocessing
     /// <param name="isolationLevel">Isolation level of the task.</param>
     /// <param name="transactionOpenMode">Transaction open mode of the task.</param>
     /// <param name="strategy">Execute strategy of the task.</param>
-    /// <param name="func">Task with <see cref="T"/> result.</param>
+    /// <param name="func">Task with T result.</param>
     /// <typeparam name="T">Return type of the task.</typeparam>
     /// <returns>The task result.</returns>
     public static T Execute<T>(
@@ -165,7 +165,7 @@ namespace Xtensive.Orm.Reprocessing
     /// <param name="domain">The domain of the task.</param>
     /// <param name="isolationLevel">Isolation level of the task.</param>
     /// <param name="transactionOpenMode">Transaction open mode of the task.</param>
-    /// <param name="func">The task with <see cref="T"/> result.</param>
+    /// <param name="func">The task with T result.</param>
     /// <typeparam name="T">Return type of the task.</typeparam>
     /// <returns>The task result.</returns>
     public static T Execute<T>(
@@ -190,7 +190,7 @@ namespace Xtensive.Orm.Reprocessing
     /// </summary>
     /// <param name="domain">The domain of the task.</param>
     /// <param name="transactionOpenMode">Transaction open mode of the task.</param>
-    /// <param name="func">The task with <see cref="T"/> result.</param>
+    /// <param name="func">The task with T result.</param>
     /// <typeparam name="T">Return type of the task.</typeparam>
     /// <returns>The task result.</returns>
     public static T Execute<T>(this Domain domain, TransactionOpenMode transactionOpenMode, Func<Session, T> func)

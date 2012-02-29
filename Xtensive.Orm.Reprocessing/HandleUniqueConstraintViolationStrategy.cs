@@ -10,6 +10,13 @@ namespace Xtensive.Orm.Reprocessing
   {
     #region Non-public methods
 
+    /// <summary>
+    /// Handles the exception.
+    /// </summary>
+    /// <param name="eventArgs">The <see cref="Xtensive.Orm.Reprocessing.ExecuteErrorEventArgs"/> instance containing the exception data.</param>
+    /// <returns>
+    /// True if needs to reprocess the task, otherwise false.
+    /// </returns>
     protected override bool HandleException(ExecuteErrorEventArgs eventArgs)
     {
       if (eventArgs.Transaction!=null && eventArgs.Transaction.IsNested &&

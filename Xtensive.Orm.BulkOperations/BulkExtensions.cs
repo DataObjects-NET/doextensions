@@ -14,10 +14,19 @@ using FieldInfo = Xtensive.Orm.Model.FieldInfo;
 
 namespace Xtensive.Orm.BulkOperations
 {
-  public static class DMLExtensions
+  /// <summary>
+  /// Contains extension methods for bulk operation.
+  /// </summary>
+  public static class BulkExtensions
   {
-    private static readonly MethodInfo translateQueryMethod = typeof (QueryBuilder).GetMethod("TranslateQuery");
+    private static readonly MethodInfo TranslateQueryMethod = typeof (QueryBuilder).GetMethod("TranslateQuery");
 
+    /// <summary>
+    /// Deletes all entities specified by the query with one SQL command.
+    /// </summary>
+    /// <typeparam name="T">Type of the entity.</typeparam>
+    /// <param name="query">The query.</param>
+    /// <returns>Count of the deleted entities.</returns>
     public static int Delete<T>(this IQueryable<T> query) where T : class, IEntity
     {
       var context = new DMLContext<T>(query);
@@ -31,6 +40,15 @@ namespace Xtensive.Orm.BulkOperations
       return result;
     }
 
+    /// <summary>
+    /// Update field value of all entities specified by the query with one SQL command.
+    /// </summary>
+    /// <typeparam name="T">The type of the entity.</typeparam>
+    /// <typeparam name="TResult">The type of the field.</typeparam>
+    /// <param name="query">The query.</param>
+    /// <param name="field">The expression, that specify the field.</param>
+    /// <param name="update">The expression, that specify new value of the field.</param>
+    /// <returns>Class, that describes UPDATE operation.</returns>
     [Pure]
     public static IUpdateable<T> Set<T, TResult>(this IQueryable<T> query, Expression<Func<T, TResult>> field,
       Expression<Func<T, TResult>> update)
@@ -38,6 +56,15 @@ namespace Xtensive.Orm.BulkOperations
       return new Updateable<T>(query, field, update);
     }
 
+    /// <summary>
+    /// Update field value of all entities specified by the query with one SQL command.
+    /// </summary>
+    /// <typeparam name="T">The type of the entity.</typeparam>
+    /// <typeparam name="TResult">The type of the field.</typeparam>
+    /// <param name="query"><see cref="IUpdateable{T}"/>, that describes UPDATE operation.</param>
+    /// <param name="field">The expression, that specify the field.</param>
+    /// <param name="update">The expression, that specify new value of the field.</param>
+    /// <returns>Class, that describes UPDATE operation.</returns>
     [Pure]
     public static IUpdateable<T> Set<T, TResult>(this IUpdateable<T> query, Expression<Func<T, TResult>> field,
       Expression<Func<T, TResult>> update)
@@ -45,6 +72,15 @@ namespace Xtensive.Orm.BulkOperations
       return new Updateable<T>((Updateable<T>) query, field, update);
     }
 
+    /// <summary>
+    /// Update field value of all entities specified by the query with one SQL command.
+    /// </summary>
+    /// <typeparam name="T">The type of the entity.</typeparam>
+    /// <typeparam name="TResult">The type of the field.</typeparam>
+    /// <param name="query">The query.</param>
+    /// <param name="field">The expression, that specify the field.</param>
+    /// <param name="value">New value of the field.</param>
+    /// <returns>Class, that describes UPDATE operation.</returns>
     [Pure]
     public static IUpdateable<T> Set<T, TResult>(this IQueryable<T> query, Expression<Func<T, TResult>> field,
       TResult value)
@@ -52,6 +88,15 @@ namespace Xtensive.Orm.BulkOperations
       return Set(query, field, a => value);
     }
 
+    /// <summary>
+    /// Update field value of all entities specified by the query with one SQL command.
+    /// </summary>
+    /// <typeparam name="T">The type of the entity.</typeparam>
+    /// <typeparam name="TResult">The type of the field.</typeparam>
+    /// <param name="query"><see cref="IUpdateable{T}"/>, that describes UPDATE operation.</param>
+    /// <param name="field">The expression, that specify the field.</param>
+    /// <param name="value">New value of the field.</param>
+    /// <returns>Class, that describes UPDATE operation.</returns>
     [Pure]
     public static IUpdateable<T> Set<T, TResult>(this IUpdateable<T> query, Expression<Func<T, TResult>> field,
       TResult value)
@@ -59,6 +104,13 @@ namespace Xtensive.Orm.BulkOperations
       return Set(query, field, a => value);
     }
 
+    /// <summary>
+    /// Updates entities specified by the query.
+    /// </summary>
+    /// <typeparam name="T">Type of the entity.</typeparam>
+    /// <param name="query">The query.</param>
+    /// <param name="evaluator">The expression, that specify new values. Constructor parameters are ignored</param>
+    /// <returns>Count of updated entities.</returns>
     public static int Update<T>(this IQueryable<T> query, Expression<Func<T, T>> evaluator) where T : class, IEntity
     {
       var context = new DMLContext<T>(query);
@@ -81,6 +133,12 @@ namespace Xtensive.Orm.BulkOperations
       return Update(context, list);
     }
 
+    /// <summary>
+    /// Run UPDATE operation.
+    /// </summary>
+    /// <typeparam name="T">Type of the entity.</typeparam>
+    /// <param name="query">The query.</param>
+    /// <returns>Count of updated entities.</returns>
     public static int Update<T>(this IUpdateable<T> query) where T : class, IEntity
     {
       var list = new List<SetDescriptor>();
@@ -295,7 +353,7 @@ namespace Xtensive.Orm.BulkOperations
 
     private static QueryTranslationResult GetRequest<T>(Type type, DMLContext<T> context, IQueryable query) where T : class, IEntity
     {
-      return (QueryTranslationResult) translateQueryMethod.MakeGenericMethod(type).Invoke(context.QueryBuilder, new[] {query});
+      return (QueryTranslationResult) TranslateQueryMethod.MakeGenericMethod(type).Invoke(context.QueryBuilder, new[] {query});
     }
 
     private static TypeInfo GetTypeInfo(DomainModel model, Type entityType)

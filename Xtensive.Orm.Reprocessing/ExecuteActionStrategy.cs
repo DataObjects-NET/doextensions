@@ -37,6 +37,14 @@ namespace Xtensive.Orm.Reprocessing
     /// </summary>
     public int Attempts { get; set; }
 
+    /// <summary>
+    /// Execute task.
+    /// </summary>
+    /// <typeparam name="T">Task return type.</typeparam>
+    /// <param name="context">The context of this task.</param>
+    /// <returns>
+    /// Task result.
+    /// </returns>
     public virtual T Execute<T>(ExecutionContext<T> context)
     {
       int i = 0;
@@ -132,11 +140,21 @@ namespace Xtensive.Orm.Reprocessing
 
     #region Non-public methods
 
+    /// <summary>
+    /// Handles the exception.
+    /// </summary>
+    /// <param name="eventArgs">The <see cref="Xtensive.Orm.Reprocessing.ExecuteErrorEventArgs"/> instance containing the exception data.</param>
+    /// <returns>True if needs to reprocess the task, otherwise false.</returns>
     protected virtual bool HandleException(ExecuteErrorEventArgs eventArgs)
     {
       return false;
     }
 
+    /// <summary>
+    /// Raises the <see cref="E:Error"/> event.
+    /// </summary>
+    /// <param name="eventArgs">The <see cref="Xtensive.Orm.Reprocessing.ExecuteErrorEventArgs"/> instance containing the event data.</param>
+    /// <returns>True if needs to reprocess the task.</returns>
     protected virtual bool OnError(ExecuteErrorEventArgs eventArgs)
     {
       if (Error!=null)
@@ -155,6 +173,9 @@ namespace Xtensive.Orm.Reprocessing
 
     #endregion
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ExecuteActionStrategy"/> class.
+    /// </summary>
     protected ExecuteActionStrategy()
     {
       Attempts = 5;

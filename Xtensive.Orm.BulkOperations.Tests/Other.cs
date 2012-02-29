@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using NUnit.Framework;
-using Xtensive.Orm.Reprocessing;
 using Xtensive.Orm.Reprocessing.Tests;
 using Xtensive.Orm.Reprocessing.Tests.Model;
 
@@ -21,8 +20,7 @@ namespace Xtensive.Orm.BulkOperations.Tests
           var foo1 = new Bar2(session, date1, id1) {Name = "test"};
           var foo2 = new Bar2(session, date2, id1);
           var foo3 = new Bar2(session, date2, id2) {Name = "test"};
-          int updated =
-            session.Query.All<Bar2>().Where(a => a.Name=="test").Set(a => a.Name, "abccba").Update();
+          int updated = session.Query.All<Bar2>().Where(a => a.Name=="test").Set(a => a.Name, "abccba").Update();
           Assert.That(updated, Is.EqualTo(2));
           Assert.That(foo1.Name, Is.EqualTo("abccba"));
           Assert.That(foo3.Name, Is.EqualTo("abccba"));
@@ -50,8 +48,7 @@ namespace Xtensive.Orm.BulkOperations.Tests
           Assert.That(bar3.IsRemoved, Is.False);
           Assert.That(deleted, Is.EqualTo(1));
 
-          session.Query.All<Bar>().Where(a => a.Foo.Any(b => b.Name=="Foo")).Update(
-            a => new Bar(null) {Name = ""});
+          session.Query.All<Bar>().Where(a => a.Foo.Any(b => b.Name=="Foo")).Update(a => new Bar(null) {Name = ""});
           deleted = session.Query.All<Bar>().Where(a => a.Foo.Count(b => b.Name=="Foo")==0).Delete();
           Assert.That(bar2.IsRemoved, Is.True);
           Assert.That(bar3.IsRemoved, Is.False);
@@ -91,13 +88,13 @@ namespace Xtensive.Orm.BulkOperations.Tests
           var bar2 = new Bar(session) {Count = 1};
           new Foo(session) {Bar = bar, Name = "test"};
           new Foo(session) {Bar = bar, Name = "test1"};
-          session.Query.All<Bar>().Where(a => a.Count==a.Foo.Count - 2).Set(
-            a => a.Count, a => a.Foo.Count).Update();
+          session.Query.All<Bar>().Where(a => a.Count==a.Foo.Count - 2).Set(a => a.Count, a => a.Foo.Count).Update();
           Assert.That(bar.Count, Is.EqualTo(2));
-          using (session.AssertCommandCount(Is.EqualTo(1))) {
-            session.Query.All<Bar>().Where(a => a.Count==session.Query.All<Bar>().Max(b => b.Count)).
-              Set(a => a.Count, a => session.Query.All<Bar>().Min(b => b.Count)).Update();
-          }
+          session.AssertCommandCount(
+            Is.EqualTo(1),
+            () =>
+              session.Query.All<Bar>().Where(a => a.Count==session.Query.All<Bar>().Max(b => b.Count)).Set(
+                a => a.Count, a => session.Query.All<Bar>().Min(b => b.Count)).Update());
           Assert.That(bar.Count, Is.EqualTo(1));
           trx.Complete();
         }
@@ -136,8 +133,7 @@ namespace Xtensive.Orm.BulkOperations.Tests
           var foo3 = new Foo(session) {Name = "Test1"};
           var bar1 = new Bar(session) {Name = "Test"};
           var bar2 = new Bar(session);
-          session.Query.All<Foo>().Set(
-            a => a.Bar, a => session.Query.All<Bar>().First(b => b.Name==a.Name)).Update();
+          session.Query.All<Foo>().Set(a => a.Bar, a => session.Query.All<Bar>().First(b => b.Name==a.Name)).Update();
           Assert.That(foo1.Bar, Is.EqualTo(bar1));
           Assert.That(foo2.Bar, Is.EqualTo(bar2));
           Assert.That(foo3.Bar, Is.Null);

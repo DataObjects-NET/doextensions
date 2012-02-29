@@ -1,18 +1,17 @@
 ﻿using System;
 using NUnit.Framework;
 using NUnit.Framework.Constraints;
-using Xtensive.Disposing;
 
 namespace Xtensive.Orm.BulkOperations.Tests
 {
   public static class Extensions
   {
-    public static IDisposable AssertCommandCount(this Session session, IResolveConstraint expression)
+    public static void AssertCommandCount(this Session session, IResolveConstraint expression, Action action)
     {
       int count = 0;
       session.Events.DbCommandExecuting += (sender, args) => count++;
-
-      return new Disposable(a => Assert.That(count, expression));
+      action();
+      Assert.That(count, expression);
     }
   }
 }

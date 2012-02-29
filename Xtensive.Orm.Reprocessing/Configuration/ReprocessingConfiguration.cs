@@ -38,7 +38,7 @@ namespace Xtensive.Orm.Reprocessing.Configuration
     }
 
     /// <summary>
-    /// Loads the reprocessing configuration from <see cref="sectionName"/> section in application configuration file.
+    /// Loads the reprocessing configuration from sectionName section in application configuration file.
     /// </summary>
     /// <param name="sectionName">Name of the section.</param>
     /// <returns>The configuration.</returns>

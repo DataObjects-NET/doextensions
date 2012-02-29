@@ -61,7 +61,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DMLExtensions.cs" />
+    <Compile Include="BulkExtensions.cs" />
     <Compile Include="Internals\BaseSqlVisitor.cs" />
     <Compile Include="Internals\ComputedExpressionSqlVisitor.cs" />
     <Compile Include="Internals\DMLAddValueContext.cs" />

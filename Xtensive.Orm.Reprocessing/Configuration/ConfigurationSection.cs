@@ -12,7 +12,7 @@ namespace Xtensive.Orm.Reprocessing.Configuration
     /// Gets default section name for reprocessing configuration.
     /// Value is "Xtensive.Reprocessing".
     /// </summary>
-    public static readonly string DefaultSectionName = "Xtensive.Reprocessing";
+    public static readonly string DefaultSectionName = "Xtensive.Orm.Reprocessing";
 
     /// <summary>
     /// Gets or sets default transaction open mode.
