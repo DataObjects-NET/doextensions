@@ -295,7 +295,6 @@ namespace Xtensive.Orm.BulkOperations
 
     private static QueryTranslationResult GetRequest<T>(Type type, DMLContext<T> context, IQueryable query) where T : class, IEntity
     {
-      throw new ApplicationException();
       return (QueryTranslationResult) translateQueryMethod.MakeGenericMethod(type).Invoke(context.QueryBuilder, new[] {query});
     }
 
