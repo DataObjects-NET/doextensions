@@ -6,7 +6,7 @@ using Xtensive.Orm.Localization.Tests.Model;
 namespace Xtensive.Orm.Localization.Tests
 {
   [TestFixture]
-  public class QueryTests : TestBase
+  public class QueryTests : AutoBuildTest
   {
     protected override void PopulateDatabase()
     {

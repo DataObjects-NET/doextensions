@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Xtensive LLC")]
 [assembly: AssemblyProduct("Xtensive.Orm.Reprocessing")]
+[assembly: AssemblyCopyright("Alexander Ovchinnikov")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -36,4 +37,3 @@ using System.Runtime.InteropServices;
 
 [assembly: AssemblyVersion("4.5.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
-[assembly: AssemblyCopyrightAttribute("Alexander Ovchinnikov")]

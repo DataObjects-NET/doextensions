@@ -16,6 +16,7 @@ using Xtensive.Orm;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Xtensive LLC")]
 [assembly: AssemblyProduct("Xtensive.Orm.Security")]
+[assembly: AssemblyCopyright("Xtensive LLC")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -38,4 +39,3 @@ using Xtensive.Orm;
 // by using the '*' as shown below:
 [assembly: AssemblyVersion("4.5.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
-[assembly: AssemblyCopyrightAttribute("Xtensive LLC")]

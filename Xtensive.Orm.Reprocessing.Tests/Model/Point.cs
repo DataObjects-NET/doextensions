@@ -7,5 +7,9 @@
 
     [Field]
     public int? Y { get; set; }
+
+    public Point(Session session)
+      : base(session)
+    {}
   }
 }

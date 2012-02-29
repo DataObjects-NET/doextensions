@@ -5,11 +5,10 @@ using Xtensive.Disposing;
 
 namespace Xtensive.Orm.BulkOperations.Tests
 {
-  public static class AssertEx
+  public static class Extensions
   {
-    public static IDisposable ThatCommandsCount(IResolveConstraint expression)
+    public static IDisposable AssertCommandCount(this Session session, IResolveConstraint expression)
     {
-      Session session = Session.Current;
       int count = 0;
       session.Events.DbCommandExecuting += (sender, args) => count++;
 

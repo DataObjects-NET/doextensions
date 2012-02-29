@@ -4,7 +4,7 @@ using Xtensive.Orm.Localization.Tests.Model;
 
 namespace Xtensive.Orm.Localization.Tests
 {
-  public class DirectEditTest : TestBase
+  public class DirectEditTest : AutoBuildTest
   {
     [Test]
     public void MainTest()

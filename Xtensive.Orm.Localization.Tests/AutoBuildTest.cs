@@ -7,7 +7,7 @@ using Xtensive.Reflection;
 namespace Xtensive.Orm.Localization.Tests
 {
   [TestFixture]
-  public abstract class TestBase
+  public abstract class AutoBuildTest
   {
     public static CultureInfo EnglishCulture = new CultureInfo("en-US");
     public static string EnglishTitle = "Welcome!";

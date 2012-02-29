@@ -8,5 +8,9 @@
     public Point First { get; set; }
     [Field]
     public Point Second { get; set; }
+
+    public Rectangle(Session session)
+      : base(session)
+    {}
   }
 }

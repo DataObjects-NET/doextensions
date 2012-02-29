@@ -68,7 +68,7 @@
     <Compile Include="Model\PageLocalization.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QueryTests.cs" />
-    <Compile Include="TestBase.cs" />
+    <Compile Include="AutoBuildTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Xtensive.Orm.Localization\Xtensive.Orm.Localization.csproj">
