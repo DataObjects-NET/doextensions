@@ -215,8 +215,8 @@ namespace Xtensive.Orm.Reprocessing
 
     #region Non-public methods
 
-    private static void ExecuteInternal(
-      Domain domain,
+    internal static void ExecuteInternal(
+      this Domain domain,
       IsolationLevel isolationLevel,
       TransactionOpenMode? transactionOpenMode,
       IExecuteActionStrategy strategy,
@@ -234,8 +234,8 @@ namespace Xtensive.Orm.Reprocessing
     }
 
 
-    private static T ExecuteInternal<T>(
-      Domain domain,
+    internal static T ExecuteInternal<T>(
+      this Domain domain,
       IsolationLevel isolationLevel,
       TransactionOpenMode? transactionOpenMode,
       IExecuteActionStrategy strategy,

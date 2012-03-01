@@ -33,6 +33,15 @@ namespace Xtensive.Orm.Reprocessing
     public IsolationLevel IsolationLevel { get; set; }
 
     /// <summary>
+    /// Gets or sets the transaction open mode.
+    /// </summary>
+    /// <value>
+    /// The transaction open mode.
+    /// </value>
+    public TransactionOpenMode? TransactionOpenMode { get; set; }
+      
+
+    /// <summary>
     /// Gets or sets the domain in wich context should run all methods marked with this attribute.
     /// </summary>
     /// <value>
@@ -44,7 +53,7 @@ namespace Xtensive.Orm.Reprocessing
     /// Method invoked <i>instead</i> of the method to which the aspect has been applied.
     /// </summary>
     /// <param name="args">Advice arguments.</param>
-    public sealed override void OnInvoke(MethodInterceptionArgs args)
+    public override void OnInvoke(MethodInterceptionArgs args)
     {
       IExecuteActionStrategy strategy = null;
       if (CustomStrategy != null)
@@ -66,8 +75,8 @@ namespace Xtensive.Orm.Reprocessing
             throw new ArgumentOutOfRangeException();
         }
       }
-
-      GetDomain().Execute(IsolationLevel, strategy, session => args.Proceed());
+      
+      GetDomain().ExecuteInternal(IsolationLevel, TransactionOpenMode, strategy, session => args.Proceed());
     }
 
     #region Non-public methods
