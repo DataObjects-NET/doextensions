@@ -14,7 +14,7 @@
     <FileAlignment>512</FileAlignment>
     <DataObjectsDotNetPath>$(MSBuildProjectDirectory)\..\Lib\DataObjects.Net\</DataObjectsDotNetPath>
     <DontImportPostSharp>True</DontImportPostSharp>
-    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\doextensions\</SolutionDir>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
