@@ -113,17 +113,7 @@ namespace Xtensive.Orm.Reprocessing
     }
 
     /// <summary>
-    /// Gets the singleton.
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <returns></returns>
-    public static T GetSingleton<T>()
-    {
-      return (T) GetSingleton(typeof (T));
-    }
-
-    /// <summary>
-    /// Gets the singleton of the strategy
+    /// Gets the singleton of the specified strategy
     /// </summary>
     /// <param name="type">The type of the strategy.</param>
     /// <returns>The singleton.</returns>

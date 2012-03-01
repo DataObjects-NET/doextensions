@@ -5,20 +5,20 @@ using System.Linq.Expressions;
 
 namespace Xtensive.Orm.BulkOperations
 {
-  internal class Updateable<T> : IUpdateable<T>
+  internal class Updatable<T> : IUpdatable<T> where T : IEntity
   {
     internal readonly List<Tuple<Expression, Expression>> Expressions;
     internal readonly IQueryable<T> Query;
 
-    public Updateable(Updateable<T> updateable, Expression field, Expression update)
+    public Updatable(Updatable<T> updatable, Expression field, Expression update)
     {
-      Query = updateable.Query;
-      Expressions = new List<Tuple<Expression, Expression>>(updateable.Expressions.Count + 1);
-      Expressions.AddRange(updateable.Expressions);
+      Query = updatable.Query;
+      Expressions = new List<Tuple<Expression, Expression>>(updatable.Expressions.Count + 1);
+      Expressions.AddRange(updatable.Expressions);
       Expressions.Add(Tuple.Create(field, update));
     }
 
-    public Updateable(IQueryable<T> query, Expression field, Expression update)
+    public Updatable(IQueryable<T> query, Expression field, Expression update)
     {
       Query = query;
       Expressions = new List<Tuple<Expression, Expression>>(1) {Tuple.Create(field, update)};

@@ -15,18 +15,18 @@ using FieldInfo = Xtensive.Orm.Model.FieldInfo;
 namespace Xtensive.Orm.BulkOperations
 {
   /// <summary>
-  /// Contains extension methods for bulk operation.
+  /// Extension methods for bulk operation.
   /// </summary>
   public static class BulkExtensions
   {
     private static readonly MethodInfo TranslateQueryMethod = typeof (QueryBuilder).GetMethod("TranslateQuery");
 
     /// <summary>
-    /// Deletes all entities specified by the query with one SQL command.
+    /// Executes bulk delete of entities specified by the query.
     /// </summary>
     /// <typeparam name="T">Type of the entity.</typeparam>
     /// <param name="query">The query.</param>
-    /// <returns>Count of the deleted entities.</returns>
+    /// <returns>Number of the deleted entities.</returns>
     public static int Delete<T>(this IQueryable<T> query) where T : class, IEntity
     {
       var context = new DMLContext<T>(query);
@@ -41,76 +41,76 @@ namespace Xtensive.Orm.BulkOperations
     }
 
     /// <summary>
-    /// Update field value of all entities specified by the query with one SQL command.
+    /// Executes bulk update of entities specified by the query.
     /// </summary>
     /// <typeparam name="T">The type of the entity.</typeparam>
     /// <typeparam name="TResult">The type of the field.</typeparam>
     /// <param name="query">The query.</param>
     /// <param name="field">The expression, that specify the field.</param>
     /// <param name="update">The expression, that specify new value of the field.</param>
-    /// <returns>Class, that describes UPDATE operation.</returns>
+    /// <returns>Instance of <see cref=" IUpdatable&lt;T&gt;"/>.</returns>
     [Pure]
-    public static IUpdateable<T> Set<T, TResult>(this IQueryable<T> query, Expression<Func<T, TResult>> field,
-      Expression<Func<T, TResult>> update)
+    public static IUpdatable<T> Set<T, TResult>(this IQueryable<T> query, Expression<Func<T, TResult>> field,
+      Expression<Func<T, TResult>> update) where T: IEntity
     {
-      return new Updateable<T>(query, field, update);
+      return new Updatable<T>(query, field, update);
     }
 
     /// <summary>
-    /// Update field value of all entities specified by the query with one SQL command.
+    /// Executes bulk update of entities specified by the query.
     /// </summary>
     /// <typeparam name="T">The type of the entity.</typeparam>
     /// <typeparam name="TResult">The type of the field.</typeparam>
-    /// <param name="query"><see cref="IUpdateable{T}"/>, that describes UPDATE operation.</param>
+    /// <param name="query"><see cref="IUpdatable{T}"/>, that describes UPDATE operation.</param>
     /// <param name="field">The expression, that specify the field.</param>
     /// <param name="update">The expression, that specify new value of the field.</param>
-    /// <returns>Class, that describes UPDATE operation.</returns>
+    /// <returns>Instance of <see cref=" IUpdatable&lt;T&gt;"/>.</returns>
     [Pure]
-    public static IUpdateable<T> Set<T, TResult>(this IUpdateable<T> query, Expression<Func<T, TResult>> field,
-      Expression<Func<T, TResult>> update)
+    public static IUpdatable<T> Set<T, TResult>(this IUpdatable<T> query, Expression<Func<T, TResult>> field,
+      Expression<Func<T, TResult>> update) where T: IEntity
     {
-      return new Updateable<T>((Updateable<T>) query, field, update);
+      return new Updatable<T>((Updatable<T>) query, field, update);
     }
 
     /// <summary>
-    /// Update field value of all entities specified by the query with one SQL command.
+    /// Executes bulk update of entities specified by the query.
     /// </summary>
     /// <typeparam name="T">The type of the entity.</typeparam>
     /// <typeparam name="TResult">The type of the field.</typeparam>
     /// <param name="query">The query.</param>
     /// <param name="field">The expression, that specify the field.</param>
     /// <param name="value">New value of the field.</param>
-    /// <returns>Class, that describes UPDATE operation.</returns>
+    /// <returns>Instance of <see cref=" IUpdatable&lt;T&gt;"/>.</returns>
     [Pure]
-    public static IUpdateable<T> Set<T, TResult>(this IQueryable<T> query, Expression<Func<T, TResult>> field,
-      TResult value)
+    public static IUpdatable<T> Set<T, TResult>(this IQueryable<T> query, Expression<Func<T, TResult>> field,
+      TResult value) where T: IEntity
     {
       return Set(query, field, a => value);
     }
 
     /// <summary>
-    /// Update field value of all entities specified by the query with one SQL command.
+    /// Executes bulk update of entities specified by the query.
     /// </summary>
     /// <typeparam name="T">The type of the entity.</typeparam>
     /// <typeparam name="TResult">The type of the field.</typeparam>
-    /// <param name="query"><see cref="IUpdateable{T}"/>, that describes UPDATE operation.</param>
+    /// <param name="query"><see cref="IUpdatable{T}"/>, that describes UPDATE operation.</param>
     /// <param name="field">The expression, that specify the field.</param>
     /// <param name="value">New value of the field.</param>
-    /// <returns>Class, that describes UPDATE operation.</returns>
+    /// <returns>Instance of <see cref=" IUpdatable&lt;T&gt;"/>.</returns>
     [Pure]
-    public static IUpdateable<T> Set<T, TResult>(this IUpdateable<T> query, Expression<Func<T, TResult>> field,
-      TResult value)
+    public static IUpdatable<T> Set<T, TResult>(this IUpdatable<T> query, Expression<Func<T, TResult>> field,
+      TResult value) where T: IEntity
     {
       return Set(query, field, a => value);
     }
 
     /// <summary>
-    /// Updates entities specified by the query.
+    /// Executes the UPDATE operation.
     /// </summary>
     /// <typeparam name="T">Type of the entity.</typeparam>
     /// <param name="query">The query.</param>
     /// <param name="evaluator">The expression, that specify new values. Constructor parameters are ignored</param>
-    /// <returns>Count of updated entities.</returns>
+    /// <returns>Number of updated entities.</returns>
     public static int Update<T>(this IQueryable<T> query, Expression<Func<T, T>> evaluator) where T : class, IEntity
     {
       var context = new DMLContext<T>(query);
@@ -134,15 +134,15 @@ namespace Xtensive.Orm.BulkOperations
     }
 
     /// <summary>
-    /// Run UPDATE operation.
+    /// Executes the UPDATE operation.
     /// </summary>
     /// <typeparam name="T">Type of the entity.</typeparam>
     /// <param name="query">The query.</param>
-    /// <returns>Count of updated entities.</returns>
-    public static int Update<T>(this IUpdateable<T> query) where T : class, IEntity
+    /// <returns>Number of updated entities.</returns>
+    public static int Update<T>(this IUpdatable<T> query) where T : class, IEntity
     {
       var list = new List<SetDescriptor>();
-      var q = (Updateable<T>) query;
+      var q = (Updatable<T>) query;
       var context = new DMLContext<T>(q.Query);
       foreach (var expression in q.Expressions) {
         var lambda = (LambdaExpression) expression.Item1;

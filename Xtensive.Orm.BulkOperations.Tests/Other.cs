@@ -40,7 +40,6 @@ namespace Xtensive.Orm.BulkOperations.Tests
           var bar3 = new Bar(session);
           bar3.Foo.Add(new Foo(session) {Name = "Foo"});
           string s = "test";
-          string s1 = "abccba";
 
           int deleted = session.Query.All<Bar>().Where(a => a.Name==s).Delete();
           Assert.That(bar1.IsRemoved, Is.True);
