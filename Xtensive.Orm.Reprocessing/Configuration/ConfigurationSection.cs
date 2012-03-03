@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Configuration;
 
 namespace Xtensive.Orm.Reprocessing.Configuration
@@ -18,12 +19,19 @@ namespace Xtensive.Orm.Reprocessing.Configuration
     /// Gets or sets default transaction open mode.
     /// </summary>
     [ConfigurationProperty("defaultTransactionOpenMode", DefaultValue = TransactionOpenMode.New)]
-    public TransactionOpenMode DefaultTransactionOpenMode { get; set; }
+    public TransactionOpenMode DefaultTransactionOpenMode
+    {
+      get { return (TransactionOpenMode) this["defaultTransactionOpenMode"]; }
+    }
 
     /// <summary>
     /// Gets or sets default execute strategy
     /// </summary>
-    [ConfigurationProperty("defaultExecuteStrategy", DefaultValue = typeof(HandleReprocessableExceptionStrategy))]
-    public Type DefaultExecuteStrategy { get; set; }
+    [ConfigurationProperty("defaultExecuteStrategy", DefaultValue = typeof (HandleReprocessableExceptionStrategy))]
+    [TypeConverter(typeof (TypeNameConverter))]
+    public Type DefaultExecuteStrategy
+    {
+      get { return (Type) this["defaultExecuteStrategy"]; }
+    }
   }
 }
