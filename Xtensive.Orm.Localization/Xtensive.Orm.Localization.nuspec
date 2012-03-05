@@ -13,10 +13,11 @@
     <description>Adds support for easy localization for DataObjects.Net-powered domain models</description>
     <releaseNotes></releaseNotes>
     <copyright>Copyright 2012</copyright>
-    <tags>DataObjects.Net Persistance ORM Localization</tags>
+    <tags>DataObjects.Net Extensions Persistance ORM Localization</tags>
     <summary>Localization for DataObjects.Net</summary>
   </metadata>
   <files>
     <file src="..\Install.ps1" target="tools\Install.ps1" />
+    <file src="Readme.txt" target="tools\Readme.txt" />
   </files>
 </package>
