@@ -4,7 +4,7 @@ using Xtensive.Sql.Dml;
 
 namespace Xtensive.Orm.BulkOperations
 {
-  internal class DMLAddValueContext
+  internal class AddValueContext
   {
     public bool EntityParamExists { get; set; }
 

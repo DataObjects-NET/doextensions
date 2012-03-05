@@ -63,12 +63,16 @@
   <ItemGroup>
     <Compile Include="BulkExtensions.cs" />
     <Compile Include="Internals\BaseSqlVisitor.cs" />
+    <Compile Include="Internals\BulkDeleteOperation.cs" />
+    <Compile Include="Internals\BulkUpdateOperation.cs" />
     <Compile Include="Internals\ComputedExpressionSqlVisitor.cs" />
-    <Compile Include="Internals\DMLAddValueContext.cs" />
-    <Compile Include="Internals\DMLContext.cs" />
+    <Compile Include="Internals\AddValueContext.cs" />
+    <Compile Include="Internals\InsertOperation.cs" />
+    <Compile Include="Internals\Operation.cs" />
     <Compile Include="Internals\ExpressionExtensions.cs" />
     <Compile Include="Internals\ExpressionVisitor.cs" />
     <Compile Include="Internals\Extensions.cs" />
+    <Compile Include="Internals\QueryOperation.cs" />
     <Compile Include="Internals\SetDescriptor.cs" />
     <Compile Include="Internals\Updatable.cs" />
     <Compile Include="IUpdatable.cs" />
