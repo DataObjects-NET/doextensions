@@ -24,6 +24,11 @@ namespace Xtensive.Orm.Reprocessing
     /// </value>
     public int Attempts { get; set; }
 
+    /// <summary>
+    /// Builds the domain with specified configuration.
+    /// </summary>
+    /// <param name="config">The configuration.</param>
+    /// <returns>The domain.</returns>
     public override Domain Build(DomainConfiguration config)
     {
       int i = 0;
@@ -42,6 +47,10 @@ namespace Xtensive.Orm.Reprocessing
       }
     }
 
+    /// <summary>
+    /// Raises the <see cref="E:Error"/> event.
+    /// </summary>
+    /// <param name="args">The <see cref="Xtensive.Orm.Reprocessing.DomainBuildErrorEventArgs"/> instance containing the event data.</param>
     protected virtual void OnError(DomainBuildErrorEventArgs args)
     {
       if (Error != null)

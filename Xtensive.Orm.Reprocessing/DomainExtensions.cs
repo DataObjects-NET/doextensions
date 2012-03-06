@@ -37,7 +37,7 @@ namespace Xtensive.Orm.Reprocessing
     /// <param name="domain">The domain of the task.</param>
     /// <param name="isolationLevel">Isolation level of the task.</param>
     /// <param name="action">The task with <see cref="Void"/> result.</param>
-    public static void Execute(this Domain domain, IsolationLevel isolationLevel, Action<Session> action)
+    public static void Execute(this Domain domain, Action<Session> action, IsolationLevel isolationLevel)
     {
       ExecuteInternal(domain, isolationLevel, null, null, action);
     }
@@ -50,7 +50,7 @@ namespace Xtensive.Orm.Reprocessing
     /// <param name="func">The task with T result.</param>
     /// <typeparam name="T">Return type of the task.</typeparam>
     /// <returns>The task result.</returns>
-    public static T Execute<T>(this Domain domain, IExecuteActionStrategy strategy, Func<Session, T> func)
+    public static T Execute<T>(this Domain domain, Func<Session, T> func, IExecuteActionStrategy strategy)
     {
       return ExecuteInternal(domain, IsolationLevel.Unspecified, null, strategy, func);
     }
@@ -61,7 +61,7 @@ namespace Xtensive.Orm.Reprocessing
     /// <param name="domain">The domain of the task.</param>
     /// <param name="strategy">Execute strategy of the task.</param>
     /// <param name="action">The task with <see cref="Void"/> result.</param>
-    public static void Execute(this Domain domain, IExecuteActionStrategy strategy, Action<Session> action)
+    public static void Execute(this Domain domain, Action<Session> action, IExecuteActionStrategy strategy)
     {
       ExecuteInternal(domain, IsolationLevel.Unspecified, null, strategy, action);
     }
@@ -75,7 +75,7 @@ namespace Xtensive.Orm.Reprocessing
     /// <param name="func">Task with T result.</param>
     /// <typeparam name="T">Return type of the task.</typeparam>
     /// <returns>The task result.</returns>
-    public static T Execute<T>(this Domain domain, IsolationLevel isolationLevel, Func<Session, T> func)
+    public static T Execute<T>(this Domain domain, Func<Session, T> func, IsolationLevel isolationLevel)
     {
       return ExecuteInternal(domain, isolationLevel, null, null, func);
     }
@@ -88,7 +88,7 @@ namespace Xtensive.Orm.Reprocessing
     /// <param name="strategy">Execute strategy of the task.</param>
     /// <param name="action">The task with <see cref="Void"/> result.</param>
     public static void Execute(
-      this Domain domain, IsolationLevel isolationLevel, IExecuteActionStrategy strategy, Action<Session> action)
+      this Domain domain, Action<Session> action, IsolationLevel isolationLevel, IExecuteActionStrategy strategy)
     {
       ExecuteInternal(domain, isolationLevel, null, strategy, action);
     }
@@ -103,7 +103,7 @@ namespace Xtensive.Orm.Reprocessing
     /// <typeparam name="T">Return type of the task.</typeparam>
     /// <returns>The task result.</returns>
     public static T Execute<T>(
-      this Domain domain, IsolationLevel isolationLevel, IExecuteActionStrategy strategy, Func<Session, T> func)
+      this Domain domain, Func<Session, T> func, IsolationLevel isolationLevel, IExecuteActionStrategy strategy)
     {
       return ExecuteInternal(domain, isolationLevel, null, strategy, func);
     }
@@ -118,10 +118,10 @@ namespace Xtensive.Orm.Reprocessing
     /// <param name="action">Task with <see cref="Void"/> result.</param>
     public static void Execute(
       this Domain domain,
+      Action<Session> action,
       IsolationLevel isolationLevel,
       TransactionOpenMode transactionOpenMode,
-      IExecuteActionStrategy strategy,
-      Action<Session> action)
+      IExecuteActionStrategy strategy)
     {
       ExecuteInternal(domain, isolationLevel, transactionOpenMode, strategy, action);
     }
@@ -138,10 +138,10 @@ namespace Xtensive.Orm.Reprocessing
     /// <returns>The task result.</returns>
     public static T Execute<T>(
       this Domain domain,
+      Func<Session, T> func,
       IsolationLevel isolationLevel,
       TransactionOpenMode transactionOpenMode,
-      IExecuteActionStrategy strategy,
-      Func<Session, T> func)
+      IExecuteActionStrategy strategy)
     {
       return ExecuteInternal(domain, isolationLevel, transactionOpenMode, strategy, func);
     }
@@ -154,7 +154,7 @@ namespace Xtensive.Orm.Reprocessing
     /// <param name="transactionOpenMode">Transaction open mode of the task.</param>
     /// <param name="action">The task with <see cref="Void"/> result.</param>
     public static void Execute(
-      this Domain domain, IsolationLevel isolationLevel, TransactionOpenMode transactionOpenMode, Action<Session> action)
+      this Domain domain, Action<Session> action, IsolationLevel isolationLevel, TransactionOpenMode transactionOpenMode)
     {
       ExecuteInternal(domain, isolationLevel, transactionOpenMode, null, action);
     }
@@ -169,7 +169,7 @@ namespace Xtensive.Orm.Reprocessing
     /// <typeparam name="T">Return type of the task.</typeparam>
     /// <returns>The task result.</returns>
     public static T Execute<T>(
-      this Domain domain, IsolationLevel isolationLevel, TransactionOpenMode transactionOpenMode, Func<Session, T> func)
+      this Domain domain, Func<Session, T> func, IsolationLevel isolationLevel, TransactionOpenMode transactionOpenMode)
     {
       return ExecuteInternal(domain, isolationLevel, transactionOpenMode, null, func);
     }
@@ -180,7 +180,7 @@ namespace Xtensive.Orm.Reprocessing
     /// <param name="domain">The domain of the task.</param>
     /// <param name="transactionOpenMode">Transaction open mode of the task.</param>
     /// <param name="action">The task with <see cref="Void"/> result.</param>
-    public static void Execute(this Domain domain, TransactionOpenMode transactionOpenMode, Action<Session> action)
+    public static void Execute(this Domain domain, Action<Session> action, TransactionOpenMode transactionOpenMode)
     {
       ExecuteInternal(domain, IsolationLevel.Unspecified, transactionOpenMode, null, action);
     }
@@ -193,7 +193,7 @@ namespace Xtensive.Orm.Reprocessing
     /// <param name="func">The task with T result.</param>
     /// <typeparam name="T">Return type of the task.</typeparam>
     /// <returns>The task result.</returns>
-    public static T Execute<T>(this Domain domain, TransactionOpenMode transactionOpenMode, Func<Session, T> func)
+    public static T Execute<T>(this Domain domain, Func<Session, T> func, TransactionOpenMode transactionOpenMode)
     {
       return ExecuteInternal(domain, IsolationLevel.Unspecified, transactionOpenMode, null, func);
     }

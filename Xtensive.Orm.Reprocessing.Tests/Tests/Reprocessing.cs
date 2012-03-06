@@ -30,9 +30,6 @@ namespace Xtensive.Orm.Reprocessing.Tests
       public void Deadlock(bool first, IsolationLevel? isolationLevel, TransactionOpenMode? transactionOpenMode)
       {
         domain.Execute(
-          isolationLevel.GetValueOrDefault(IsolationLevel.RepeatableRead),
-          transactionOpenMode.GetValueOrDefault(TransactionOpenMode.New),
-          ExecuteActionStrategy.UniqueConstraintViolation,
           session => {
             Interlocked.Increment(ref Count);
             new Bar2(session, DateTime.Now, Guid.NewGuid()) {Name = Guid.NewGuid().ToString()};
@@ -54,7 +51,10 @@ namespace Xtensive.Orm.Reprocessing.Tests
               }
               session.Query.All<Foo>().Lock(LockMode.Exclusive, LockBehavior.Wait).ToArray();
             }
-          });
+          },
+          isolationLevel.GetValueOrDefault(IsolationLevel.RepeatableRead),
+          transactionOpenMode.GetValueOrDefault(TransactionOpenMode.New),
+          ExecuteActionStrategy.HandleUniqueConstraintViolation);
       }
 
       public void External(
@@ -94,9 +94,6 @@ namespace Xtensive.Orm.Reprocessing.Tests
         Action<bool, IsolationLevel?, TransactionOpenMode?> action)
       {
         domain.Execute(
-          isolationLevel.GetValueOrDefault(IsolationLevel.RepeatableRead),
-          transactionOpenMode.GetValueOrDefault(TransactionOpenMode.New),
-          strategy,
           session => {
             session.EnsureTransactionIsStarted();
             new Bar2(session, DateTime.Now, Guid.NewGuid()) {Name = Guid.NewGuid().ToString()};
@@ -111,7 +108,10 @@ namespace Xtensive.Orm.Reprocessing.Tests
               wait1.WaitOne();
             }
             action(first, isolationLevel, transactionOpenMode);
-          });
+          },
+          isolationLevel.GetValueOrDefault(IsolationLevel.RepeatableRead),
+          transactionOpenMode.GetValueOrDefault(TransactionOpenMode.New),
+          strategy);
       }
 
       public void Run(
@@ -136,9 +136,6 @@ namespace Xtensive.Orm.Reprocessing.Tests
         bool first, IsolationLevel? isolationLevel, TransactionOpenMode? transactionOpenMode)
       {
         domain.Execute(
-          isolationLevel.GetValueOrDefault(IsolationLevel.RepeatableRead),
-          transactionOpenMode.GetValueOrDefault(TransactionOpenMode.New),
-          ExecuteActionStrategy.UniqueConstraintViolation,
           session => {
             Interlocked.Increment(ref Count);
             session.EnsureTransactionIsStarted();
@@ -160,16 +157,16 @@ namespace Xtensive.Orm.Reprocessing.Tests
               new Foo(session) {Name = name};
             }
             session.SaveChanges();
-          });
+          },
+          isolationLevel.GetValueOrDefault(IsolationLevel.RepeatableRead),
+          transactionOpenMode.GetValueOrDefault(TransactionOpenMode.New),
+          ExecuteActionStrategy.HandleUniqueConstraintViolation);
       }
 
       public void UniqueConstraintViolationPrimaryKey(
         bool first, IsolationLevel? isolationLevel, TransactionOpenMode? transactionOpenMode)
       {
         domain.Execute(
-          isolationLevel.GetValueOrDefault(IsolationLevel.RepeatableRead),
-          transactionOpenMode.GetValueOrDefault(TransactionOpenMode.New),
-          ExecuteActionStrategy.UniqueConstraintViolation,
           session => {
             Interlocked.Increment(ref Count);
             session.EnsureTransactionIsStarted();
@@ -193,7 +190,10 @@ namespace Xtensive.Orm.Reprocessing.Tests
               new Foo(session, id) {Name = Guid.NewGuid().ToString()};
             }
             session.SaveChanges();
-          });
+          },
+          isolationLevel.GetValueOrDefault(IsolationLevel.RepeatableRead),
+          transactionOpenMode.GetValueOrDefault(TransactionOpenMode.New),
+          ExecuteActionStrategy.HandleUniqueConstraintViolation);
       }
 
       public Context(Domain domain)
@@ -221,7 +221,7 @@ namespace Xtensive.Orm.Reprocessing.Tests
       context.Run(
         IsolationLevel.Serializable,
         null,
-        (b, level, open) => context.Parent(b, level, open, ExecuteActionStrategy.Reprocessable, context.Deadlock));
+        (b, level, open) => context.Parent(b, level, open, ExecuteActionStrategy.HandleReprocessableException, context.Deadlock));
       Assert.That(context.Count, Is.EqualTo(3));
       Assert.That(Bar2Count(), Is.EqualTo(4));
 
@@ -230,7 +230,7 @@ namespace Xtensive.Orm.Reprocessing.Tests
       context.Run(
         IsolationLevel.Snapshot,
         null,
-        (b, level, open) => context.Parent(b, level, open, ExecuteActionStrategy.Reprocessable, context.Deadlock));
+        (b, level, open) => context.Parent(b, level, open, ExecuteActionStrategy.HandleReprocessableException, context.Deadlock));
       Assert.That(context.Count, Is.EqualTo(3));
       Assert.That(Bar2Count(), Is.EqualTo(4));
 
@@ -244,9 +244,9 @@ namespace Xtensive.Orm.Reprocessing.Tests
             b,
             level,
             open,
-            ExecuteActionStrategy.Reprocessable,
+            ExecuteActionStrategy.HandleReprocessableException,
             (b1, level1, open1) =>
-              context.Parent(b1, level1, open1, ExecuteActionStrategy.Reprocessable, context.Deadlock)));
+              context.Parent(b1, level1, open1, ExecuteActionStrategy.HandleReprocessableException, context.Deadlock)));
       Assert.That(context.Count, Is.EqualTo(3));
       Assert.That(Bar2Count(), Is.EqualTo(6));
 
@@ -257,7 +257,7 @@ namespace Xtensive.Orm.Reprocessing.Tests
         null,
         (b, level, open) =>
           context.Parent(
-            b, level, open, ExecuteActionStrategy.UniqueConstraintViolation, context.UniqueConstraintViolationPrimaryKey));
+            b, level, open, ExecuteActionStrategy.HandleUniqueConstraintViolation, context.UniqueConstraintViolationPrimaryKey));
       Assert.That(context.Count, Is.EqualTo(3));
       Assert.That(Bar2Count(), Is.EqualTo(4));
 
@@ -268,7 +268,7 @@ namespace Xtensive.Orm.Reprocessing.Tests
         null,
         (b, level, open) =>
           context.Parent(
-            b, level, null, ExecuteActionStrategy.UniqueConstraintViolation, context.UniqueConstraintViolation));
+            b, level, null, ExecuteActionStrategy.HandleUniqueConstraintViolation, context.UniqueConstraintViolation));
       Assert.That(context.Count, Is.EqualTo(3));
       Assert.That(Bar2Count(), Is.EqualTo(4));
 
@@ -287,7 +287,7 @@ namespace Xtensive.Orm.Reprocessing.Tests
                 b1,
                 IsolationLevel.Snapshot,
                 open1,
-                ExecuteActionStrategy.UniqueConstraintViolation,
+                ExecuteActionStrategy.HandleUniqueConstraintViolation,
                 context.UniqueConstraintViolation)));
       Assert.That(context.Count, Is.EqualTo(3));
       Assert.That(Bar2Count(), Is.EqualTo(4));
@@ -310,7 +310,7 @@ namespace Xtensive.Orm.Reprocessing.Tests
                       b1,
                       level1,
                       open1,
-                      ExecuteActionStrategy.UniqueConstraintViolation,
+                      ExecuteActionStrategy.HandleUniqueConstraintViolation,
                       context.UniqueConstraintViolation))));
       Assert.That(
         ex.InnerExceptions.Single(),
@@ -325,7 +325,7 @@ namespace Xtensive.Orm.Reprocessing.Tests
         IsolationLevel.ReadUncommitted,
         TransactionOpenMode.Auto,
         (b, l, o) =>
-          context.Parent(b, l, o, ExecuteActionStrategy.UniqueConstraintViolation, context.UniqueConstraintViolation));
+          context.Parent(b, l, o, ExecuteActionStrategy.HandleUniqueConstraintViolation, context.UniqueConstraintViolation));
       Assert.That(context.Count, Is.EqualTo(3));
       Assert.That(Bar2Count(), Is.EqualTo(4));
     }
@@ -335,13 +335,13 @@ namespace Xtensive.Orm.Reprocessing.Tests
     {
       int i = 0;
       Domain.Execute(
-        ExecuteActionStrategy.UniqueConstraintViolation,
         session => {
           new Foo(session, i);
           i++;
           if (i < 5)
             new Foo(session, i);
-        });
+        },
+        ExecuteActionStrategy.HandleUniqueConstraintViolation);
       Assert.That(i, Is.EqualTo(5));
     }
 
@@ -350,15 +350,15 @@ namespace Xtensive.Orm.Reprocessing.Tests
     {
       int i = 0;
       bool b = false;
-      ExecuteActionStrategy.UniqueConstraintViolation.Error += (sender, args) => b = true;
+      ExecuteActionStrategy.HandleUniqueConstraintViolation.Error += (sender, args) => b = true;
       Domain.Execute(
-        ExecuteActionStrategy.UniqueConstraintViolation,
         session => {
           new Foo(session) {Name = "test"};
           i++;
           if (i < 5)
             new Foo(session) {Name = "test"};
-        });
+        },
+        ExecuteActionStrategy.HandleUniqueConstraintViolation);
       Assert.That(i, Is.EqualTo(5));
       Assert.That(b, Is.True);
     }

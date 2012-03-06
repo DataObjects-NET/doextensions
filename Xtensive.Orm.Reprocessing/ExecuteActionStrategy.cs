@@ -18,13 +18,13 @@ namespace Xtensive.Orm.Reprocessing
     /// <summary>
     /// Gets singleton of the <see cref="HandleReprocessableExceptionStrategy"/>.
     /// </summary>
-    public static readonly HandleReprocessableExceptionStrategy Reprocessable =
+    public static readonly HandleReprocessableExceptionStrategy HandleReprocessableException =
       new HandleReprocessableExceptionStrategy();
 
     /// <summary>
     /// Gets singleton of the <see cref="HandleUniqueConstraintViolationStrategy"/>.
     /// </summary>
-    public static readonly HandleUniqueConstraintViolationStrategy UniqueConstraintViolation =
+    public static readonly HandleUniqueConstraintViolationStrategy HandleUniqueConstraintViolation =
       new HandleUniqueConstraintViolationStrategy();
 
     /// <summary>
@@ -120,9 +120,9 @@ namespace Xtensive.Orm.Reprocessing
     public static IExecuteActionStrategy GetSingleton(Type type)
     {
       if (type==typeof (HandleReprocessableExceptionStrategy))
-        return Reprocessable;
+        return HandleReprocessableException;
       if (type==typeof (HandleUniqueConstraintViolationStrategy))
-        return UniqueConstraintViolation;
+        return HandleUniqueConstraintViolation;
       if (type==typeof (NoReprocessStrategy))
         return NoReprocess;
       return Singletons.GetOrAdd(type, a => (IExecuteActionStrategy) Activator.CreateInstance(type));

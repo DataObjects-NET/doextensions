@@ -8,7 +8,7 @@
     /// <summary>
     /// <see cref="HandleReprocessableExceptionStrategy"/>
     /// </summary>
-    Reprocessable,
+    HandleReprocessableException,
     /// <summary>
     /// <see cref="NoReprocessStrategy"/>
     /// </summary>
@@ -16,6 +16,6 @@
     /// <summary>
     /// <see cref="HandleUniqueConstraintViolationStrategy"/>
     /// </summary>
-    UniqueConstraintViolation
+    HandleUniqueConstraintViolation
   }
 }

@@ -42,7 +42,7 @@ namespace Xtensive.Orm.Reprocessing
       
 
     /// <summary>
-    /// Gets or sets the domain in wich context should run all methods marked with this attribute.
+    /// Gets or sets the domain in which context should run all methods marked with this attribute.
     /// </summary>
     /// <value>
     /// The domain.
@@ -62,14 +62,14 @@ namespace Xtensive.Orm.Reprocessing
       {
         switch (Strategy.Value)
         {
-          case StandardExecutionStrategy.Reprocessable:
-            strategy = ExecuteActionStrategy.Reprocessable;
+          case StandardExecutionStrategy.HandleReprocessableException:
+            strategy = ExecuteActionStrategy.HandleReprocessableException;
             break;
           case StandardExecutionStrategy.NoReprocess:
             strategy = ExecuteActionStrategy.NoReprocess;
             break;
-          case StandardExecutionStrategy.UniqueConstraintViolation:
-            strategy = ExecuteActionStrategy.UniqueConstraintViolation;
+          case StandardExecutionStrategy.HandleUniqueConstraintViolation:
+            strategy = ExecuteActionStrategy.HandleUniqueConstraintViolation;
             break;
           default:
             throw new ArgumentOutOfRangeException();
