@@ -51,7 +51,6 @@ public class Global : System.Web.HttpApplication
   }
 }
 
-
 How to use
 ----------
   public partial class EditCustomer : System.Web.UI.Page
