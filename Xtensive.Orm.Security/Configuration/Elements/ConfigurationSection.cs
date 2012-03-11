@@ -18,7 +18,7 @@ namespace Xtensive.Orm.Security.Configuration
     /// Gets default section name for security configuration.
     /// Value is "Xtensive.Security".
     /// </summary>
-    public static readonly string DefaultSectionName = "Xtensive.Security";
+    public static readonly string DefaultSectionName = "Xtensive.Orm.Security";
 
     private const string HashingServiceElementName = "hashingService";
     private const string AuthenticationServiceElementName = "authenticationService";
