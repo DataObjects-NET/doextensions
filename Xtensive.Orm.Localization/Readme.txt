@@ -1,8 +1,9 @@
-Xtensive.Orm.Localization extension
-===================================
+=========================
+Xtensive.Orm.Localization
+=========================
 
-Overview
---------
+Summary
+-------
 The extension transparently solves a task of application or service localization.
 This implies that localizable resources are a part of domain model so they are stored in database.
 
@@ -10,8 +11,8 @@ Prerequisites
 -------------
 DataObjects.Net 4.5 or later (http://dataobjects.net)
 
-Configuration
--------------
+Implementation
+--------------
 1. Add reference to Xtensive.Orm.Localization assembly
 2. Include types from Xtensive.Orm.Localization assembly into the domain:
 
@@ -59,9 +60,8 @@ Configuration
       : base(session, culture, target) {}
   }
 
-How to use
-----------
-
+Demo
+----
 1. Access localizable properties as regular ones, e.g.:
 
   page.Title = "Welcome";
@@ -108,6 +108,6 @@ How to use
   Assert.AreEqual(1, query.Count());
 
 
-More information
-----------------
+References
+----------
 http://doextensions.codeplex.com

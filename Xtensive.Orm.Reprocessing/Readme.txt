@@ -1,8 +1,9 @@
-Xtensive.Orm.Reprocessing extension
-===================================
+=========================
+Xtensive.Orm.Reprocessing
+=========================
 
-Overview
---------
+Summary
+-------
 The extension provides API for reprocessible operations. The reprocessible operation 
 should represent a separate block of logic, usually a delegate of a method and be transactional.
 
@@ -10,12 +11,12 @@ Prerequisites
 -------------
 DataObjects.Net 4.5 or later (http://dataobjects.net)
 
-Configuration
--------------
+Implementation
+--------------
 1. Add reference to Xtensive.Orm.Reprocessing assembly
 
-How to use
-----------
+Demo
+----
 1. Simple reprocessible operation looks like this:
 
 Domain.Execute(session =>
@@ -52,6 +53,6 @@ application configuration file, e.g.:
   </Xtensive.Orm.Reprocessing>
 
 
-More information
-----------------
+References
+----------
 http://doextensions.codeplex.com

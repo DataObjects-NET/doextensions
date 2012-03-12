@@ -1,8 +1,9 @@
-﻿Xtensive.Orm.Web extension
-==========================
+﻿================
+Xtensive.Orm.Web
+================
 
-Overview
---------
+Summary
+-------
 The extension adds integration for DataObjects.Net and ASP.NET. It contains SessionManager class 
 which is an implementation of IHttpModule and automatically provides Session and transaction for each web request.
 
@@ -25,8 +26,8 @@ Prerequisites
 -------------
 DataObjects.Net 4.5 or later (http://dataobjects.net)
 
-Configuration
--------------
+Implementation
+--------------
 1. Register SessionManager in HttpModulesSection in web.config file.
 
 web.config: 
@@ -51,8 +52,8 @@ public class Global : System.Web.HttpApplication
   }
 }
 
-How to use
-----------
+Demo
+----
   public partial class EditCustomer : System.Web.UI.Page
   {
     protected void Page_Load(object sender, EventArgs e)
@@ -83,6 +84,6 @@ How to use
       }
     }
 
-More information
-----------------
+References
+----------
 http://doextensions.codeplex.com

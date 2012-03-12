@@ -1,8 +1,9 @@
-Xtensive.Orm.Web extension
-==========================
+=====================
+Xtensive.Orm.Security
+=====================
 
-Overview
---------
+Summary
+-------
 The extension provides full-fledged security layer (authentication services, principals, roles, secured queries)
 There are 2 main parts that can also be used separately: authentication services and role-based access to domain entities
 
@@ -10,8 +11,8 @@ Prerequisites
 -------------
 DataObjects.Net 4.5 or later (http://dataobjects.net)
 
-Configuration
--------------
+Implementation
+--------------
 1. Add reference to Xtensive.Orm.Security assembly
 2. Include types from Xtensive.Orm.Security assembly into the domain:
 
@@ -37,8 +38,8 @@ and set up the desired hashing service:
     <!-- other options are: md5, sha1, sha256, sha384, sha512 -->
   </Xtensive.Orm.Security>
 
-How to use
-----------
+Demo
+----
 
 1. Define a class that inherits GenericPrincipal class that will describe your users, e.g.:
 
@@ -230,6 +231,6 @@ customers that have IsAutomobileIndustry property set to true, e.g.:
     }
   }
 
-More information
-----------------
+References
+----------
 http://doextensions.codeplex.com

@@ -1,8 +1,9 @@
-Xtensive.Orm.BulkOperations extension
-=====================================
+===========================
+Xtensive.Orm.BulkOperations
+===========================
 
-Overview
---------
+Summary
+-------
 The extension provides a set of IQueryable extension methods that are translated 
 to server-side UPDATE or DELETE commands.
 
@@ -10,12 +11,12 @@ Prerequisites
 -------------
 DataObjects.Net 4.5 or later (http://dataobjects.net)
 
-Configuration
+Implementation
 -------------
 1. Add reference to Xtensive.Orm.BulkOperations assembly
 
-How to use
-----------
+Demo
+----
 1. Update primitive property with a constant value, e.g.:
 
 Query.All<Bar>()
@@ -77,6 +78,6 @@ Query.All<Foo>()
   .Where(a => a.Id == 1)
   .Delete();
 
-More information
-----------------
+References
+----------
 http://doextensions.codeplex.com
