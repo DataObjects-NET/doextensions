@@ -12,7 +12,7 @@ DataObjects.Net 4.5 or later (http://dataobjects.net)
 
 Configuration
 -------------
-1. Reference Xtensive.Orm.Localization assembly
+1. Add reference to Xtensive.Orm.Localization assembly
 2. Include types from Xtensive.Orm.Localization assembly into the domain:
 
   <Xtensive.Orm>
