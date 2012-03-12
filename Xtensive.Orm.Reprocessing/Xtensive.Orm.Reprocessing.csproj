@@ -77,6 +77,8 @@
     <Compile Include="HandleReprocessableExceptionStrategy.cs" />
     <Compile Include="HandleUniqueConstraintViolationStrategy.cs" />
     <Compile Include="IExecuteActionStrategy.cs" />
+    <Compile Include="IExecuteConfiguration.cs" />
+    <Compile Include="Internals\ExecuteConfiguration.cs" />
     <Compile Include="Internals\Extensions.cs" />
     <Compile Include="NoReprocessStrategy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
