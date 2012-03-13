@@ -33,7 +33,7 @@ Domain.Execute(session =>
 - NoReprocess strategy
     No reprocessing is provided
 
-To indicate that a particular strategy chould be applied, use the following syntax:
+To indicate that a particular strategy should be used, use the following syntax:
 
 Domain.WithStrategy(new HandleReprocessExceptionStrategy())
       .Execute(session =>
@@ -41,17 +41,22 @@ Domain.WithStrategy(new HandleReprocessExceptionStrategy())
             // Task logic
           });
 
-3. To omit setting up the strategy each time you might want to configure it in 
+3. To omit setting up the strategy each time consider configuring it in 
 application configuration file, e.g.:
 
-<configSections>
+  <configSections>
     ...
-    <section name="Xtensive.Orm.Reprocessing" type="Xtensive.Orm.Reprocessing.Configuration.ConfigurationSection, Xtensive.Orm.Reprocessing" />
+    <section name="Xtensive.Orm.Reprocessing" 
+      type="Xtensive.Orm.Reprocessing.Configuration.ConfigurationSection, Xtensive.Orm.Reprocessing" />
   </configSections>
 
-  <Xtensive.Orm.Reprocessing defaultTransactionOpenMode="New" defaultExecuteStrategy="Xtensive.Orm.Reprocessing.HandleReprocessableExceptionStrategy, Xtensive.Orm.Reprocessing">
+  <Xtensive.Orm.Reprocessing 
+    defaultTransactionOpenMode="New" 
+    defaultExecuteStrategy="Xtensive.Orm.Reprocessing.HandleReprocessableExceptionStrategy, Xtensive.Orm.Reprocessing">
   </Xtensive.Orm.Reprocessing>
 
+Having that done, in scenarios with no strategy specified, the extension will automatically use 
+the strategy from the configuration.
 
 References
 ----------
