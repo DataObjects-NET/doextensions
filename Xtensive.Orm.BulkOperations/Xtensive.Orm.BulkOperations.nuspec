@@ -13,11 +13,11 @@
     <description>Adds support for bulk insert, update and delete operations for DataObjects.Net-powered domain models</description>
     <releaseNotes></releaseNotes>
     <copyright>Copyright 2012</copyright>
-    <tags>DataObjects.Net Extensions Persistance ORM BulkOperations</tags>
+    <tags>DataObjects.Net Extensions Persistence ORM BulkOperations</tags>
     <summary>Bulk operations for DataObjects.Net</summary>
   </metadata>
   <files>
-    <file src="..\Install.ps1" target="tools\Install.ps1" />
+    <file src="..\_NuGet\Install.ps1" target="tools\Install.ps1" />
     <file src="Readme.txt" target="tools\Readme.txt" />
   </files>
 </package>

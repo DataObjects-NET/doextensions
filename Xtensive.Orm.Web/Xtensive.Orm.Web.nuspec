@@ -13,11 +13,11 @@
     <description>Adds integration with ASP.NET for DataObjects.Net-powered projects</description>
     <releaseNotes></releaseNotes>
     <copyright>Copyright 2012</copyright>
-    <tags>DataObjects.Net Extensions Persistance ORM ASP.NET</tags>
+    <tags>DataObjects.Net Extensions Persistence ORM ASP.NET</tags>
     <summary>Integration DataObjects.net and ASP.NET</summary>
   </metadata>
   <files>
-    <file src="..\Install.ps1" target="tools\Install.ps1" />
+    <file src="..\_NuGet\Install.ps1" target="tools\Install.ps1" />
     <file src="Readme.txt" target="tools\Readme.txt" />
   </files>
 </package>
