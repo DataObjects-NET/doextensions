@@ -62,10 +62,9 @@ namespace Xtensive.Orm.Reprocessing
               SystemTransaction currentTransaction = SystemTransaction.Current;
               if (isolationLevel==IsolationLevel.Unspecified && currentTransaction!=null)
                 isolationLevel = currentTransaction.IsolationLevel;
-              var sessionConfig = new SessionConfiguration {DefaultIsolationLevel = isolationLevel};
               session = SessionScope.CurrentSession;
               if (session==null) {
-                session = context.Domain.OpenSession(sessionConfig);
+                session = context.Domain.OpenSession();
                 sessionScope = session.Activate();
               }
               if (currentTransaction!=null && session.Transaction!=null)
