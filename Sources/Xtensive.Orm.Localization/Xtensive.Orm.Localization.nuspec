@@ -11,8 +11,6 @@
     <iconUrl>http://dataobjects.net/img/doex-nuget.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Adds support for easy localization for DataObjects.Net-powered domain models</description>
-    <releaseNotes></releaseNotes>
-    <copyright>Copyright 2012</copyright>
     <tags>DataObjects.Net Extensions Persistence ORM Localization</tags>
     <summary>Localization for DataObjects.Net</summary>
     <dependencies>

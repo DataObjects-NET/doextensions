@@ -11,8 +11,6 @@
     <iconUrl>http://dataobjects.net/img/doex-nuget.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Adds security layer for DataObjects.Net-powered projects</description>
-    <releaseNotes></releaseNotes>
-    <copyright>Copyright 2012</copyright>
     <tags>DataObjects.Net Extensions Persistence ORM Security</tags>
     <summary>Security layer for DataObjects.Net</summary>
     <dependencies>
