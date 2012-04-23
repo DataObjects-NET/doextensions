@@ -33,7 +33,11 @@
   <MakeDir Directories="$(PackagesDir)" />
 </Target>
 
-<Target Name="BuildPackages" DependsOnTargets="CheckConfiguration;MakePackagesDir;Build"
+<Target Name="CleanPackages">
+  <RemoveDir Directories="$(PackagesDir)" />
+</Target>
+
+<Target Name="BuildPackages" DependsOnTargets="CheckConfiguration;MakePackagesDir;BuildBinaries"
         Inputs="@(SpecFiles)" Outputs="%(Identity).Fake">
   <PropertyGroup>
     <SpecPath>%(SpecFiles.RootDir)%(SpecFiles.Directory)</SpecPath>
@@ -43,14 +47,17 @@
   <Exec Command="$(BuildCommand)" />
 </Target>
 
-<Target Name="Build" DependsOnTargets="RestorePackages">
+<Target Name="BuildBinaries" DependsOnTargets="RestorePackages">
   <MSBuild Projects="@(Projects)" Targets="Build" />
 </Target>
 
-<Target Name="Clean" DependsOnTargets="RestorePackages">
+<Target Name="CleanBinaries" DependsOnTargets="RestorePackages">
   <MSBuild Projects="@(Projects)" Targets="Clean" />
   <RemoveDir Directories="_Build\Binaries\$(Configuration)" />
 </Target>
+
+<Target Name="Build" DependsOnTargets="BuildBinaries;BuildPackages" />
+<Target Name="Clean" DependsOnTargets="CleanBinaries;CleanPackages" />
 
 <Target Name="Rebuild">
   <CallTarget Targets="Clean" />
