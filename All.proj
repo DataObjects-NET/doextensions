@@ -24,20 +24,13 @@
   <Exec Command="$(RestoreCommand)" />
 </Target>
 
-<Target Name="CheckConfiguration">
-  <Error Condition="'$(Configuration)'!='Release'"
-         Message="Only 'Release' configuration is supported for specified target" />
-</Target>
-
 <Target Name="MakePackagesDir">
   <MakeDir Directories="$(PackagesDir)" />
 </Target>
 
-<Target Name="CleanPackages">
-  <RemoveDir Directories="$(PackagesDir)" />
-</Target>
-
-<Target Name="BuildPackages" DependsOnTargets="CheckConfiguration;MakePackagesDir;BuildBinaries"
+<Target Name="BuildPackages"
+        Condition="'$(Configuration)'=='Release'"
+        DependsOnTargets="MakePackagesDir;BuildBinaries"
         Inputs="@(SpecFiles)" Outputs="%(Identity).Fake">
   <PropertyGroup>
     <SpecPath>%(SpecFiles.RootDir)%(SpecFiles.Directory)</SpecPath>
@@ -45,6 +38,10 @@
     <BuildCommand>nuget pack "$(SpecPath)$(SpecFile)" -p Configuration=Release -o $(PackagesDir) -symbols</BuildCommand>
   </PropertyGroup>
   <Exec Command="$(BuildCommand)" />
+</Target>
+
+<Target Name="CleanPackages">
+  <RemoveDir Directories="$(PackagesDir)" />
 </Target>
 
 <Target Name="BuildBinaries" DependsOnTargets="RestorePackages">
