@@ -5,7 +5,7 @@
     <version>$version$</version>
     <title>$title$</title>
     <authors>$author$</authors>
-    <owners>xtensive proff</owners>
+    <owners>$author$</owners>
     <licenseUrl>http://doextensions.codeplex.com/license</licenseUrl>
     <projectUrl>http://doextensions.codeplex.com/</projectUrl>
     <iconUrl>http://dataobjects.net/img/doex-nuget.png</iconUrl>
