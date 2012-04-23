@@ -71,6 +71,9 @@
     <Compile Include="Other.cs" />
     <Compile Include="ReferenceFields.cs" />
     <Compile Include="Structures.cs" />
+    <Compile Include="..\ProductInfo.cs">
+      <Link>Properties\ProductInfo.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

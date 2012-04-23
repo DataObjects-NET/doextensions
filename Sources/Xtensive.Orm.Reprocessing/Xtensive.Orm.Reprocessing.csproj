@@ -15,10 +15,6 @@
     <DocumentationFile>..\..\_Build\Binaries\$(Configuration)\$(AssemblyName).xml</DocumentationFile>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\Extensions.snk</AssemblyOriginatorKeyFile>
-    <TargetFrameworkProfile>
-    </TargetFrameworkProfile>
-    <DataObjectsDotNetPath>$(MSBuildProjectDirectory)\..\..\Lib\DataObjects.Net\</DataObjectsDotNetPath>
-    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <DontImportPostSharp>True</DontImportPostSharp>
     <XtensiveOrmIntegratedPostSharp>false</XtensiveOrmIntegratedPostSharp>
   </PropertyGroup>

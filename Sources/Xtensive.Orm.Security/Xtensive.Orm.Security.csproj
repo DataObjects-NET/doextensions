@@ -15,7 +15,6 @@
     <DocumentationFile>..\..\_Build\Binaries\$(Configuration)\$(AssemblyName).xml</DocumentationFile>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\Extensions.snk</AssemblyOriginatorKeyFile>
-    <DataObjectsDotNetPath>$(MSBuildProjectDirectory)\..\..\Lib\DataObjects.Net\</DataObjectsDotNetPath>
     <DontImportPostSharp>True</DontImportPostSharp>
     <XtensiveOrmIntegratedPostSharp>false</XtensiveOrmIntegratedPostSharp>
   </PropertyGroup>
