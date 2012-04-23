@@ -4,10 +4,12 @@
 
 <PropertyGroup>
   <Configuration Condition="'$(Configuration)'==''">Release</Configuration>
+  <PackagesDir>_Build\Packages</PackagesDir>
 </PropertyGroup>
 
 <ItemGroup>
   <PackageLists Include="Sources\*\packages.config" />
+  <SpecFiles Include="Sources\*\*.nuspec" />
   <Projects Include="Sources\Extensions.sln">
     <Properties>Configuration=$(Configuration)</Properties>
   </Projects>
@@ -15,10 +17,30 @@
 
 <Target Name="RestorePackages" Inputs="@(PackageLists)" Outputs="%(Identity).Fake">
   <PropertyGroup>
-    <PackagesConfig>Sources\%(PackageLists.RecursiveDir)packages.config</PackagesConfig>
-    <RestoreCommand>nuget install $(PackagesConfig) -source "" -o Sources\packages</RestoreCommand>
+    <ConfigPath>%(PackageLists.RootDir)%(PackageLists.Directory)</ConfigPath>
+    <ConfigFile>%(PackageLists.Filename)%(PackageLists.Extension)</ConfigFile>
+    <RestoreCommand>nuget install "$(ConfigPath)$(ConfigFile)" -source "" -o Sources\packages</RestoreCommand>
   </PropertyGroup>
   <Exec Command="$(RestoreCommand)" />
+</Target>
+
+<Target Name="CheckConfiguration">
+  <Error Condition="'$(Configuration)'!='Release'"
+         Message="Only 'Release' configuration is supported for specified target" />
+</Target>
+
+<Target Name="MakePackagesDir">
+  <MakeDir Directories="$(PackagesDir)" />
+</Target>
+
+<Target Name="BuildPackages" DependsOnTargets="CheckConfiguration;MakePackagesDir;Build"
+        Inputs="@(SpecFiles)" Outputs="%(Identity).Fake">
+  <PropertyGroup>
+    <SpecPath>%(SpecFiles.RootDir)%(SpecFiles.Directory)</SpecPath>
+    <SpecFile>%(SpecFiles.Filename).csproj</SpecFile>
+    <BuildCommand>nuget pack "$(SpecPath)$(SpecFile)" -p Configuration=Release -o $(PackagesDir) -symbols</BuildCommand>
+  </PropertyGroup>
+  <Exec Command="$(BuildCommand)" />
 </Target>
 
 <Target Name="Build" DependsOnTargets="RestorePackages">

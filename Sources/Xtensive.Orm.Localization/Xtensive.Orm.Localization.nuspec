@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
-<package >
+<package>
   <metadata>
     <id>$id$</id>
     <version>$version$</version>
     <title>$title$</title>
     <authors>$author$</authors>
-    <owners>$author$</owners>
+    <owners>xtensive proff</owners>
     <licenseUrl>http://doextensions.codeplex.com/license</licenseUrl>
     <projectUrl>http://doextensions.codeplex.com/</projectUrl>
     <iconUrl>http://dataobjects.net/img/doex-nuget.png</iconUrl>
@@ -15,12 +15,11 @@
     <copyright>Copyright 2012</copyright>
     <tags>DataObjects.Net Extensions Persistence ORM Localization</tags>
     <summary>Localization for DataObjects.Net</summary>
+    <dependencies>
+      <dependency id="Xtensive.Orm" version="[4.5.0, 4.6.0)" />
+    </dependencies>
   </metadata>
   <files>
-    <file src="..\_NuGet\Install.ps1" target="tools\Install.ps1" />
-    <file src="Readme.txt" target="tools\Readme.txt" />
+    <file src="Readme.txt" target="Readme.txt" />
   </files>
-  <dependencies>
-    <dependency id="Xtensive.Orm" version="[4.5.0, 4.6.0)" />
-  </dependencies>
 </package>

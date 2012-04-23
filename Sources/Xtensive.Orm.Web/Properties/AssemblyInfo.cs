@@ -1,9 +1,3 @@
-﻿using System;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Security;
-using System.Security.Permissions;
-using Xtensive.Orm;
+﻿using System.Reflection;
 
-[assembly: AssemblyTitle("Xtensive.Orm.Web")]
+[assembly: AssemblyTitle("ASP.NET support extension for DataObjects.Net")]

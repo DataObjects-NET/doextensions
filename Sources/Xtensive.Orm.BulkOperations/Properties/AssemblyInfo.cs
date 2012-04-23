@@ -1,5 +1,3 @@
 ﻿using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
-[assembly: AssemblyTitle("Xtensive.Orm.BulkOperations")]
+[assembly: AssemblyTitle("Bulk operations extension for DataObjects.Net")]
