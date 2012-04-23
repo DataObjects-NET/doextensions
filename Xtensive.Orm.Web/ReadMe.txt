@@ -35,7 +35,7 @@ web.config:
 <configuration>
   <system.web>
     <httpModules>
-      <add name="SessionManager" type="Xtensive.Orm.Web.SessionManager, Xtensive.Orm"/>
+      <add name="SessionManager" type="Xtensive.Orm.Web.SessionManager, Xtensive.Orm.Web"/>
     </httpModules>
   </system.web>
 </configuration>
