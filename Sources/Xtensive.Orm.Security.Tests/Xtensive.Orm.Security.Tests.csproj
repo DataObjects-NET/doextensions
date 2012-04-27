@@ -75,7 +75,7 @@
     <Compile Include="Roles\SalesPersonRole.cs" />
     <Compile Include="Tests\ImpersonationContextTests.cs" />
     <Compile Include="Tests\PermissionSetTests.cs" />
-    <Compile Include="..\ProductInfo.cs">
+    <Compile Include="..\..\_Build\ProductInfo.cs">
       <Link>Properties\ProductInfo.cs</Link>
     </Compile>
   </ItemGroup>

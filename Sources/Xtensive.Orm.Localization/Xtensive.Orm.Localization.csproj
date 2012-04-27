@@ -68,7 +68,7 @@
     <Compile Include="Localization.cs" />
     <Compile Include="LocalizationSet.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="..\ProductInfo.cs">
+    <Compile Include="..\..\_Build\ProductInfo.cs">
       <Link>Properties\ProductInfo.cs</Link>
     </Compile>
   </ItemGroup>

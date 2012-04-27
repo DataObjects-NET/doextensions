@@ -2,40 +2,101 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003"
          ToolsVersion="4.0" DefaultTargets="Build">
 
+<Import Project="MSBuild\Tasks.targets" />
+
+<PropertyGroup>
+  <Version>4.5.1</Version>
+</PropertyGroup>
+
 <PropertyGroup>
   <Configuration Condition="'$(Configuration)'==''">Release</Configuration>
-  <PackagesDir>_Build\Packages</PackagesDir>
+</PropertyGroup>
+
+<PropertyGroup>
+  <BuildDir>$(MSBuildProjectDirectory)\_Build\</BuildDir>
+  <SourcesDir>$(MSBuildProjectDirectory)\Sources\</SourcesDir>
+  <BinariesDir>$(BuildDir)Binaries\$(Configuration)\</BinariesDir>
+  <PackagesDir>$(BuildDir)Packages\</PackagesDir>
+  <ZipDir>$(BuildDir)Zip\</ZipDir>
 </PropertyGroup>
 
 <ItemGroup>
-  <PackageLists Include="Sources\*\packages.config" />
-  <SpecFiles Include="Sources\*\*.nuspec" />
-  <Projects Include="Sources\Extensions.sln">
+  <SpecFiles Include="$(SourcesDir)*\*.nuspec" />
+  <PackageLists Include="$(SourcesDir)*\packages.config" />
+</ItemGroup>
+
+<ItemGroup>
+  <Projects Include="$(SourcesDir)Extensions.sln">
     <Properties>Configuration=$(Configuration)</Properties>
   </Projects>
 </ItemGroup>
 
+<ItemGroup>
+  <ProductVariables Include="Version">
+    <ReplacementValue>$(Version)</ReplacementValue>
+  </ProductVariables>
+</ItemGroup>
+
+<ItemGroup>
+  <Libraries Include="$(BinariesDir)Xtensive.Orm.Web.dll" />
+  <Libraries Include="$(BinariesDir)Xtensive.Orm.Web.xml" />
+  <Libraries Include="$(BinariesDir)Xtensive.Orm.Web.txt" />
+  
+  <Libraries Include="$(BinariesDir)Xtensive.Orm.BulkOperations.dll" />
+  <Libraries Include="$(BinariesDir)Xtensive.Orm.BulkOperations.xml" />
+  <Libraries Include="$(BinariesDir)Xtensive.Orm.BulkOperations.txt" />
+  
+  <Libraries Include="$(BinariesDir)Xtensive.Orm.Localization.dll" />
+  <Libraries Include="$(BinariesDir)Xtensive.Orm.Localization.xml" />
+  <Libraries Include="$(BinariesDir)Xtensive.Orm.Localization.txt" />
+  
+  <Libraries Include="$(BinariesDir)Xtensive.Orm.Reprocessing.dll" />
+  <Libraries Include="$(BinariesDir)Xtensive.Orm.Reprocessing.xml" />
+  <Libraries Include="$(BinariesDir)Xtensive.Orm.Reprocessing.txt" />
+</ItemGroup>
+
+<Target Name="InitBuildDir">
+  <MakeDir Directories="$(BuildDir)" />
+</Target>
+
+<Target Name="UpdateProductInfo" DependsOnTargets="InitBuildDir">
+  <PropertyGroup>
+    <CompareCommand>fc "$(BuildDir)ProductInfo.cs" "$(BuildDir)ProductInfo.cs.tmp" >nul 2>nul</CompareCommand>
+  </PropertyGroup>
+  <TemplateFile
+    Template="$(SourcesDir)ProductInfo.cs"
+    OutputFilename="$(BuildDir)ProductInfo.cs.tmp"
+    Tokens="@(ProductVariables)" />
+  <Exec Command="$(CompareCommand)" IgnoreExitCode="true">
+    <Output TaskParameter="ExitCode" PropertyName="CompareResult" />
+  </Exec>
+  <Copy
+    Condition="'$(CompareResult)'!='0'"
+    SourceFiles="$(BuildDir)ProductInfo.cs.tmp"
+    DestinationFiles="$(BuildDir)ProductInfo.cs" />
+</Target>
+
 <Target Name="RestorePackages" Inputs="@(PackageLists)" Outputs="%(Identity).Fake">
   <PropertyGroup>
-    <ConfigPath>%(PackageLists.RootDir)%(PackageLists.Directory)</ConfigPath>
-    <ConfigFile>%(PackageLists.Filename)%(PackageLists.Extension)</ConfigFile>
-    <RestoreCommand>nuget install "$(ConfigPath)$(ConfigFile)" -source "" -o Sources\packages</RestoreCommand>
+    <ConfigFile>%(PackageLists.RootDir)%(PackageLists.Directory)%(PackageLists.Filename)%(PackageLists.Extension)</ConfigFile>
+    <RestoreCommand>nuget install "$(ConfigFile)" -source "" -o "$(SourcesDir)packages"</RestoreCommand>
   </PropertyGroup>
   <Exec Command="$(RestoreCommand)" />
 </Target>
 
-<Target Name="MakePackagesDir">
+<!-- NuGet packaging -->
+
+<Target Name="InitPackagesDir" DependsOnTargets="CleanPackages">
   <MakeDir Directories="$(PackagesDir)" />
 </Target>
 
 <Target Name="BuildPackages"
         Condition="'$(Configuration)'=='Release'"
-        DependsOnTargets="MakePackagesDir;BuildBinaries"
+        DependsOnTargets="InitPackagesDir;BuildBinaries"
         Inputs="@(SpecFiles)" Outputs="%(Identity).Fake">
   <PropertyGroup>
-    <SpecPath>%(SpecFiles.RootDir)%(SpecFiles.Directory)</SpecPath>
-    <SpecFile>%(SpecFiles.Filename).csproj</SpecFile>
-    <BuildCommand>nuget pack "$(SpecPath)$(SpecFile)" -p Configuration=Release -o $(PackagesDir) -symbols</BuildCommand>
+    <ProjectFile>%(SpecFiles.RootDir)%(SpecFiles.Directory)%(SpecFiles.Filename).csproj</ProjectFile>
+    <BuildCommand>nuget pack "$(ProjectFile)" -version $(Version) -p Configuration=Release -o "$(PackagesDir)." -symbols</BuildCommand>
   </PropertyGroup>
   <Exec Command="$(BuildCommand)" />
 </Target>
@@ -44,17 +105,48 @@
   <RemoveDir Directories="$(PackagesDir)" />
 </Target>
 
+<!-- Zip packaging -->
+
+<Target Name="InitZipDir" DependsOnTargets="CleanZip">
+  <MakeDir Directories="$(ZipDir)" />
+</Target>
+
+<Target Name="CopyDocumentation" Inputs="@(SpecFiles)" Outputs="%(Identity).Fake">
+  <PropertyGroup>
+    <SourceFile>%(SpecFiles.RootDir)%(SpecFiles.Directory)Readme.txt</SourceFile>
+    <TargetFile>$(BinariesDir)%(SpecFiles.Filename).txt</TargetFile>
+  </PropertyGroup>
+  <Copy SourceFiles="$(SourceFile)" DestinationFiles="$(TargetFile)" SkipUnchangedFiles="true" />
+</Target>
+
+<Target Name="BuildZip"
+        Condition="'$(Configuration)'=='Release'"
+        DependsOnTargets="InitZipDir;BuildBinaries;CopyDocumentation">
+  <PropertyGroup>
+    <ZipFile>$(ZipDir)DataObjects.Net.Extensions-$(Version).zip</ZipFile>
+  </PropertyGroup>
+  <Zip Files="@(Libraries)" ZipFileName="$(ZipFile)" WorkingDirectory="$(BinariesDir)" />
+</Target>
+
+<Target Name="CleanZip">
+  <RemoveDir Directories="$(ZipDir)" />
+</Target>
+
+<!-- Binaries -->
+
 <Target Name="BuildBinaries" DependsOnTargets="RestorePackages">
   <MSBuild Projects="@(Projects)" Targets="Build" />
 </Target>
 
 <Target Name="CleanBinaries" DependsOnTargets="RestorePackages">
   <MSBuild Projects="@(Projects)" Targets="Clean" />
-  <RemoveDir Directories="_Build\Binaries\$(Configuration)" />
+  <RemoveDir Directories="$(BinariesDir)" />
 </Target>
 
-<Target Name="Build" DependsOnTargets="BuildBinaries;BuildPackages" />
-<Target Name="Clean" DependsOnTargets="CleanBinaries;CleanPackages" />
+<!-- All-in-one targets  -->
+
+<Target Name="Build" DependsOnTargets="BuildBinaries;BuildPackages;BuildZip" />
+<Target Name="Clean" DependsOnTargets="CleanBinaries;CleanPackages;CleanZip" />
 
 <Target Name="Rebuild">
   <CallTarget Targets="Clean" />
