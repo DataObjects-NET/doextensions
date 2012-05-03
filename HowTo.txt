@@ -1,0 +1,91 @@
+How to build DataObjects.Net Extensions
+=======================================
+DataObjects.Net Extensions are built using MSBuild tool from .NET Framework 4.0 or later.
+At the root of repository you can find MSBuild project All.proj.
+This project builds binaries as well as distribution packages.
+Also it is capable of fetching all dependencies from NuGet package respository.
+
+To build project you need to open "Visual Studio Command Prompt" otherwise you'll have to enter
+full path to MSBuild.exe. NuGet.exe (NuGet package manager console tool) should be available
+in %PATH% as well.
+
+All.proj have multiple targets to control build process:
+
+  * RestorePackages - fetches all packages required to build DataObjects.Net extensions
+
+  * BuildBinaries - builds all projects
+  * CleanBinaries - cleans all artifacts that are produced by BuildBinaries target
+  
+  * BuildPackages - builds NuGet packages for DataObjects.Net Extensions
+  * CleanPackages - cleans all packages that are produced by BuildPackages target
+  
+  * BuildZip - builds .zip archive with DataObjects.Net extensions binaries
+  * CleanZip - cleans .zip archive that is produced by BuildZip target
+  
+  * Build - combines BuildBinaries, BuildPackages and BuildZip (This is default target)
+  * Clean - combines CleanBinaries, CleanPackages and CleanZip
+  * Rebuild - invokes Clean target and then Build target
+  
+By default all projects are build using Release configuration.
+Also only release configuration is allowed when NuGet or .zip packages are to be built.
+To change configuration to debug you should add /p:Configuration=Debug to your MSBuild parameters.
+
+Since All.proj is the only MSBuild project in its directory. You can omit project file name
+from MSBuild parameters. MSBuild is capable of detecting which project to use automatically.
+
+Building examples
+=================
+How to build everything from sources?
+
+    > msbuild
+
+How to build binaries only?
+
+    > msbuild /t:BuildBinaries
+
+How to build binaries only?
+
+    > msbuild /t:BuildBinaries /p:Configuration=Debug
+
+Since BuildPackages and BuildZip targets are automatically disabled for non-Release builds
+previous command could be simplified to
+
+    > msbuild /p:Configuration=Debug
+
+How to clean all artifacts?
+
+    > msbuild /t:Clean
+
+How to fetch all required packages?
+
+    > msbuild /t:RestorePackages
+
+How to develop DataObjects.Net Extensions
+=========================================
+You can develop DataObjects.Net extensions using either Visual Studio 2010 or recent SharpDevelop.
+Before opening project make sure you have fetched all required packages. This is have to be done
+everytime any package requires upgrading. When all packages are up to date you can open
+Extensions.sln from Sources folder and start developing.
+
+How to change version for all projects
+======================================
+Open All.proj in text editor. At the top of the file you'll see version variable declaration.
+It should look like the following:
+
+    <PropertyGroup>
+      <Version>4.5.1</Version>
+    </PropertyGroup>
+
+Change the version to required. Rebuild everything using corresponding command from first section
+of this document.
+
+How to find build artifacts
+===========================
+All build artifacts are located inside _Build folder. Inside it there are many subfolders.
+
+    _Build\
+        Binaries\       - DataObjects.Net extensions binaries and test suite binaries
+            Debug\      - Debug binaries
+            Release\    - Release binaries
+        Packages\       - NuGet packages for DataObjects.Net Extensions
+        Zip\            - .zip distribution archives
