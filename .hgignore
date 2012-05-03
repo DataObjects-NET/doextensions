@@ -1,5 +1,7 @@
 syntax: glob
 
+_ReSharper.*
+
 *.suo
 *.user
 *.csproj.user
@@ -8,33 +10,10 @@ syntax: glob
 *.resharper
 *.ReSharper
 *.resharperoptions
-_ReSharper.*
+*.dotCover
 *.vs10x
 
-*.dll
-*.obj
-*.pdb
-
-*.HxS
-*.chm
-*.xml
-*.mshc
-
-*.log
-H2Reg_Log.txt
-
-bin\*
-Bin\*
-Lib\*
-packages\*
-obj\*
-TestResults\*
-ProxyAssemblyCache\*
-
-Help\*.Hx?
-Help\*.chm
-Manual\Temp\*
-Release.Files\*
+packages
+obj
 
 _Build
-*.dotCover
