@@ -134,7 +134,7 @@
 
 <!-- Binaries -->
 
-<Target Name="BuildBinaries" DependsOnTargets="RestorePackages">
+<Target Name="BuildBinaries" DependsOnTargets="RestorePackages;UpdateProductInfo">
   <MSBuild Projects="@(Projects)" Targets="Build" />
 </Target>
 
