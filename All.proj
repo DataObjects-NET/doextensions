@@ -5,7 +5,7 @@
 <Import Project="MSBuild\Tasks.targets" />
 
 <PropertyGroup>
-  <Version>4.5.1</Version>
+  <Version>4.5.2</Version>
 </PropertyGroup>
 
 <PropertyGroup>
