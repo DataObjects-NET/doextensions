@@ -1,10 +1,4 @@
-﻿// Copyright (C) 2012 Xtensive LLC.
-// All rights reserved.
-// For conditions of distribution and use, see license.
-// Created by: Dmitri Maximov
-// Created:    2012.05.16
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -13,41 +7,52 @@ using Xtensive.Orm.Internals;
 
 namespace Xtensive.Orm.Tracking
 {
-  [Service(typeof (TrackingMonitor), Singleton = true)]
-  public class TrackingMonitor : IDomainService, IDisposable
+  [Service(typeof (SessionTrackingMonitor), Singleton = true)]
+  public class SessionTrackingMonitor : SessionBound, ISessionTrackingMonitor
   {
     private static readonly PropertyInfo registryAccessor = typeof (Session).GetProperty("EntityChangeRegistry", BindingFlags.Instance | BindingFlags.NonPublic);
-    private Domain domain;
 
-    public event EventHandler<TrackingCompletedEventArgs> TrackingCompleted;
+    private bool isDisposed;
+    private bool isRunning;
+    private Action<TrackingResult> callbackAction;
 
-    private void OnOpenSession(object sender, SessionEventArgs args)
+    public bool IsRunning { get { return isRunning; } }
+
+    public void Start(Action<TrackingResult> callback)
     {
-      var session = args.Session;
-
-      if (session.Configuration.Type == Configuration.SessionType.KeyGenerator)
+      if (isRunning)
         return;
 
-      session.Events.Persisting += OnPersisting;
-      session.Events.TransactionOpened += OnOpenTransaction;
-      session.Events.TransactionCommitted += OnCommitTransaction;
-      session.Events.TransactionRollbacked += OnRollBackTransaction;
-      session.Events.Disposing += OnDisposeSession;
+      callbackAction = callback;
       var stack = new TrackingStack();
       stack.Push(new TrackingStackFrame());
-      session.Extensions.Set(stack);
+      Session.Extensions.Set(stack);
+      Attach();
     }
 
-    private void OnDisposeSession(object sender, EventArgs e)
+    public void Stop()
     {
-      if (sender==null)
-        return;
+      isRunning = false;
+      Detach();
+      Session.Extensions.Set<TrackingStack>(null);
+      callbackAction = null;
+    }
 
-      var session = ((SessionEventAccessor) sender).Session;
-      session.Events.Persisting -= OnPersisting;
-      session.Events.TransactionOpened -= OnOpenTransaction;
-      session.Events.TransactionCommitted -= OnCommitTransaction;
-      session.Events.TransactionRollbacked -= OnRollBackTransaction;
+    private void Attach()
+    {
+      Session.Events.Persisting += OnPersisting;
+      Session.Events.TransactionOpened += OnOpenTransaction;
+      Session.Events.TransactionCommitted += OnCommitTransaction;
+      Session.Events.TransactionRollbacked += OnRollBackTransaction;
+      Session.Events.Disposing += OnDisposeSession;
+    }
+
+    private void Detach()
+    {
+      Session.Events.Persisting -= OnPersisting;
+      Session.Events.TransactionOpened -= OnOpenTransaction;
+      Session.Events.TransactionCommitted -= OnCommitTransaction;
+      Session.Events.TransactionRollbacked -= OnRollBackTransaction;
     }
 
     private void OnOpenTransaction(object sender, TransactionEventArgs e)
@@ -74,12 +79,9 @@ namespace Xtensive.Orm.Tracking
       if (e.Transaction.IsNested)
         return;
 
-      if (TrackingCompleted == null)
-        return;
-
       var items = target.ToList() as IEnumerable<ITrackingItem>;
       target.Clear();
-      TrackingCompleted.Invoke(this, new TrackingCompletedEventArgs(items));
+      callbackAction.Invoke(new TrackingResult(items));
     }
 
     private void OnRollBackTransaction(object sender, TransactionEventArgs e)
@@ -114,6 +116,11 @@ namespace Xtensive.Orm.Tracking
         frame.Register(new TrackingItem(state.Key, state.DifferentialTuple, TrackingItemState.Modified));
     }
 
+    private void OnDisposeSession(object sender, EventArgs e)
+    {
+      Dispose();
+    }
+
     private static EntityChangeRegistry GetEntityChangeRegistry(Session session)
     {
       return (EntityChangeRegistry) registryAccessor.GetValue(session, null);
@@ -121,15 +128,31 @@ namespace Xtensive.Orm.Tracking
 
     void IDisposable.Dispose()
     {
-      if (domain != null)
-        domain.SessionOpen -= OnOpenSession;
+      if (isDisposed)
+        return;
+
+      Dispose();
+    }
+
+    private void Dispose()
+    {
+      if (Session==null)
+        return;
+      if (Session.Events==null)
+        return;
+
+      try {
+        Stop();
+      }
+      finally {
+        isDisposed = true;
+      }
     }
 
     [ServiceConstructor]
-    public TrackingMonitor(Domain domain)
+    public SessionTrackingMonitor(Session session)
+      : base(session)
     {
-      this.domain = domain;
-      domain.SessionOpen += OnOpenSession;
     }
   }
 }
