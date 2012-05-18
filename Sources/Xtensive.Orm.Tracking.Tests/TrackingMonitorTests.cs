@@ -313,7 +313,6 @@ namespace Xtensive.Orm.Tracking.Tests
     [Test]
     public void CreateAndModifyInNextTest()
     {
-      var monitor = Domain.Services.Get<TrackingMonitor>();
 
       Key key;
       using (var session = Domain.OpenSession()) {
@@ -325,6 +324,7 @@ namespace Xtensive.Orm.Tracking.Tests
         }
       }
 
+      var monitor = Domain.Services.Get<TrackingMonitor>();
       monitor.TrackingCompleted += CreateAndModifyInNextListener;
 
       try {
