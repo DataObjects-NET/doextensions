@@ -7,39 +7,46 @@ using Xtensive.Orm.Internals;
 
 namespace Xtensive.Orm.Tracking
 {
-  [Service(typeof (SessionTrackingMonitor), Singleton = true)]
+  [Service(typeof (ISessionTrackingMonitor), Singleton = true)]
   public class SessionTrackingMonitor : SessionBound, ISessionTrackingMonitor
   {
     private static readonly PropertyInfo registryAccessor = typeof (Session).GetProperty("EntityChangeRegistry", BindingFlags.Instance | BindingFlags.NonPublic);
 
+    private int subscriberNumber;
     private bool isDisposed;
-    private bool isRunning;
-    private Action<TrackingResult> callbackAction;
+    private object gate = new object();
+    private EventHandler<TrackingCompletedEventArgs> trackingCompletedHandler;
 
-    public bool IsRunning { get { return isRunning; } }
-
-    public void Start(Action<TrackingResult> callback)
+    public event EventHandler<TrackingCompletedEventArgs> TrackingCompleted
     {
-      if (isRunning)
-        return;
-
-      callbackAction = callback;
-      var stack = new TrackingStack();
-      stack.Push(new TrackingStackFrame());
-      Session.Extensions.Set(stack);
-      Attach();
+      add {
+        lock (gate) {
+          if (!HasSubscribers) {
+            Attach();
+          }
+          trackingCompletedHandler += value;
+          subscriberNumber++;
+        }
+      }
+      remove {
+        lock (gate)
+          trackingCompletedHandler -= value;
+        subscriberNumber--;
+        if (!HasSubscribers)
+          Detach();
+      }
     }
 
-    public void Stop()
+    private bool HasSubscribers
     {
-      isRunning = false;
-      Detach();
-      Session.Extensions.Set<TrackingStack>(null);
-      callbackAction = null;
+      get { return subscriberNumber > 0; }
     }
 
     private void Attach()
     {
+      var stack = new TrackingStack();
+      stack.Push(new TrackingStackFrame());
+      Session.Extensions.Set(stack);
       Session.Events.Persisting += OnPersisting;
       Session.Events.TransactionOpened += OnOpenTransaction;
       Session.Events.TransactionCommitted += OnCommitTransaction;
@@ -53,6 +60,7 @@ namespace Xtensive.Orm.Tracking
       Session.Events.TransactionOpened -= OnOpenTransaction;
       Session.Events.TransactionCommitted -= OnCommitTransaction;
       Session.Events.TransactionRollbacked -= OnRollBackTransaction;
+      Session.Extensions.Set<TrackingStack>(null);
     }
 
     private void OnOpenTransaction(object sender, TransactionEventArgs e)
@@ -81,7 +89,7 @@ namespace Xtensive.Orm.Tracking
 
       var items = target.ToList() as IEnumerable<ITrackingItem>;
       target.Clear();
-      callbackAction.Invoke(new TrackingResult(items));
+      trackingCompletedHandler.Invoke(this, new TrackingCompletedEventArgs(new TrackingResult(items)));
     }
 
     private void OnRollBackTransaction(object sender, TransactionEventArgs e)
@@ -142,7 +150,7 @@ namespace Xtensive.Orm.Tracking
         return;
 
       try {
-        Stop();
+        Detach();
       }
       finally {
         isDisposed = true;

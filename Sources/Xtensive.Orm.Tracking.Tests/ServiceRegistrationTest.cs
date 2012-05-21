@@ -14,15 +14,15 @@ namespace Xtensive.Orm.Tracking.Tests
     [Test]
     public void ShouldReturnInstanceOfTrackingMonitor()
     {
-      var tm = Domain.Services.Get<DomainTrackingMonitor>();
+      var tm = Domain.Services.Get<IDomainTrackingMonitor>();
       Assert.IsNotNull(tm);
     }
 
     [Test]
     public void ShouldReturnSameInstanceOfTrackingMonitor()
     {
-      var tm1 = Domain.Services.Get<DomainTrackingMonitor>();
-      var tm2 = Domain.Services.Get<DomainTrackingMonitor>();
+      var tm1 = Domain.Services.Get<IDomainTrackingMonitor>();
+      var tm2 = Domain.Services.Get<IDomainTrackingMonitor>();
       Assert.AreSame(tm1, tm2);
     }
   }

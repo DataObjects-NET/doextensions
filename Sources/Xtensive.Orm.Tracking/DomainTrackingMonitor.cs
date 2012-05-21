@@ -9,28 +9,38 @@ using Xtensive.IoC;
 
 namespace Xtensive.Orm.Tracking
 {
-  [Service(typeof (DomainTrackingMonitor), Singleton = true)]
+  [Service(typeof (IDomainTrackingMonitor), Singleton = true)]
   public class DomainTrackingMonitor : IDomainTrackingMonitor
   {
     private readonly Domain domain;
-    private bool isRunning;
-    private Action<TrackingResult> callbackAction;
+    private int subscriberNumber;
+    private object gate = new object();
+    private EventHandler<TrackingCompletedEventArgs> trackingCompletedHandler;
 
-    public bool IsRunning { get { return isRunning; } }
-
-    public void Start(Action<TrackingResult> callback)
+    public event EventHandler<TrackingCompletedEventArgs> TrackingCompleted
     {
-      if (isRunning)
-        return;
-      callbackAction = callback;
-      Attach();
+      add {
+        lock (gate) {
+          if (!HasSubscribers) {
+            Attach();
+          }
+          trackingCompletedHandler += value;
+          subscriberNumber++;
+        } 
+      }
+      remove {
+        lock (gate) {
+          trackingCompletedHandler -= value;
+          subscriberNumber--;
+          if (!HasSubscribers)
+            Detach();
+        }
+      }
     }
 
-    public void Stop()
+    private bool HasSubscribers
     {
-      isRunning = false;
-      Detach();
-      callbackAction = null;
+      get { return subscriberNumber > 0; }
     }
 
     private void Attach()
@@ -53,16 +63,14 @@ namespace Xtensive.Orm.Tracking
         return;
 
       session.Events.Disposing += OnDisposeSession;
-      var tm = session.Services.Get<SessionTrackingMonitor>();
-      tm.Start(OnTrackingCompleted);
+      var tm = session.Services.Get<ISessionTrackingMonitor>();
+      tm.TrackingCompleted += OnTrackingCompleted;
     }
 
-    private void OnTrackingCompleted(TrackingResult e)
+    private void OnTrackingCompleted(object sender, TrackingCompletedEventArgs e)
     {
-      if (!isRunning)
-        return;
-
-      callbackAction.Invoke(e);
+      var handler = trackingCompletedHandler;
+      handler.Invoke(this, e);
     }
 
     private void OnDisposeSession(object sender, EventArgs e)
@@ -72,8 +80,8 @@ namespace Xtensive.Orm.Tracking
 
       var session = ((SessionEventAccessor) sender).Session;
       session.Events.Disposing -= OnDisposeSession;
-      var tm = session.Services.Get<SessionTrackingMonitor>();
-      tm.Stop();
+      var tm = session.Services.Get<ISessionTrackingMonitor>();
+      tm.TrackingCompleted -= OnTrackingCompleted;
     }
 
     void IDisposable.Dispose()

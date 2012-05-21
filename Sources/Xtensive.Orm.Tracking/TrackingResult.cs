@@ -5,14 +5,19 @@ namespace Xtensive.Orm.Tracking
 {
   public class TrackingResult
   {
-    public IEnumerable<ITrackingItem> Items { get; private set; }
+    private IEnumerable<ITrackingItem> items;
+
+    public IEnumerable<ITrackingItem> GetChanges()
+    {
+      return items;
+    }
 
     public TrackingResult(IEnumerable<ITrackingItem> items)
     {
       if (items == null)
         throw new ArgumentNullException("items");
 
-      Items = items;
+      this.items = items;
     }
   }
 }
