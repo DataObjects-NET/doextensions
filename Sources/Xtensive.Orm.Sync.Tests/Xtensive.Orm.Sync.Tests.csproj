@@ -3,21 +3,16 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.30729</ProductVersion>
+    <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{DAF8834B-E9A4-49E2-9ECE-ABD748607554}</ProjectGuid>
+    <ProjectGuid>{CD3D0971-E502-4CCB-A7C3-0DA47FBAA9FF}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Xtensive.Orm.Tracking</RootNamespace>
-    <AssemblyName>Xtensive.Orm.Tracking</AssemblyName>
+    <RootNamespace>Xtensive.Orm.Sync.Tests</RootNamespace>
+    <AssemblyName>Xtensive.Orm.Sync.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
-    <DocumentationFile>..\..\_Build\Binaries\$(Configuration)\$(AssemblyName).xml</DocumentationFile>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>..\Extensions.snk</AssemblyOriginatorKeyFile>
     <DontImportPostSharp>True</DontImportPostSharp>
-    <SkipPostSharp>True</SkipPostSharp>
     <XtensiveOrmIntegratedPostSharp>false</XtensiveOrmIntegratedPostSharp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -27,7 +22,7 @@
     <OutputPath>..\..\_Build\Binaries\$(Configuration)\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>2</WarningLevel>
+    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -35,16 +30,25 @@
     <OutputPath>..\..\_Build\Binaries\$(Configuration)\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>2</WarningLevel>
+    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.Synchronization, Version=2.1.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.Synchronization.Data, Version=3.1.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.Synchronization.MetadataStorage, Version=2.1.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL" />
+    <Reference Include="nunit.framework, Version=2.6.0.12051, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
+      <HintPath>..\packages\NUnit.2.6.0.12054\lib\nunit.framework.dll</HintPath>
+    </Reference>
     <Reference Include="PostSharp, Version=2.1.0.0, Culture=neutral, PublicKeyToken=b13fd38b8f9c99d7, processorArchitecture=MSIL">
       <HintPath>..\packages\PostSharp.2.1.6.14\lib\net20\PostSharp.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Transactions" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
     <Reference Include="Xtensive.Aspects, Version=4.5.0.0, Culture=neutral, PublicKeyToken=93a6c53d77a5296c, processorArchitecture=MSIL">
       <HintPath>..\packages\Xtensive.Orm.4.5.2\Lib\Net40\Xtensive.Aspects.dll</HintPath>
     </Reference>
@@ -59,20 +63,31 @@
     <Compile Include="..\..\_Build\ProductInfo.cs">
       <Link>Properties\ProductInfo.cs</Link>
     </Compile>
-    <Compile Include="ChangedValue.cs" />
-    <Compile Include="Interfaces\IDomainTrackingMonitor.cs" />
-    <Compile Include="Interfaces\ISessionTrackingMonitor.cs" />
-    <Compile Include="Interfaces\ITrackingItem.cs" />
-    <Compile Include="Interfaces\ITrackingMonitor.cs" />
+    <Compile Include="AutoBuildTest.cs" />
+    <Compile Include="AutoBuildTestWithRollback.cs" />
+    <Compile Include="FirstTests.cs" />
+    <Compile Include="Log.cs" />
+    <Compile Include="Model\MyEntity.cs" />
+    <Compile Include="Model\MyEnum.cs" />
+    <Compile Include="Model\MyEntitySetItem.cs" />
+    <Compile Include="Model\MyReferenceProperty.cs" />
+    <Compile Include="Model\MyStructure.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Internals\TrackingItem.cs" />
-    <Compile Include="Internals\TrackingStackFrame.cs" />
-    <Compile Include="SessionTrackingMonitor.cs" />
-    <Compile Include="TrackingCompletedEventArgs.cs" />
-    <Compile Include="TrackingItemState.cs" />
-    <Compile Include="DomainTrackingMonitor.cs" />
-    <Compile Include="Internals\TrackingStack.cs" />
-    <Compile Include="TrackingResult.cs" />
+    <Compile Include="SyncModuleTests.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Xtensive.Orm.Sync\Xtensive.Orm.Sync.csproj">
+      <Project>{8BF10D44-85DD-4F38-8815-6906FA8C9D3A}</Project>
+      <Name>Xtensive.Orm.Sync</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Xtensive.Orm.Tracking\Xtensive.Orm.Tracking.csproj">
+      <Project>{DAF8834B-E9A4-49E2-9ECE-ABD748607554}</Project>
+      <Name>Xtensive.Orm.Tracking</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

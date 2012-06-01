@@ -39,7 +39,7 @@ namespace Xtensive.Orm.Tracking.Tests
       var target = TestHelper.CreateTrackingItem(key, TrackingItemState.Created);
       target.RawData.SetValue(0, "value1");
 
-      var source = TestHelper.CreateTrackingItem(key, TrackingItemState.Modified);
+      var source = TestHelper.CreateTrackingItem(key, TrackingItemState.Changed);
       source.RawData.SetValue(0, "value2");
 
       target.MergeWith(source);
@@ -57,14 +57,14 @@ namespace Xtensive.Orm.Tracking.Tests
       var target = TestHelper.CreateTrackingItem(key, TrackingItemState.Created);
       target.RawData.SetValue(0, "value1");
 
-      var source = TestHelper.CreateTrackingItem(key, TrackingItemState.Removed);
+      var source = TestHelper.CreateTrackingItem(key, TrackingItemState.Deleted);
       source.RawData.SetValue(0, "value2");
 
       target.MergeWith(source);
 
       Assert.IsFalse(target.RawData.Origin.GetFieldState(0) == TupleFieldState.Available);
       Assert.AreEqual("value2", target.RawData.Difference.GetValue<string>(0));
-      Assert.AreEqual(TrackingItemState.Removed, target.State);
+      Assert.AreEqual(TrackingItemState.Deleted, target.State);
     }
 
     [Test]
@@ -72,10 +72,10 @@ namespace Xtensive.Orm.Tracking.Tests
     {
       var key = Key.Create(Domain, typeof(MyEntity), 1);
       
-      var target = TestHelper.CreateTrackingItem(key, TrackingItemState.Modified);
+      var target = TestHelper.CreateTrackingItem(key, TrackingItemState.Changed);
       target.RawData.Origin.SetValue(0, "value1");
 
-      var source = TestHelper.CreateTrackingItem(key, TrackingItemState.Modified);
+      var source = TestHelper.CreateTrackingItem(key, TrackingItemState.Changed);
       source.RawData.SetValue(0, "value2");
 
       target.MergeWith(source);
@@ -83,7 +83,7 @@ namespace Xtensive.Orm.Tracking.Tests
       Assert.IsTrue(target.RawData.Origin.GetFieldState(0) == TupleFieldState.Available);
       Assert.AreEqual("value1", target.RawData.Origin.GetValue<string>(0));
       Assert.AreEqual("value2", target.RawData.Difference.GetValue<string>(0));
-      Assert.AreEqual(TrackingItemState.Modified, target.State);
+      Assert.AreEqual(TrackingItemState.Changed, target.State);
     }
 
     [Test]
@@ -91,10 +91,10 @@ namespace Xtensive.Orm.Tracking.Tests
     {
       var key = Key.Create(Domain, typeof(MyEntity), 1);
       
-      var target = TestHelper.CreateTrackingItem(key, TrackingItemState.Modified);
+      var target = TestHelper.CreateTrackingItem(key, TrackingItemState.Changed);
       target.RawData.Origin.SetValue(0, "value1");
 
-      var source = TestHelper.CreateTrackingItem(key, TrackingItemState.Removed);
+      var source = TestHelper.CreateTrackingItem(key, TrackingItemState.Deleted);
       source.RawData.SetValue(0, "value2");
 
       target.MergeWith(source);
@@ -102,7 +102,7 @@ namespace Xtensive.Orm.Tracking.Tests
       Assert.IsTrue(target.RawData.Origin.GetFieldState(0) == TupleFieldState.Available);
       Assert.AreEqual("value1", target.RawData.Origin.GetValue<string>(0));
       Assert.AreEqual("value2", target.RawData.Difference.GetValue<string>(0));
-      Assert.AreEqual(TrackingItemState.Removed, target.State);
+      Assert.AreEqual(TrackingItemState.Deleted, target.State);
     }
 
     [Test]
@@ -110,10 +110,10 @@ namespace Xtensive.Orm.Tracking.Tests
     {
       var key = Key.Create(Domain, typeof(MyEntity), 1);
       
-      var target = TestHelper.CreateTrackingItem(key, TrackingItemState.Removed);
+      var target = TestHelper.CreateTrackingItem(key, TrackingItemState.Deleted);
       target.RawData.Origin.SetValue(0, "value1");
 
-      var source = TestHelper.CreateTrackingItem(key, TrackingItemState.Removed);
+      var source = TestHelper.CreateTrackingItem(key, TrackingItemState.Deleted);
       source.RawData.SetValue(0, "value2");
 
       target.MergeWith(source);
@@ -121,7 +121,7 @@ namespace Xtensive.Orm.Tracking.Tests
       Assert.IsTrue(target.RawData.Origin.GetFieldState(0) == TupleFieldState.Available);
       Assert.AreEqual("value1", target.RawData.Origin.GetValue<string>(0));
       Assert.AreEqual("value2", target.RawData.Difference.GetValue<string>(0));
-      Assert.AreEqual(TrackingItemState.Removed, target.State);
+      Assert.AreEqual(TrackingItemState.Deleted, target.State);
     }
 
     [Test]
@@ -129,7 +129,7 @@ namespace Xtensive.Orm.Tracking.Tests
     {
       var key = Key.Create(Domain, typeof(MyEntity), 1);
       
-      var target = TestHelper.CreateTrackingItem(key, TrackingItemState.Removed);
+      var target = TestHelper.CreateTrackingItem(key, TrackingItemState.Deleted);
       target.RawData.Origin.SetValue(0, "value1");
 
       var source = TestHelper.CreateTrackingItem(key, TrackingItemState.Created);
@@ -139,7 +139,7 @@ namespace Xtensive.Orm.Tracking.Tests
 
       Assert.IsFalse(target.RawData.Origin.GetFieldState(0) == TupleFieldState.Available);
       Assert.AreEqual("value2", target.RawData.Difference.GetValue<string>(0));
-      Assert.AreEqual(TrackingItemState.Modified, target.State);
+      Assert.AreEqual(TrackingItemState.Changed, target.State);
     }
   }
 }

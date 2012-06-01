@@ -87,7 +87,7 @@ namespace Xtensive.Orm.Tracking
       if (e.Transaction.IsNested)
         return;
 
-      var items = target.ToList() as IEnumerable<ITrackingItem>;
+      var items = target.Cast<ITrackingItem>().ToList();
       target.Clear();
       trackingCompletedHandler.Invoke(this, new TrackingCompletedEventArgs(new TrackingResult(items)));
     }
@@ -115,13 +115,13 @@ namespace Xtensive.Orm.Tracking
       var frame = stack.Peek();
 
       foreach (var state in registry.GetItems(PersistenceState.Removed))
-        frame.Register(new TrackingItem(state.Key, state.DifferentialTuple, TrackingItemState.Removed));
+        frame.Register(new TrackingItem(state.Key, state.DifferentialTuple, TrackingItemState.Deleted));
 
       foreach (var state in registry.GetItems(PersistenceState.New))
         frame.Register(new TrackingItem(state.Key, state.DifferentialTuple, TrackingItemState.Created));
 
       foreach (var state in registry.GetItems(PersistenceState.Modified))
-        frame.Register(new TrackingItem(state.Key, state.DifferentialTuple, TrackingItemState.Modified));
+        frame.Register(new TrackingItem(state.Key, state.DifferentialTuple, TrackingItemState.Changed));
     }
 
     private void OnDisposeSession(object sender, EventArgs e)

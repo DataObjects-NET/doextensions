@@ -13,8 +13,8 @@ namespace Xtensive.Orm.Tracking
   {
     Created = 0,
 
-    Modified = 1,
+    Changed = 1,
 
-    Removed = 2,
+    Deleted = 2,
   }
 }

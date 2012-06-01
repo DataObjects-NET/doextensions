@@ -66,7 +66,7 @@ namespace Xtensive.Orm.Tracking.Tests
       int count = target.Count;
 
       var source = new TrackingStackFrame();
-      source.Register(TestHelper.CreateTrackingItem(key, TrackingItemState.Modified));
+      source.Register(TestHelper.CreateTrackingItem(key, TrackingItemState.Changed));
 
       target.MergeWith(source);
 
@@ -83,7 +83,7 @@ namespace Xtensive.Orm.Tracking.Tests
       target.Register(TestHelper.CreateTrackingItem(key1, TrackingItemState.Created));
 
       var source = new TrackingStackFrame();
-      source.Register(TestHelper.CreateTrackingItem(key2, TrackingItemState.Modified));
+      source.Register(TestHelper.CreateTrackingItem(key2, TrackingItemState.Changed));
       int count = target.Count + source.Count;
 
       target.MergeWith(source);

@@ -118,7 +118,7 @@ namespace Xtensive.Orm.Tracking.Tests
       Assert.IsNotNull(e.Result.GetChanges());
       Assert.AreEqual(1, e.Result.GetChanges().Count());
       var ti = e.Result.GetChanges().First();
-      Assert.AreEqual(TrackingItemState.Removed, ti.State);
+      Assert.AreEqual(TrackingItemState.Deleted, ti.State);
       Assert.IsNotNull(ti.Key);
       Assert.IsNotNull(ti.RawData);
       Assert.AreEqual("some text", ti.RawData.GetValue(2));
@@ -262,7 +262,7 @@ namespace Xtensive.Orm.Tracking.Tests
       Assert.IsNotNull(e.Result.GetChanges());
       Assert.AreEqual(1, e.Result.GetChanges().Count());
       var ti = e.Result.GetChanges().First();
-      Assert.AreEqual(TrackingItemState.Removed, ti.State);
+      Assert.AreEqual(TrackingItemState.Deleted, ti.State);
       Assert.IsNotNull(ti.Key);
       Assert.IsNotNull(ti.RawData);
       Assert.AreEqual("some text", ti.RawData.GetValue(2));
@@ -303,7 +303,7 @@ namespace Xtensive.Orm.Tracking.Tests
       Assert.IsNotNull(e.Result.GetChanges());
       Assert.AreEqual(1, e.Result.GetChanges().Count());
       var ti = e.Result.GetChanges().First();
-      Assert.AreEqual(TrackingItemState.Modified, ti.State);
+      Assert.AreEqual(TrackingItemState.Changed, ti.State);
       Assert.IsNotNull(ti.Key);
       Assert.IsNotNull(ti.RawData);
       Assert.AreEqual(null, ti.RawData.GetValue(2));
@@ -348,7 +348,7 @@ namespace Xtensive.Orm.Tracking.Tests
       Assert.IsNotNull(e.Result.GetChanges());
       Assert.AreEqual(1, e.Result.GetChanges().Count());
       var ti = e.Result.GetChanges().First();
-      Assert.AreEqual(TrackingItemState.Modified, ti.State);
+      Assert.AreEqual(TrackingItemState.Changed, ti.State);
       Assert.IsNotNull(ti.Key);
       Assert.IsNotNull(ti.RawData);
       Assert.AreEqual(1, ti.GetChangedValues().Count());

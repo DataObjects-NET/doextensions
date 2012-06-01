@@ -51,13 +51,13 @@ namespace Xtensive.Orm.Tracking
       if (source == null)
         throw new NullReferenceException("source");
 
-      if (State == TrackingItemState.Removed && source.State == TrackingItemState.Created) {
-        State = TrackingItemState.Modified;
+      if (State == TrackingItemState.Deleted && source.State == TrackingItemState.Created) {
+        State = TrackingItemState.Changed;
         RawData = source.RawData; // TODO: Check whether a clone is required
         return;
       }
 
-      if (State == TrackingItemState.Created && source.State == TrackingItemState.Modified) {
+      if (State == TrackingItemState.Created && source.State == TrackingItemState.Changed) {
         State = TrackingItemState.Created;
         MergeWith(source.RawData.Difference);
         return;
@@ -79,7 +79,7 @@ namespace Xtensive.Orm.Tracking
     {
       if (key == null)
         throw new NullReferenceException("key");
-      if (state != TrackingItemState.Removed && tuple == null)
+      if (state != TrackingItemState.Deleted && tuple == null)
         throw new NullReferenceException("tuple");
 
       Key = key;
