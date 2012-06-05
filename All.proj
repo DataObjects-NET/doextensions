@@ -57,6 +57,10 @@
   <Libraries Include="$(BinariesDir)Xtensive.Orm.Security.dll" />
   <Libraries Include="$(BinariesDir)Xtensive.Orm.Security.xml" />
   <Libraries Include="$(BinariesDir)Xtensive.Orm.Security.txt" />
+
+  <Libraries Include="$(BinariesDir)Xtensive.Orm.Web.Security.dll" />
+  <Libraries Include="$(BinariesDir)Xtensive.Orm.Web.Security.xml" />
+  <Libraries Include="$(BinariesDir)Xtensive.Orm.Web.Security.txt" />
 </ItemGroup>
 
 <Target Name="InitBuildDir">
