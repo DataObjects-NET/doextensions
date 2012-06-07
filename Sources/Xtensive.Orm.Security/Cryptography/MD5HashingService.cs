@@ -16,12 +16,17 @@ namespace Xtensive.Orm.Security.Cryptography
   [Service(typeof (IHashingService), Singleton = true, Name = "md5")]
   public class MD5HashingService : GenericHashingService
   {
+    /// <inheritdoc/>
+    protected override HashAlgorithm GetHashAlgorithm()
+    {
+      return new MD5CryptoServiceProvider();
+    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MD5HashingService"/> class.
     /// </summary>
     public MD5HashingService()
-      : base(new MD5CryptoServiceProvider())
-    {}
+    {
+    }
   }
 }

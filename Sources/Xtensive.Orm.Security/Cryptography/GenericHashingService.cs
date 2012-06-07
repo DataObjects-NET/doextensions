@@ -24,8 +24,8 @@ namespace Xtensive.Orm.Security.Cryptography
     /// <summary>
     /// Gets the hash algorithm.
     /// </summary>
-    /// <value>The hash algorithm.</value>
-    public HashAlgorithm HashAlgorithm { get; private set; }
+    /// <returns>Hash algorithm to use.</returns>
+    protected abstract HashAlgorithm GetHashAlgorithm();
 
     /// <summary>
     /// Gets the salt.
@@ -34,9 +34,10 @@ namespace Xtensive.Orm.Security.Cryptography
     protected byte[] GetSalt()
     {
       var salt = new byte[SaltSize];
-      var rng = new RNGCryptoServiceProvider();
-      rng.GetNonZeroBytes(salt);
-      return salt;
+      using (var rng = new RNGCryptoServiceProvider()) {
+        rng.GetBytes(salt);
+        return salt;
+      }
     }
 
     /// <summary>
@@ -47,8 +48,10 @@ namespace Xtensive.Orm.Security.Cryptography
     /// <returns>String representation of hash.</returns>
     protected string ComputeHash(byte[] password, byte[] salt)
     {
-      var hash = HashAlgorithm.ComputeHash(salt.Concat(password).ToArray());
-      return Convert.ToBase64String(hash.Concat(salt).ToArray());
+      using (var hasher = GetHashAlgorithm()) {
+        var hash = hasher.ComputeHash(salt.Concat(password).ToArray());
+        return Convert.ToBase64String(hash.Concat(salt).ToArray());
+      }
     }
 
     #region IHashingService Members
@@ -70,13 +73,16 @@ namespace Xtensive.Orm.Security.Cryptography
         return false;
       }
 
-      int hashSize = HashAlgorithm.HashSize/8;
+      int hashSize;
+      using (var hasher = GetHashAlgorithm())
+        hashSize = hasher.HashSize / 8;
 
       if (source.Length < hashSize)
         return false;
 
       var salt = source.Skip(hashSize).ToArray();
-      return StringComparer.Ordinal.Compare(hash, ComputeHash(Encoding.UTF8.GetBytes(password), salt)) == 0;
+      var currentHash = ComputeHash(Encoding.UTF8.GetBytes(password), salt);
+      return StringComparer.Ordinal.Compare(hash, currentHash)==0;
     }
 
     #endregion
@@ -84,10 +90,8 @@ namespace Xtensive.Orm.Security.Cryptography
     /// <summary>
     /// Initializes a new instance of the <see cref="GenericHashingService"/> class.
     /// </summary>
-    /// <param name="hashAlgorithm">The hash algorithm.</param>
-    protected GenericHashingService(HashAlgorithm hashAlgorithm)
+    protected GenericHashingService()
     {
-      HashAlgorithm = hashAlgorithm;
     }
   }
 }
