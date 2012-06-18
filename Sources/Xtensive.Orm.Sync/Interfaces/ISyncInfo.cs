@@ -38,7 +38,7 @@ namespace Xtensive.Orm.Sync
     /// </summary>
     /// <value> The creation version for the item. </value>
     /// <exception cref="T:System.ArgumentNullException">An attempt was made to set the value to a null.</exception>
-    SyncVersion CreatedVersion { get; set; }
+    SyncVersion CreationVersion { get; set; }
 
     /// <summary>
     /// Gets or sets the version of the most recent change made to the item.
@@ -56,8 +56,5 @@ namespace Xtensive.Orm.Sync
     /// <value> The version when the item was deleted. </value>
     /// <exception cref="T:System.ArgumentNullException">An attempt was made to set the value to a null.</exception>
     SyncVersion TombstoneVersion { get; set; }
-
-    [Field]
-    string Text { get; set; }
   }
 }

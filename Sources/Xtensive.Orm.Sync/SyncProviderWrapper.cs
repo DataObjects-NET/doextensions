@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.Synchronization;
 using Xtensive.IoC;
+using Xtensive.Orm.Tracking;
 
 namespace Xtensive.Orm.Sync
 {
@@ -12,7 +13,6 @@ namespace Xtensive.Orm.Sync
     private Session session;
     private TransactionScope transaction;
     private SyncProviderImplementation implementation;
-    private SyncIdFormatGroup idFormats;
 
     private bool IsRunning
     {
@@ -30,6 +30,9 @@ namespace Xtensive.Orm.Sync
         throw new InvalidOperationException("Sync is already running");
 
       session = domain.OpenSession();
+      var tm = session.Services.Get<ISessionTrackingMonitor>();
+      if (tm != null)
+        tm.Disable();
       transaction = session.OpenTransaction();
       implementation = session.Services.Get<SyncProviderImplementation>();
       implementation.BeginSession(position, syncSessionContext);

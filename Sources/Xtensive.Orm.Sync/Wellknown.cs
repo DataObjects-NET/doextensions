@@ -4,7 +4,9 @@ namespace Xtensive.Orm.Sync
 {
   public static class Wellknown
   {
-    public const uint SyncBatchSize = 256;
+    public const uint SyncBatchSize = 64;
+    public const int KeyPreloadBatchSize = 25;
+    public const int LocalReplicaKey = 0;
     public const string TickGeneratorName = "SyncInfo";
 
     public static SyncIdFormatGroup IdFormats { get; private set; }
@@ -12,7 +14,6 @@ namespace Xtensive.Orm.Sync
     public static class FieldNames
     {
       public const string ReplicaId = "Xtensive.Orm.Sync.ReplicaId";
-      public const string ReplicaTickCount = "Xtensive.Orm.Sync.ReplicaTickCount";
       public const string CurrentKnowledge = "Xtensive.Orm.Sync.CurrentKnowledge";
       public const string ForgottenKnowledge = "Xtensive.Orm.Sync.ForgottenKnowledge";
     }

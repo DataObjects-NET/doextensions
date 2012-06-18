@@ -1,7 +1,6 @@
 using System;
 using Microsoft.Synchronization;
-using Xtensive.Orm.Model;
-using Xtensive.Tuples;
+using Xtensive.Aspects;
 
 namespace Xtensive.Orm.Sync
 {
@@ -61,7 +60,7 @@ namespace Xtensive.Orm.Sync
     /// </summary>
     /// <value> The creation version for the item. </value>
     /// <exception cref="T:System.ArgumentNullException">An attempt was made to set the value to a null.</exception>
-    public SyncVersion CreatedVersion
+    public SyncVersion CreationVersion
     {
       get
       {
@@ -161,7 +160,11 @@ namespace Xtensive.Orm.Sync
       }
     }
 
-    public string Text { get; set; }
+    [Infrastructure]
+    internal abstract Entity GetEntity();
+
+    [Infrastructure]
+    internal abstract Type GetEntityType();
 
     protected SyncInfo(Session session)
       : base(session)

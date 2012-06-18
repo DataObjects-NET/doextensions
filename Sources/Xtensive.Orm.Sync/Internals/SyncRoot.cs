@@ -9,12 +9,15 @@ using Xtensive.Orm.Model;
 
 namespace Xtensive.Orm.Sync
 {
-  public class SyncInfoMetadata
+  public class SyncRoot
   {
-    public Type UnderlyingType { get; set; }
-
-    public TypeInfo TypeInfo { get; set; }
+    public Type ItemType { get; set; }
 
     public FieldInfo EntityField { get; set; }
+
+    public Type EntityType
+    {
+      get { return EntityField.ValueType; }
+    }
   }
 }

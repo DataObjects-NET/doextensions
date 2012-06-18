@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Xtensive.IoC;
@@ -16,12 +15,13 @@ namespace Xtensive.Orm.Tracking
     private bool isDisposed;
     private object gate = new object();
     private EventHandler<TrackingCompletedEventArgs> trackingCompletedHandler;
+    private bool isDisabled;
 
     public event EventHandler<TrackingCompletedEventArgs> TrackingCompleted
     {
       add {
         lock (gate) {
-          if (!HasSubscribers) {
+          if (!HasSubscribers && !isDisabled) {
             Attach();
           }
           trackingCompletedHandler += value;
@@ -35,6 +35,26 @@ namespace Xtensive.Orm.Tracking
         if (!HasSubscribers)
           Detach();
       }
+    }
+
+    public void Disable()
+    {
+      if (isDisabled)
+        return;
+
+      isDisabled = true;
+      if (HasSubscribers)
+        Detach();
+    }
+
+    public void Enable()
+    {
+      if (!isDisabled)
+        return;
+
+      isDisabled = false;
+      if (HasSubscribers)
+        Attach();
     }
 
     private bool HasSubscribers

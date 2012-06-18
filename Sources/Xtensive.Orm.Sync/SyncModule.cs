@@ -23,9 +23,6 @@ namespace Xtensive.Orm.Sync
     private void OnTrackingCompleted(object sender, TrackingCompletedEventArgs e)
     {
       var changes = e.Result.GetChanges();
-      if (!changes.Any())
-        return;
-
       var items = changes
         .Where(TrackingItemFilter)
         .ToList();
@@ -35,8 +32,23 @@ namespace Xtensive.Orm.Sync
 
       using (var session = domain.OpenSession())
       using (var t = session.OpenTransaction()) {
-        var ms = session.Services.Get<SyncMetadataStore>();
-        ms.ProcessTrackingResult(items);
+
+        var ms = new SyncMetadataStore(session, new SyncRootSet(session.Domain.Model));
+        var info = ms.GetMetadata(items.Select(i => i.Key));
+        var lookup = info
+          .ToDictionary(i => i.GetEntity().Key);
+
+        foreach (var item in items) {
+          if (item.State==TrackingItemState.Created)
+            ms.CreateMetadata(item.Key);
+          else {
+            SyncInfo syncInfo;
+            if (lookup.TryGetValue(item.Key, out syncInfo))
+              ms.UpdateMetadata(syncInfo, item.State==TrackingItemState.Deleted);
+            else
+              ms.CreateMetadata(item.Key);
+          }
+        }
         t.Complete();
       }
     }

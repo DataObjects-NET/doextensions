@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.Synchronization;
 using Xtensive.IoC;
 using Xtensive.Orm.Services;
+using Xtensive.Tuples;
 
 namespace Xtensive.Orm.Sync
 {
@@ -15,11 +16,14 @@ namespace Xtensive.Orm.Sync
   {
     private readonly Session session;
     private readonly SyncMetadataStore metadataStore;
+    private readonly KeyMap keyMap;
+    private readonly SyncRootSet syncRoots;
+    private readonly DirectEntityAccessor accessor;
+    private readonly Dictionary<Key, List<EntityStub>> keyDependencies;
 
     private SyncSessionContext syncContext;
-    private int totalItemCount;
-    private int currentItemCount;
-    IEnumerator<ItemChange> enumerator;
+    private IEnumerator<ChangeSet> changeSetEnumerator;
+    private ChangeSet currentChangeSet;
 
     public override SyncIdFormatGroup IdFormats
     {
@@ -29,112 +33,237 @@ namespace Xtensive.Orm.Sync
     public override void BeginSession(SyncProviderPosition position, SyncSessionContext syncSessionContext)
     {
       syncContext = syncSessionContext;
-      totalItemCount = session.Query.All<ISyncInfo>().Count();
-      currentItemCount = 0;
     }
 
     public override void EndSession(SyncSessionContext syncSessionContext)
     {
     }
 
-    public override void GetSyncBatchParameters(out uint batchSize, out SyncKnowledge knowledge)
-    {
-      batchSize = Wellknown.SyncBatchSize;
-      knowledge = metadataStore.CurrentKnowledge;
-
-      if (totalItemCount < Wellknown.SyncBatchSize)
-        batchSize = (uint) totalItemCount;
-    }
-
-    public override ChangeBatch GetChangeBatch(uint batchSize, SyncKnowledge destinationKnowledge,
-      out object changeDataRetriever)
-    {
-      changeDataRetriever = this;
-      return DetectChanges(batchSize, destinationKnowledge);
-    }
-
-    private ChangeBatch DetectChanges(uint batchSize, SyncKnowledge destinationKnowledge)
-    {
-      var changeBatch = new ChangeBatch(IdFormats, destinationKnowledge, metadataStore.ForgottenKnowledge);
-
-      if (currentItemCount==0) {
-        var items = metadataStore.DetectChanges(destinationKnowledge);
-        enumerator = items.GetEnumerator();
-        changeBatch.BeginUnorderedGroup();
-      }
-      else
-        changeBatch.BeginUnorderedGroup();
-      
-      uint batchItemCount = 0;
-      while (batchItemCount < batchSize && enumerator.MoveNext()) {
-        batchItemCount++;
-        changeBatch.AddChange(enumerator.Current);
-        currentItemCount++;
-      }
-      
-      if (currentItemCount!=totalItemCount)
-        changeBatch.EndUnorderedGroup(metadataStore.CurrentKnowledge, false);
-      else {
-        changeBatch.SetLastBatch();
-        changeBatch.EndUnorderedGroup(metadataStore.CurrentKnowledge, true);
-        enumerator.Dispose();
-      }
-
-      return changeBatch;
-    }
-
-    public override void ProcessChangeBatch(ConflictResolutionPolicy resolutionPolicy, ChangeBatch sourceChanges,
-      object changeDataRetriever, SyncCallbacks syncCallbacks, SyncSessionStatistics sessionStatistics)
-    {
-      var localChanges = metadataStore.GetLocalChanges(sourceChanges);
-      var changeApplier = new NotifyingChangeApplier(IdFormats);
-
-      changeApplier.ApplyChanges(resolutionPolicy, sourceChanges, changeDataRetriever as IChangeDataRetriever,
-        localChanges, metadataStore.CurrentKnowledge.Clone(), metadataStore.ForgottenKnowledge, this, syncContext, syncCallbacks);
-    }
+    #region Source provider methods
 
     public IChangeDataRetriever GetDataRetriever()
     {
       return this;
     }
 
-    public ulong GetNextTickCount()
+    public override void GetSyncBatchParameters(out uint batchSize, out SyncKnowledge knowledge)
     {
-      return (ulong) metadataStore.NextTick;
+      batchSize = Wellknown.SyncBatchSize;
+      knowledge = metadataStore.CurrentKnowledge;
+    }
+
+    public override ChangeBatch GetChangeBatch(uint batchSize, SyncKnowledge destinationKnowledge,
+      out object changeDataRetriever)
+    {
+      changeDataRetriever = this;
+      var result = new ChangeBatch(IdFormats, destinationKnowledge, metadataStore.ForgottenKnowledge);
+      bool hasNext;
+
+      if (changeSetEnumerator==null) {
+        var changeSets = metadataStore.DetectChanges(batchSize, destinationKnowledge);
+        changeSetEnumerator = changeSets.GetEnumerator();
+        hasNext = changeSetEnumerator.MoveNext();
+        if (!hasNext) {
+          result.BeginUnorderedGroup();
+          result.EndUnorderedGroup(metadataStore.CurrentKnowledge, true);
+          result.SetLastBatch();
+          return result;
+        }
+      }
+
+      result.BeginUnorderedGroup();
+      currentChangeSet = changeSetEnumerator.Current;
+      result.AddChanges(currentChangeSet.GetItemChanges());
+
+      hasNext = changeSetEnumerator.MoveNext();
+      if (!hasNext) {
+        result.EndUnorderedGroup(metadataStore.CurrentKnowledge, true);
+        result.SetLastBatch();
+      }
+      else
+        result.EndUnorderedGroup(metadataStore.CurrentKnowledge, false);
+
+      return result;
     }
 
     public object LoadChangeData(LoadChangeContext loadChangeContext)
     {
       var id = loadChangeContext.ItemChange.ItemId.GetGuidId();
-      var info = session.Query.All<SyncInfo>().SingleOrDefault(i => i.GlobalId == id);
-      var accessor = session.Services.Get<DirectPersistentAccessor>();
-      var syncInfoMetadata = metadataStore.GetSyncInfoMetadata(info.GetType().GetGenericArguments()[0]);
-      throw new NotImplementedException();
+      return currentChangeSet[id];
+    }
+
+    #endregion
+
+    #region Destination provider methods
+
+    public override void ProcessChangeBatch(ConflictResolutionPolicy resolutionPolicy, ChangeBatch sourceChanges,
+      object changeDataRetriever, SyncCallbacks syncCallbacks, SyncSessionStatistics sessionStatistics)
+    {
+      var localChanges = metadataStore.GetLocalChanges(sourceChanges).ToList();
+      var knowledge = metadataStore.CurrentKnowledge.Clone();
+      var forgottenKnowledge = metadataStore.ForgottenKnowledge;
+      var changeApplier = new NotifyingChangeApplier(IdFormats);
+
+      changeApplier.ApplyChanges(resolutionPolicy, sourceChanges, changeDataRetriever as IChangeDataRetriever,
+        localChanges, knowledge, forgottenKnowledge, this, syncContext, syncCallbacks);
+    }
+
+    public void SaveItemChange(SaveChangeAction saveChangeAction, ItemChange change, SaveChangeContext context)
+    {
+      var data = context.ChangeData as ItemChangeData;
+      if (data != null)
+        data.Change = change;
+
+      switch (saveChangeAction) {
+        case SaveChangeAction.ChangeIdUpdateVersionAndDeleteAndStoreTombstone:
+          throw new NotImplementedException();
+        case SaveChangeAction.ChangeIdUpdateVersionAndMergeData:
+          throw new NotImplementedException();
+        case SaveChangeAction.ChangeIdUpdateVersionAndSaveData:
+          throw new NotImplementedException();
+        case SaveChangeAction.ChangeIdUpdateVersionOnly:
+          throw new NotImplementedException();
+        case SaveChangeAction.Create:
+          HandleNewEntity(data);
+          break;
+        case SaveChangeAction.CreateGhost:
+          throw new NotImplementedException();
+        case SaveChangeAction.DeleteAndRemoveTombstone:
+          throw new NotImplementedException();
+        case SaveChangeAction.DeleteAndStoreTombstone:
+          throw new NotImplementedException();
+        case SaveChangeAction.DeleteConflictingAndSaveSourceItem:
+          throw new NotImplementedException();
+        case SaveChangeAction.DeleteGhostAndStoreTombstone:
+          throw new NotImplementedException();
+        case SaveChangeAction.DeleteGhostWithoutTombstone:
+          throw new NotImplementedException();
+        case SaveChangeAction.MarkItemAsGhost:
+          throw new NotImplementedException();
+        case SaveChangeAction.RenameDestinationAndUpdateVersionData:
+          throw new NotImplementedException();
+        case SaveChangeAction.RenameSourceAndUpdateVersionAndData:
+          throw new NotImplementedException();
+        case SaveChangeAction.StoreMergeTombstone:
+          throw new NotImplementedException();
+        case SaveChangeAction.UnmarkItemAsGhost:
+          throw new NotImplementedException();
+        case SaveChangeAction.UpdateGhost:
+          throw new NotImplementedException();
+        case SaveChangeAction.UpdateVersionAndData:
+          throw new NotImplementedException();
+        case SaveChangeAction.UpdateVersionAndMergeData:
+          throw new NotImplementedException();
+        case SaveChangeAction.UpdateVersionOnly:
+          throw new NotImplementedException();
+      }
+    }
+
+    private void HandleNewEntity(ItemChangeData data)
+    {
+      var entityType = data.Identity.Key.TypeReference.Type.UnderlyingType;
+      var hierarchy = session.Domain.Model.Types[entityType].Hierarchy;
+      Key mappedKey = null;
+      switch (hierarchy.Key.GeneratorKind) {
+        case KeyGeneratorKind.Custom:
+        case KeyGeneratorKind.Default:
+          mappedKey = Key.Create(session, entityType);
+          break;
+        case KeyGeneratorKind.None:
+          var originalTuple = data.Identity.Key.Value;
+          var targetTuple = originalTuple.Clone();
+          foreach (var field in hierarchy.Key.Fields.Where(f => f.IsEntity)) {
+
+            Identity identity;
+            if (!data.References.TryGetValue(field.Name, out identity))
+              continue;
+
+            var mappedRefKey = TryResolveIdentity(identity);
+            if (mappedRefKey == null)
+              throw new InvalidOperationException(string.Format("Mapped key for original key '{0}'", identity.Key.Format()));
+            mappedRefKey.Value.CopyTo(targetTuple, field.MappingInfo.Offset);
+          }
+          mappedKey = Key.Create(session.Domain, entityType, targetTuple);
+          break;
+      }
+      RegisterKeyMapping(data, mappedKey);
+      metadataStore.CreateMetadata(mappedKey, data.Change);
+      var entity = accessor.CreateEntity(data.Identity.Key.TypeInfo.UnderlyingType, mappedKey.Value);
+      var state = accessor.GetEntityState(entity);
+      var offset = mappedKey.Value.Count;
+      data.Tuple.CopyTo(state.Tuple, offset, offset, data.Tuple.Count - offset);
+
+      var stub = new EntityStub(state, session.DisableSaveChanges(entity));
+      UpdateReferences(stub, data.References);
+      TryRemovePin(stub);
+    }
+
+    private static void TryRemovePin(EntityStub stub)
+    {
+      if (stub.References.Count==0)
+        stub.Pin.Dispose();
+    }
+
+    private void RegisterKeyMapping(ItemChangeData data, Key mappedKey)
+    {
+      keyMap.Register(data.Identity, mappedKey);
+      List<EntityStub> stubs;
+      if (!keyDependencies.TryGetValue(data.Identity.Key, out stubs))
+        return;
+
+      foreach (var stub in stubs) {
+        var references = stub.References.Where(r => r.Value.Key == data.Identity.Key).ToList();
+        foreach (var reference in references) {
+          accessor.SetReferenceKey(stub.State.Entity, reference.Field, mappedKey);
+          stub.References.Remove(reference);
+        }
+        TryRemovePin(stub);
+      }
+    }
+
+    private Key TryResolveIdentity(Identity reference)
+    {
+      return keyMap.Resolve(reference);
+    }
+
+    private void UpdateReferences(EntityStub stub, Dictionary<string, Identity> references)
+    {
+      var typeInfo = stub.State.Type;
+      foreach (var field in typeInfo.Fields.Where(f => f.IsEntity && !f.IsPrimaryKey)) {
+        Identity reference;
+        if (!references.TryGetValue(field.Name, out reference))
+          continue;
+        var mappedKey = TryResolveIdentity(reference);
+        if (mappedKey==null) {
+          RegisterReferenceDependency(stub, new Reference(field, reference));
+        }
+        else
+          //mappedKey.Value.CopyTo(state.Tuple, field.MappingInfo.Offset);
+          accessor.SetReferenceKey(stub.State.Entity, field, mappedKey);
+      }
+    }
+
+    private void RegisterReferenceDependency(EntityStub stub, Reference reference)
+    {
+      stub.References.Add(reference);
+      List<EntityStub> container;
+      if (!keyDependencies.TryGetValue(reference.Value.Key, out container)) {
+        container = new List<EntityStub>();
+        keyDependencies[reference.Value.Key] = container;
+      }
+      container.Add(stub);
+    }
+
+    #endregion
+
+    public ulong GetNextTickCount()
+    {
+      return (ulong) metadataStore.NextTick;
     }
 
     public void SaveConflict(ItemChange conflictingChange, object conflictingChangeData, SyncKnowledge conflictingChangeKnowledge)
     {
       throw new NotImplementedException();
-    }
-
-    public void SaveItemChange(SaveChangeAction saveChangeAction, ItemChange change, SaveChangeContext context)
-    {
-      SyncInfo syncInfo;
-      var source = (SyncInfo)context.ChangeData;
-
-      switch (saveChangeAction) {
-        case SaveChangeAction.Create:
-          var accessor = session.Services.Get<DirectPersistentAccessor>();
-          var syncInfoMetadata = metadataStore.GetSyncInfoMetadata(source.GetType().GetGenericArguments()[0]);
-          var entityKey = accessor.GetReferenceKey(source, syncInfoMetadata.EntityField);
-          syncInfo = (SyncInfo) accessor.CreateEntity(syncInfoMetadata.UnderlyingType);
-          accessor.SetReferenceKey(syncInfo, syncInfoMetadata.EntityField, entityKey);
-
-          syncInfo.GlobalId = change.ItemId.GetGuidId();
-          syncInfo.CreatedVersion = change.CreationVersion;
-          syncInfo.ChangeVersion = change.ChangeVersion;
-          break;
-      }
     }
 
     public void StoreKnowledgeForScope(SyncKnowledge newCurrentKnowledge, ForgottenKnowledge newForgottenKnowledge)
@@ -170,7 +299,11 @@ namespace Xtensive.Orm.Sync
     public SyncProviderImplementation(Session session)
     {
       this.session = session;
-      metadataStore = session.Services.Get<SyncMetadataStore>();
+      accessor = session.Services.Get<DirectEntityAccessor>();
+      syncRoots = new SyncRootSet(session.Domain.Model);
+      metadataStore = new SyncMetadataStore(session, syncRoots);
+      keyMap = new KeyMap(session, syncRoots);
+      keyDependencies = new Dictionary<Key,List<EntityStub>>();
     }
   }
 }
