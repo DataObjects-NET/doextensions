@@ -161,10 +161,13 @@ namespace Xtensive.Orm.Sync
     }
 
     [Infrastructure]
-    internal abstract Entity GetEntity();
+    internal abstract Entity SyncTarget { get; }
 
     [Infrastructure]
-    internal abstract Type GetEntityType();
+    internal Key SyncTargetKey { get; set; }
+
+    [Infrastructure]
+    internal abstract Type SyncTargetType { get; }
 
     protected SyncInfo(Session session)
       : base(session)

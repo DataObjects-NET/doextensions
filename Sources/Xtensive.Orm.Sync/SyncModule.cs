@@ -34,9 +34,9 @@ namespace Xtensive.Orm.Sync
       using (var t = session.OpenTransaction()) {
 
         var ms = new SyncMetadataStore(session, new SyncRootSet(session.Domain.Model));
-        var info = ms.GetMetadata(items.Select(i => i.Key));
+        var info = ms.LoadMetadata(items.Select(i => i.Key));
         var lookup = info
-          .ToDictionary(i => i.GetEntity().Key);
+          .ToDictionary(i => i.SyncTargetKey);
 
         foreach (var item in items) {
           if (item.State==TrackingItemState.Created)

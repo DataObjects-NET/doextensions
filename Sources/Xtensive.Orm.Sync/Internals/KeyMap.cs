@@ -55,7 +55,7 @@ namespace Xtensive.Orm.Sync
       if (info == null)
         return null;
 
-      var entityType = info.GetEntityType();
+      var entityType = info.SyncTargetType;
       var syncRoot = syncRoots[entityType];
       return accessor.GetReferenceKey(info, syncRoot.EntityField);
     }

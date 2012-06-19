@@ -2,7 +2,7 @@ using System;
 
 namespace Xtensive.Orm.Tracking
 {
-  public interface ISessionTrackingMonitor : ISessionService, IDisposable, ITrackingMonitor
+  public interface ISessionTrackingMonitor : ISessionBound, ISessionService, IDisposable, ITrackingMonitor
   {
   }
 }

@@ -124,14 +124,15 @@ namespace Xtensive.Orm.Sync
         case SaveChangeAction.ChangeIdUpdateVersionOnly:
           throw new NotImplementedException();
         case SaveChangeAction.Create:
-          HandleNewEntity(data);
+          HandleCreateEntity(data);
           break;
         case SaveChangeAction.CreateGhost:
           throw new NotImplementedException();
         case SaveChangeAction.DeleteAndRemoveTombstone:
           throw new NotImplementedException();
         case SaveChangeAction.DeleteAndStoreTombstone:
-          throw new NotImplementedException();
+          HandleRemoveEntity(change);
+          break;
         case SaveChangeAction.DeleteConflictingAndSaveSourceItem:
           throw new NotImplementedException();
         case SaveChangeAction.DeleteGhostAndStoreTombstone:
@@ -151,15 +152,15 @@ namespace Xtensive.Orm.Sync
         case SaveChangeAction.UpdateGhost:
           throw new NotImplementedException();
         case SaveChangeAction.UpdateVersionAndData:
-          throw new NotImplementedException();
+          HandleUpdateEntity(data);
+          break;
         case SaveChangeAction.UpdateVersionAndMergeData:
-          throw new NotImplementedException();
         case SaveChangeAction.UpdateVersionOnly:
           throw new NotImplementedException();
       }
     }
 
-    private void HandleNewEntity(ItemChangeData data)
+    private void HandleCreateEntity(ItemChangeData data)
     {
       var entityType = data.Identity.Key.TypeReference.Type.UnderlyingType;
       var hierarchy = session.Domain.Model.Types[entityType].Hierarchy;
@@ -196,6 +197,29 @@ namespace Xtensive.Orm.Sync
       var stub = new EntityStub(state, session.DisableSaveChanges(entity));
       UpdateReferences(stub, data.References);
       TryRemovePin(stub);
+    }
+
+    private void HandleUpdateEntity(ItemChangeData data)
+    {
+      var syncInfo = session.Query.All<SyncInfo>().Single(s => s.GlobalId==data.Identity.GlobalId);
+      metadataStore.UpdateMetadata(syncInfo, data.Change, false);
+      var entity = syncInfo.SyncTarget;
+      var state = accessor.GetEntityState(entity);
+      var offset = entity.Key.Value.Count;
+      data.Tuple.CopyTo(state.DifferentialTuple, offset, offset, data.Tuple.Count - offset);
+      state.PersistenceState = PersistenceState.Modified;
+      var stub = new EntityStub(state, session.DisableSaveChanges(entity));
+      UpdateReferences(stub, data.References);
+      TryRemovePin(stub);
+    }
+
+    private void HandleRemoveEntity(ItemChange change)
+    {
+      var syncInfo = session.Query.All<SyncInfo>().Single(s => s.GlobalId==change.ItemId.GetGuidId());
+      metadataStore.UpdateMetadata(syncInfo, change, true);
+      var entity = syncInfo.SyncTarget;
+      var state = accessor.GetEntityState(entity);
+      state.PersistenceState = PersistenceState.Removed;
     }
 
     private static void TryRemovePin(EntityStub stub)

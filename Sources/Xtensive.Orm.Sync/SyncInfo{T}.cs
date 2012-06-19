@@ -1,5 +1,4 @@
 ﻿using System;
-using Xtensive.Aspects;
 
 namespace Xtensive.Orm.Sync
 {
@@ -12,14 +11,14 @@ namespace Xtensive.Orm.Sync
     [Association(OnOwnerRemove=OnRemoveAction.None, OnTargetRemove=OnRemoveAction.None)]
     public TEntity Entity { get; private set; }
 
-    internal override Entity GetEntity()
+    internal override Entity SyncTarget
     {
-      return Entity;
+      get { return Entity; }
     }
 
-    internal override Type GetEntityType()
+    internal override Type SyncTargetType
     {
-      return typeof(TEntity);
+      get { return typeof (TEntity); }
     }
 
     public SyncInfo(Session session)

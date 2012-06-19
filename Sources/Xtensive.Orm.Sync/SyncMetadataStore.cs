@@ -41,19 +41,20 @@ namespace Xtensive.Orm.Sync
       mappedKnowledge.ReplicaKeyMap.FindOrAddReplicaKey(CurrentKnowledge.ReplicaId);
 
       foreach (var syncRoot in syncRoots) {
-        var mi = GetType().GetMethod("DetectChangesForType", BindingFlags.NonPublic|BindingFlags.Instance).MakeGenericMethod(syncRoot.EntityType);
-        var changes = (IEnumerable<ChangeSet>) mi.Invoke(this, new object[] { batchSize, mappedKnowledge });
+        var changes = DetectChanges(batchSize, mappedKnowledge, syncRoot);
         foreach (var change in changes)
           yield return change;
       }
     }
 
-    private IEnumerable<ChangeSet> DetectChangesForType<TEntity> (uint batchSize, SyncKnowledge mappedKnowledge) where TEntity : Entity
+    private IEnumerable<ChangeSet> DetectChanges(uint batchSize, SyncKnowledge mappedKnowledge, SyncRoot syncRoot)
     {
       int itemCount = 0;
       var result = new ChangeSet();
       var keys = new HashSet<Key>();
-      foreach (var item in Session.Query.All<SyncInfo<TEntity>>().Prefetch(i => i.Entity)) {
+      var items = LoadMetadata(syncRoot);
+
+      foreach (var item in items) {
 
         var createdVersion = item.CreationVersion;
         var lastChangeVersion = item.ChangeVersion;
@@ -70,18 +71,18 @@ namespace Xtensive.Orm.Sync
         var change = new ItemChange(IdFormats, ReplicaId, item.SyncId, changeKind, createdVersion, lastChangeVersion);
         var changeData = new ItemChangeData {
           Change = change,
-          Identity = new Identity(item.GlobalId, item.Entity.Key),
+          Identity = new Identity(item.GlobalId, item.SyncTargetKey),
         };
         if (!item.IsTombstone) {
-          changeData.Tuple = accessor.GetEntityState(item.Entity).Tuple.Clone();
-          var type = Session.Domain.Model.Types[item.Entity.GetType()];
+          changeData.Tuple = accessor.GetEntityState(item.SyncTarget).Tuple.Clone();
+          var type = Session.Domain.Model.Types[item.SyncTargetType];
           var fields = type.Fields.Where(f => f.IsEntity);
           foreach (var field in fields) {
-            var key = accessor.GetReferenceKey(item.Entity, field);
+            var key = accessor.GetReferenceKey(item.SyncTarget, field);
             if (key!=null) {
               changeData.References.Add(field.Name, new Identity(key));
               keys.Add(key);
-              accessor.SetReferenceKey(item.Entity, field, null);
+              accessor.SetReferenceKey(item.SyncTarget, field, null);
             }
           }
         }
@@ -91,31 +92,38 @@ namespace Xtensive.Orm.Sync
         if (itemCount!=batchSize)
           continue;
 
-        // Getting global ids for referenced entities
-        if (keys.Count > 0) {
-          var lookup = GetMetadata(keys.ToList())
-            .Distinct()
-            .ToDictionary(i => i.Key, i => i.GlobalId);
-          foreach (var data in result) {
-            foreach (var reference in data.References.Values) {
-              Guid globalId;
-              if (lookup.TryGetValue(reference.Key, out globalId))
-                reference.GlobalId = globalId;
-            }
-          }
-        }
+        if (keys.Count > 0)
+          PreloadReferences(result, keys);
 
         yield return result;
         itemCount = 0;
         result = new ChangeSet();
         keys = new HashSet<Key>();
       }
-      if (result.Any())
+      if (result.Any()) {
+        if (keys.Count > 0)
+          PreloadReferences(result, keys);
         yield return result;
+      }
+    }
+
+    private void PreloadReferences(ChangeSet result, IEnumerable<Key> keys)
+    {
+      var lookup = LoadMetadata(keys.ToList())
+        .Distinct()
+        .ToDictionary(i => i.SyncTargetKey, i => i.GlobalId);
+      foreach (var data in result)
+        foreach (var reference in data.References.Values) {
+          Guid globalId;
+          if (lookup.TryGetValue(reference.Key, out globalId))
+            reference.GlobalId = globalId;
+        }
     }
 
     public IEnumerable<ItemChange> GetLocalChanges(IEnumerable<ItemChange> sourceChanges)
     {
+      // TODO: fix this
+
       var ids = sourceChanges
         .Select(i => i.ItemId.GetGuidId());
       var items = Session.Query.All<SyncInfo>()
@@ -145,7 +153,7 @@ namespace Xtensive.Orm.Sync
       }
     }
 
-    internal IEnumerable<SyncInfo> GetMetadata(IEnumerable<Key> keys)
+    internal IEnumerable<SyncInfo> LoadMetadata(IEnumerable<Key> keys)
     {
       var groups = keys.GroupBy(i => i.TypeInfo.Hierarchy.Root);
 
@@ -202,26 +210,42 @@ namespace Xtensive.Orm.Sync
       return result;
     }
 
-//    internal void UpdateMetadata(Type entityType, Key entityKey, ItemChange change, bool markAsTombstone = false)
-//    {
-//      var syncRoot = SyncRoots.GetSyncRoot(entityKey.TypeInfo.UnderlyingType);
-//      var result = GetMetadataByEntityKey(syncRoot, entityKey).SingleOrDefault();
-//      if (result==null)
-//        result = CreateMetadata(entityType, entityKey, change);
-//
-//      result.ChangeVersion = change.ChangeVersion;
-//
-//      if (!markAsTombstone)
-//        return;
-//
-//      result.TombstoneVersion = change.ChangeVersion;
-//      result.IsTombstone = true;
-//    }
+    internal void UpdateMetadata(SyncInfo item, ItemChange change, bool markAsTombstone)
+    {
+      item.ChangeVersion = change.ChangeVersion;
+
+      if (!markAsTombstone)
+        return;
+
+      item.TombstoneVersion = change.ChangeVersion;
+      item.IsTombstone = true;
+    }
+
+
+    private IEnumerable<SyncInfo> LoadMetadata(SyncRoot syncRoot)
+    {
+      var mi = GetType().GetMethod("LoadMetadataImpl", BindingFlags.Instance|BindingFlags.NonPublic).MakeGenericMethod(syncRoot.EntityType);
+      var result = (IEnumerable<SyncInfo>) mi.Invoke(this, new object[] {});
+      foreach (var item in result) {
+        item.SyncTargetKey = accessor.GetReferenceKey(item, syncRoot.EntityField);
+        yield return item;
+      }
+    }
+
+    private IEnumerable<SyncInfo> LoadMetadataImpl<T>() where T : Entity
+    {
+      return  Session.Query.All<SyncInfo<T>>();
+    }
+
 
     private IEnumerable<SyncInfo> LoadMetadataByKeys(SyncRoot syncRoot, List<Key> keys)
     {
       var mi = GetType().GetMethod("LoadMetadataByKeysImpl", BindingFlags.Instance|BindingFlags.NonPublic).MakeGenericMethod(syncRoot.EntityType);
-      return (IEnumerable<SyncInfo>) mi.Invoke(this, new object[] { keys });
+      var result = (IEnumerable<SyncInfo>) mi.Invoke(this, new object[] { keys });
+      foreach (var item in result) {
+        item.SyncTargetKey = accessor.GetReferenceKey(item, syncRoot.EntityField);
+        yield return item;
+      }
     }
 
     private IEnumerable<SyncInfo> LoadMetadataByKeysImpl<T>(List<Key> keys) where T : Entity
@@ -262,7 +286,11 @@ namespace Xtensive.Orm.Sync
     internal IEnumerable<SyncInfo> GetMetadataByGlobalId(SyncRoot syncRoot, IEnumerable<Guid> ids)
     {
       var mi = GetType().GetMethod("FetchMetadataByGlobalId").MakeGenericMethod(syncRoot.ItemType);
-      return (IEnumerable<SyncInfo>) mi.Invoke(this, new object[] { ids });
+      var result = (IEnumerable<SyncInfo>) mi.Invoke(this, new object[] { ids });
+      foreach (var item in result) {
+        item.SyncTargetKey = accessor.GetReferenceKey(item, syncRoot.EntityField);
+        yield return item;
+      }
     }
 
     private IEnumerable<SyncInfo> FetchMetadataByGlobalId<T>(Guid[] ids) where T : Entity
