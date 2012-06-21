@@ -6,7 +6,7 @@ using Microsoft.Synchronization;
 
 namespace Xtensive.Orm.Sync
 {
-  public class ChangeSet : IEnumerable<ItemChangeData>
+  internal class ChangeSet : IEnumerable<ItemChangeData>
   {
     private readonly Dictionary<Guid, ItemChangeData> index = new Dictionary<Guid,ItemChangeData>();
 

@@ -5,6 +5,9 @@ using Xtensive.Orm.Model;
 
 namespace Xtensive.Orm.Sync
 {
+  /// <summary>
+  /// <see cref="IKeyGenerator"/> wrapper
+  /// </summary>
   [Service(typeof(SyncTickGenerator), Singleton = true)]
   public class SyncTickGenerator : IDomainService
   {
@@ -12,6 +15,11 @@ namespace Xtensive.Orm.Sync
     private readonly KeyInfo keyInfo;
     private long lastTick;
 
+    /// <summary>
+    /// Gets the last tick.
+    /// </summary>
+    /// <param name="session">The session.</param>
+    /// <returns></returns>
     public long GetLastTick(Session session)
     {
       if (lastTick > 0)
@@ -24,12 +32,21 @@ namespace Xtensive.Orm.Sync
       return lastTick;
     }
 
+    /// <summary>
+    /// Gets the next tick.
+    /// </summary>
+    /// <param name="session">The session.</param>
+    /// <returns></returns>
     public long GetNextTick(Session session)
     {
       lastTick = generator.GenerateKey(keyInfo, session).GetValue<long>(0);
       return lastTick;
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SyncTickGenerator"/> class.
+    /// </summary>
+    /// <param name="domain">The domain.</param>
     [ServiceConstructor]
     public SyncTickGenerator(Domain domain)
     {

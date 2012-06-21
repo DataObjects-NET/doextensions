@@ -68,26 +68,24 @@
     </Compile>
     <Compile Include="Internals\Identity.cs" />
     <Compile Include="Internals\KeyMap.cs" />
-    <Compile Include="ChangeSet.cs" />
-    <Compile Include="Internals\Reference.cs" />
-    <Compile Include="Internals\EntityStub.cs" />
+    <Compile Include="Internals\ChangeSet.cs" />
+    <Compile Include="Internals\KeyDependency.cs" />
     <Compile Include="Internals\SyncRootSet.cs" />
     <Compile Include="SyncProviderImplementation.cs" />
     <Compile Include="Internals\SyncRoot.cs" />
     <Compile Include="Internals\ItemChangeData.cs" />
     <Compile Include="SyncInfo.cs" />
-    <Compile Include="Interfaces\ISyncInfo.cs" />
     <Compile Include="SyncInfo{T}.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="SyncMetadataStore.cs" />
+    <Compile Include="Internals\SyncMetadataStore.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SyncModule.cs" />
     <Compile Include="SyncProviderWrapper.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="SyncTickGenerator.cs" />
-    <Compile Include="Wellknown.cs" />
+    <Compile Include="Internals\Wellknown.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Xtensive.Orm.Tracking\Xtensive.Orm.Tracking.csproj">

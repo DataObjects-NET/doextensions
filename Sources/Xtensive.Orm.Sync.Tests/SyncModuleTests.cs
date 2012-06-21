@@ -15,11 +15,6 @@ namespace Xtensive.Orm.Sync.Tests
       using (var session = LocalDomain.OpenSession()) {
         using (var t = session.OpenTransaction()) {
 
-          var r = session.Services.Get<SyncMetadataStore>();
-          Assert.IsNotNull(r);
-
-          Assert.IsNotNull(r.ReplicaId);
-
           var m = LocalDomain.Services.Get<IDomainTrackingMonitor>();
           Assert.IsNotNull(m);
 

@@ -11,7 +11,7 @@ using Xtensive.Orm.Services;
 
 namespace Xtensive.Orm.Sync
 {
-  public class SyncMetadataStore : SessionBound
+  internal class SyncMetadataStore : SessionBound
   {
     private readonly DirectEntityAccessor accessor;
     private readonly SyncTickGenerator tickGenerator;
@@ -75,7 +75,7 @@ namespace Xtensive.Orm.Sync
         };
         if (!item.IsTombstone) {
           changeData.Tuple = accessor.GetEntityState(item.SyncTarget).Tuple.Clone();
-          var type = Session.Domain.Model.Types[item.SyncTargetType];
+          var type = item.SyncTargetKey.TypeInfo;
           var fields = type.Fields.Where(f => f.IsEntity);
           foreach (var field in fields) {
             var key = accessor.GetReferenceKey(item.SyncTarget, field);
@@ -111,12 +111,14 @@ namespace Xtensive.Orm.Sync
     {
       var lookup = LoadMetadata(keys.ToList())
         .Distinct()
-        .ToDictionary(i => i.SyncTargetKey, i => i.GlobalId);
+        .ToDictionary(i => i.SyncTargetKey);
       foreach (var data in result)
         foreach (var reference in data.References.Values) {
-          Guid globalId;
-          if (lookup.TryGetValue(reference.Key, out globalId))
-            reference.GlobalId = globalId;
+          SyncInfo item;
+          if (lookup.TryGetValue(reference.Key, out item)) {
+            reference.Key = item.SyncTargetKey;
+            reference.GlobalId = item.GlobalId;
+          }
         }
     }
 
@@ -155,7 +157,7 @@ namespace Xtensive.Orm.Sync
 
     internal IEnumerable<SyncInfo> LoadMetadata(IEnumerable<Key> keys)
     {
-      var groups = keys.GroupBy(i => i.TypeInfo.Hierarchy.Root);
+      var groups = keys.GroupBy(i => i.TypeReference.Type.Hierarchy.Root);
 
       foreach (var @group in groups) {
         var syncRoot = syncRoots[@group.Key.UnderlyingType];
@@ -225,30 +227,32 @@ namespace Xtensive.Orm.Sync
     private IEnumerable<SyncInfo> LoadMetadata(SyncRoot syncRoot)
     {
       var mi = GetType().GetMethod("LoadMetadataImpl", BindingFlags.Instance|BindingFlags.NonPublic).MakeGenericMethod(syncRoot.EntityType);
-      var result = (IEnumerable<SyncInfo>) mi.Invoke(this, new object[] {});
-      foreach (var item in result) {
-        item.SyncTargetKey = accessor.GetReferenceKey(item, syncRoot.EntityField);
-        yield return item;
-      }
+      return (IEnumerable<SyncInfo>) mi.Invoke(this, new object[] {syncRoot});
     }
 
-    private IEnumerable<SyncInfo> LoadMetadataImpl<T>() where T : Entity
+    private IEnumerable<SyncInfo> LoadMetadataImpl<T>(SyncRoot syncRoot) where T : Entity
     {
-      return  Session.Query.All<SyncInfo<T>>();
+      var items = Session.Query.All<SyncInfo<T>>()
+        .Prefetch(s => s.Entity)
+        .ToArray();
+
+      foreach (var item in items) {
+        if (item.Entity != null)
+          item.SyncTargetKey = item.Entity.Key;
+        else
+          item.SyncTargetKey = accessor.GetReferenceKey(item, syncRoot.EntityField);
+        yield return item;
+      }
     }
 
 
     private IEnumerable<SyncInfo> LoadMetadataByKeys(SyncRoot syncRoot, List<Key> keys)
     {
       var mi = GetType().GetMethod("LoadMetadataByKeysImpl", BindingFlags.Instance|BindingFlags.NonPublic).MakeGenericMethod(syncRoot.EntityType);
-      var result = (IEnumerable<SyncInfo>) mi.Invoke(this, new object[] { keys });
-      foreach (var item in result) {
-        item.SyncTargetKey = accessor.GetReferenceKey(item, syncRoot.EntityField);
-        yield return item;
-      }
+      return (IEnumerable<SyncInfo>) mi.Invoke(this, new object[] { syncRoot, keys });
     }
 
-    private IEnumerable<SyncInfo> LoadMetadataByKeysImpl<T>(List<Key> keys) where T : Entity
+    private IEnumerable<SyncInfo> LoadMetadataByKeysImpl<T>(SyncRoot syncRoot, List<Key> keys) where T : Entity
     {
       int batchCount = keys.Count / Wellknown.KeyPreloadBatchSize;
       int lastBatchItemCount = keys.Count % Wellknown.KeyPreloadBatchSize;
@@ -261,12 +265,17 @@ namespace Xtensive.Orm.Sync
           itemCount = lastBatchItemCount;
 
         var filter = FilterByKeys<T>(keys, i, itemCount);
-        var result = Session.Query.All<SyncInfo<T>>()
+        var items = Session.Query.All<SyncInfo<T>>()
           .Where(filter)
           .Prefetch(s => s.Entity)
           .ToArray();
-        foreach (var item in result)
+        foreach (var item in items) {
+          if (item.Entity != null)
+            item.SyncTargetKey = item.Entity.Key;
+          else
+            item.SyncTargetKey = accessor.GetReferenceKey(item, syncRoot.EntityField);
           yield return item;
+        }
       }
     }
 
@@ -286,18 +295,23 @@ namespace Xtensive.Orm.Sync
     internal IEnumerable<SyncInfo> GetMetadataByGlobalId(SyncRoot syncRoot, IEnumerable<Guid> ids)
     {
       var mi = GetType().GetMethod("FetchMetadataByGlobalId").MakeGenericMethod(syncRoot.ItemType);
-      var result = (IEnumerable<SyncInfo>) mi.Invoke(this, new object[] { ids });
-      foreach (var item in result) {
-        item.SyncTargetKey = accessor.GetReferenceKey(item, syncRoot.EntityField);
-        yield return item;
-      }
+      return (IEnumerable<SyncInfo>) mi.Invoke(this, new object[] { syncRoot, ids });
     }
 
-    private IEnumerable<SyncInfo> FetchMetadataByGlobalId<T>(Guid[] ids) where T : Entity
+    private IEnumerable<SyncInfo> FetchMetadataByGlobalId<T>(SyncRoot syncRoot, Guid[] ids) where T : Entity
     {
-      return Session.Query.All<SyncInfo<T>>()
+      var items = Session.Query.All<SyncInfo<T>>()
         .Where(i => i.GlobalId.In(ids))
-        .Prefetch(i => i.Entity);
+        .Prefetch(i => i.Entity)
+        .ToArray();
+
+      foreach (var item in items) {
+        if (item.Entity != null)
+          item.SyncTargetKey = item.Entity.Key;
+        else
+          item.SyncTargetKey = accessor.GetReferenceKey(item, syncRoot.EntityField);
+        yield return item;
+      }
     }
 
     #region Initialization & knowledge update bits
@@ -345,7 +359,7 @@ namespace Xtensive.Orm.Sync
       var values = Session.Query.All<Extension>()
         .Where(e => e.Name.In(names)).ToArray();
 
-      var value = values.SingleOrDefault(e => e.Name==Wellknown.FieldNames.CurrentKnowledge);
+      var value = Session.Query.SingleOrDefault<Extension>(Wellknown.FieldNames.CurrentKnowledge);
       if (value==null)
         using (Session.Activate())
           value = new Extension(Wellknown.FieldNames.CurrentKnowledge);
@@ -354,7 +368,7 @@ namespace Xtensive.Orm.Sync
       if (forgottenKnowledge == null)
         return;
 
-      value = values.SingleOrDefault(e => e.Name==Wellknown.FieldNames.ForgottenKnowledge);
+      value = Session.Query.SingleOrDefault<Extension>(Wellknown.FieldNames.ForgottenKnowledge);
       if (value==null)
         using (Session.Activate())
           value = new Extension(Wellknown.FieldNames.ForgottenKnowledge);

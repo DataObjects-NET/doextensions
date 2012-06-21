@@ -5,11 +5,13 @@
 // Created:    2012.05.30
 
 using System;
+using System.Diagnostics;
 using Xtensive.Orm.Model;
 
 namespace Xtensive.Orm.Sync
 {
-  public class SyncRoot
+  [DebuggerDisplay("{EntityType}")]
+  internal class SyncRoot
   {
     public Type ItemType { get; set; }
 

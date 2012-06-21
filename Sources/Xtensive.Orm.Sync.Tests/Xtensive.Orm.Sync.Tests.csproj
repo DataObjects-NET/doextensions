@@ -67,7 +67,6 @@
       <Link>Properties\ProductInfo.cs</Link>
     </Compile>
     <Compile Include="AutoBuildTest.cs" />
-    <Compile Include="AutoBuildTestWithRollback.cs" />
     <Compile Include="FirstTests.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="Model\MyEntity.cs" />
@@ -79,7 +78,9 @@
     <Compile Include="SyncModuleTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

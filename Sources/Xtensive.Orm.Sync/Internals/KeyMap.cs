@@ -5,7 +5,7 @@ using Xtensive.Orm.Services;
 
 namespace Xtensive.Orm.Sync
 {
-  public class KeyMap : SessionBound
+  internal class KeyMap : SessionBound
   {
     private readonly Dictionary<Key, Key> keyIndex = new Dictionary<Key,Key>();
     private readonly Dictionary<Guid, Key> globalIdIndex = new Dictionary<Guid,Key>();

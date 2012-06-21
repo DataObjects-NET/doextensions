@@ -5,14 +5,26 @@ using Xtensive.Orm.Tracking;
 
 namespace Xtensive.Orm.Sync
 {
+  /// <summary>
+  /// <see cref="IModule"/> implementation for Sync extension
+  /// </summary>
   public class SyncModule : IModule
   {
     private Domain domain;
 
+    /// <summary>
+    /// Called when the build of <see cref="T:Xtensive.Orm.Building.Definitions.DomainModelDef"/> is completed.
+    /// </summary>
+    /// <param name="context">The domain building context.</param>
+    /// <param name="model">The domain model definition.</param>
     public void OnDefinitionsBuilt(BuildingContext context, DomainModelDef model)
     {
     }
 
+    /// <summary>
+    /// Called when 'complex' build process is completed.
+    /// </summary>
+    /// <param name="domain">The built domain.</param>
     public void OnBuilt(Domain domain)
     {
       this.domain = domain;

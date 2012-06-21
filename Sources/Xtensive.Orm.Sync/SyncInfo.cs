@@ -4,10 +4,13 @@ using Xtensive.Aspects;
 
 namespace Xtensive.Orm.Sync
 {
+  /// <summary>
+  /// <see cref="Entity"/> that contains synchronization-related information.
+  /// </summary>
   [HierarchyRoot]
   [KeyGenerator(Name = Wellknown.TickGeneratorName)]
   [Index("GlobalId", Unique = true)]
-  public abstract class SyncInfo : Entity, ISyncInfo
+  public abstract class SyncInfo : Entity
   {
     private SyncId cachedSyncId;
     private SyncVersion cachedCreatedVersion;
@@ -17,11 +20,13 @@ namespace Xtensive.Orm.Sync
     /// <summary>
     /// Gets the id.
     /// </summary>
+    [Field, Key]
     public long Id { get; private set; }
 
     /// <summary>
     /// Gets the global ID of the item.
     /// </summary>
+    [Field]
     public Guid GlobalId { get; set; }
 
     /// <summary>
@@ -47,6 +52,7 @@ namespace Xtensive.Orm.Sync
     /// <returns>
     /// true if the item has been deleted; otherwise, false.
     /// </returns>
+    [Field]
     public bool IsTombstone { get; set; }
 
     [Field]
@@ -169,6 +175,10 @@ namespace Xtensive.Orm.Sync
     [Infrastructure]
     internal abstract Type SyncTargetType { get; }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SyncInfo"/> class.
+    /// </summary>
+    /// <param name="session">The session.</param>
     protected SyncInfo(Session session)
       : base(session)
     {

@@ -7,7 +7,7 @@ using Xtensive.Orm.Model;
 
 namespace Xtensive.Orm.Sync
 {
-  public class SyncRootSet : IEnumerable<SyncRoot>
+  internal class SyncRootSet : IEnumerable<SyncRoot>
   {
     private readonly DomainModel model;
     private List<SyncRoot> items;
@@ -45,8 +45,8 @@ namespace Xtensive.Orm.Sync
         foreach (var field in keyFields) {
           if (!field.IsEntity)
             continue;
-          var right = nodeIndex[model.Types[field.ValueType].UnderlyingType];
-          new Edge<FieldInfo>(left, right, field).Attach();
+          var right = nodeIndex[model.Types[field.ValueType].GetRoot().UnderlyingType];
+          new Edge<FieldInfo>(right, left, field).Attach();
         }
       }
 

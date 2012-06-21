@@ -2,7 +2,7 @@
 
 namespace Xtensive.Orm.Sync
 {
-  public static class Wellknown
+  internal static class Wellknown
   {
     public const uint SyncBatchSize = 64;
     public const int KeyPreloadBatchSize = 25;
