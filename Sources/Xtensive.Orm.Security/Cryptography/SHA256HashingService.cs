@@ -15,11 +15,17 @@ namespace Xtensive.Orm.Security.Cryptography
   [Service(typeof (IHashingService), Singleton = true, Name = "sha256")]
   public class SHA256HashingService : GenericHashingService
   {
+    /// <inheritdoc/>
+    protected override HashAlgorithm GetHashAlgorithm()
+    {
+      return new SHA256Managed();
+    }
+
     /// <summary>
     /// Initializes a new instance of the <see cref="SHA256HashingService"/> class.
     /// </summary>
     public SHA256HashingService()
-      : base(new SHA256Managed())
-    {}
+    {
+    }
   }
 }

@@ -1,13 +1,24 @@
+                                                                     
+                                                                     
+                                                                     
+                                             
 How to build DataObjects.Net Extensions
 =======================================
 DataObjects.Net Extensions are built using MSBuild tool from .NET Framework 4.0 or later.
 At the root of repository you can find MSBuild project All.proj.
 This project builds binaries as well as distribution packages.
-Also it is capable of fetching all dependencies from NuGet package respository.
+Also it is capable of fetching all dependencies from NuGet package repository.
+
+***Important*** 
+You can't build the DataObjects.Net Extensions in Visual Studio first time because several
+packages must be installed with NuGet. MSBuild project All.proj will handle this. After first 
+build with MSBuild all prerequisites are installed and you can use Visual Studio to build 
+and test the extensions. You must create a SQLEXPRESS database named 'Tests' to run unit tests.
 
 To build project you need to open "Visual Studio Command Prompt" otherwise you'll have to enter
-full path to MSBuild.exe. NuGet.exe (NuGet package manager console tool) should be available
-in %PATH% as well.
+full path to MSBuild.exe. NuGet.exe (NuGet package manager command line tool) must be available
+in %PATH% as well. NuGet.exe isn't installed with the NuGet Package Manager but must be installed 
+separately and put in the %PATH% manually.
 
 All.proj have multiple targets to control build process:
 

@@ -53,6 +53,10 @@
   <Libraries Include="$(BinariesDir)Xtensive.Orm.Reprocessing.dll" />
   <Libraries Include="$(BinariesDir)Xtensive.Orm.Reprocessing.xml" />
   <Libraries Include="$(BinariesDir)Xtensive.Orm.Reprocessing.txt" />
+
+  <Libraries Include="$(BinariesDir)Xtensive.Orm.Security.dll" />
+  <Libraries Include="$(BinariesDir)Xtensive.Orm.Security.xml" />
+  <Libraries Include="$(BinariesDir)Xtensive.Orm.Security.txt" />
 </ItemGroup>
 
 <Target Name="InitBuildDir">
