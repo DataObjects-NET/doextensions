@@ -7,7 +7,7 @@ using Xtensive.Orm.Sync.Tests.Model;
 namespace Xtensive.Orm.Sync.Tests
 {
   [TestFixture]
-  public class FirstTests : AutoBuildTest
+  public class FullSynchronizationTests : AutoBuildTest
   {
     [Test]
     public void CreateSyncTest()
@@ -25,8 +25,8 @@ namespace Xtensive.Orm.Sync.Tests
       }
 
       var orchestrator = new SyncOrchestrator {
-          LocalProvider = LocalDomain.Services.Get<SyncProvider>(),
-          RemoteProvider = RemoteDomain.Services.Get<SyncProvider>(),
+          LocalProvider = LocalDomain.GetSyncProvider(),
+          RemoteProvider = RemoteDomain.GetSyncProvider(),
           Direction = SyncDirectionOrder.Upload
         };
       orchestrator.Synchronize();
@@ -48,8 +48,8 @@ namespace Xtensive.Orm.Sync.Tests
       }
 
       var orchestrator = new SyncOrchestrator {
-          LocalProvider = LocalDomain.Services.Get<SyncProvider>(),
-          RemoteProvider = RemoteDomain.Services.Get<SyncProvider>(),
+          LocalProvider = LocalDomain.GetSyncProvider(),
+          RemoteProvider = RemoteDomain.GetSyncProvider(),
           Direction = SyncDirectionOrder.Upload
         };
       orchestrator.Synchronize();
@@ -68,8 +68,8 @@ namespace Xtensive.Orm.Sync.Tests
       }
 
       orchestrator = new SyncOrchestrator {
-          LocalProvider = LocalDomain.Services.Get<SyncProvider>(),
-          RemoteProvider = RemoteDomain.Services.Get<SyncProvider>(),
+          LocalProvider = LocalDomain.GetSyncProvider(),
+          RemoteProvider = RemoteDomain.GetSyncProvider(),
           Direction = SyncDirectionOrder.Upload
         };
       orchestrator.Synchronize();
@@ -91,8 +91,8 @@ namespace Xtensive.Orm.Sync.Tests
       }
 
       var orchestrator = new SyncOrchestrator {
-          LocalProvider = LocalDomain.Services.Get<SyncProvider>(),
-          RemoteProvider = RemoteDomain.Services.Get<SyncProvider>(),
+          LocalProvider = LocalDomain.GetSyncProvider(),
+          RemoteProvider = RemoteDomain.GetSyncProvider(),
           Direction = SyncDirectionOrder.Upload
         };
       orchestrator.Synchronize();
@@ -108,8 +108,8 @@ namespace Xtensive.Orm.Sync.Tests
       }
 
       orchestrator = new SyncOrchestrator {
-          LocalProvider = LocalDomain.Services.Get<SyncProvider>(),
-          RemoteProvider = RemoteDomain.Services.Get<SyncProvider>(),
+          LocalProvider = LocalDomain.GetSyncProvider(),
+          RemoteProvider = RemoteDomain.GetSyncProvider(),
           Direction = SyncDirectionOrder.Upload
         };
       orchestrator.Synchronize();

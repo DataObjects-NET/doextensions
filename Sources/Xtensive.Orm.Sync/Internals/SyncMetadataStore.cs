@@ -16,6 +16,7 @@ namespace Xtensive.Orm.Sync
     private readonly DirectEntityAccessor accessor;
     private readonly SyncTickGenerator tickGenerator;
     private readonly SyncRootSet syncRoots;
+    private readonly SyncConfiguration configuration;
 
     public SyncIdFormatGroup IdFormats { get { return Wellknown.IdFormats; } }
 
@@ -40,10 +41,14 @@ namespace Xtensive.Orm.Sync
       var mappedKnowledge = CurrentKnowledge.MapRemoteKnowledgeToLocal(destinationKnowledge);
       mappedKnowledge.ReplicaKeyMap.FindOrAddReplicaKey(CurrentKnowledge.ReplicaId);
 
-      foreach (var syncRoot in syncRoots) {
-        var changes = DetectChanges(batchSize, mappedKnowledge, syncRoot);
-        foreach (var change in changes)
-          yield return change;
+      var filteredSyncRoots = syncRoots.AsEnumerable();
+      if (configuration.Types.Count > 0)
+        filteredSyncRoots = filteredSyncRoots.Where(r => configuration.Types.Contains(r.EntityType));
+
+      foreach (var syncRoot in filteredSyncRoots) {
+        var changeSets = DetectChanges(batchSize, mappedKnowledge, syncRoot);
+        foreach (var changeSet in changeSets)
+          yield return changeSet;
       }
     }
 
@@ -51,7 +56,7 @@ namespace Xtensive.Orm.Sync
     {
       int itemCount = 0;
       var result = new ChangeSet();
-      var keys = new HashSet<Key>();
+      var references = new HashSet<Key>();
       var items = LoadMetadata(syncRoot);
 
       foreach (var item in items) {
@@ -81,7 +86,7 @@ namespace Xtensive.Orm.Sync
             var key = accessor.GetReferenceKey(item.SyncTarget, field);
             if (key!=null) {
               changeData.References.Add(field.Name, new Identity(key));
-              keys.Add(key);
+              references.Add(key);
               accessor.SetReferenceKey(item.SyncTarget, field, null);
             }
           }
@@ -92,17 +97,17 @@ namespace Xtensive.Orm.Sync
         if (itemCount!=batchSize)
           continue;
 
-        if (keys.Count > 0)
-          PreloadReferences(result, keys);
+        if (references.Count > 0)
+          PreloadReferences(result, references);
 
         yield return result;
         itemCount = 0;
         result = new ChangeSet();
-        keys = new HashSet<Key>();
+        references = new HashSet<Key>();
       }
       if (result.Any()) {
-        if (keys.Count > 0)
-          PreloadReferences(result, keys);
+        if (references.Count > 0)
+          PreloadReferences(result, references);
         yield return result;
       }
     }
@@ -394,10 +399,11 @@ namespace Xtensive.Orm.Sync
 
     #endregion
 
-    public SyncMetadataStore(Session session, SyncRootSet syncRoots)
+    public SyncMetadataStore(Session session, SyncRootSet syncRoots, SyncConfiguration configuration)
       : base(session)
     {
       this.syncRoots = syncRoots;
+      this.configuration = configuration;
       accessor = session.Services.Get<DirectEntityAccessor>();
       if (tickGenerator == null)
         tickGenerator = session.Domain.Services.Get<SyncTickGenerator>();

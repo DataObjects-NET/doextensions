@@ -18,7 +18,7 @@ namespace Xtensive.Orm.Sync.Tests
           var m = LocalDomain.Services.Get<IDomainTrackingMonitor>();
           Assert.IsNotNull(m);
 
-          var sp = LocalDomain.Services.Get<SyncProvider>();
+          var sp = LocalDomain.Services.Get<SyncProviderWrapper>();
           Assert.IsNotNull(sp);
           t.Complete();
         }

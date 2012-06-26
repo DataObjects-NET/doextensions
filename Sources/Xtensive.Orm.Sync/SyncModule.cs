@@ -45,7 +45,7 @@ namespace Xtensive.Orm.Sync
       using (var session = domain.OpenSession())
       using (var t = session.OpenTransaction()) {
 
-        var ms = new SyncMetadataStore(session, new SyncRootSet(session.Domain.Model));
+        var ms = new SyncMetadataStore(session, new SyncRootSet(session.Domain.Model), new SyncConfiguration());
         var info = ms.LoadMetadata(items.Select(i => i.Key));
         var lookup = info
           .ToDictionary(i => i.SyncTargetKey);

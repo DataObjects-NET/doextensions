@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Synchronization;
+using Xtensive.Core;
 using Xtensive.IoC;
 using Xtensive.Orm.Model;
 using Xtensive.Orm.Services;
@@ -12,7 +13,6 @@ namespace Xtensive.Orm.Sync
   /// <summary>
   /// <see cref="KnowledgeSyncProvider"/> implementation.
   /// </summary>
-  [Service(typeof (SyncProviderImplementation))]
   public class SyncProviderImplementation : KnowledgeSyncProvider,
     IChangeDataRetriever,
     INotifyingChangeApplierTarget,
@@ -37,6 +37,12 @@ namespace Xtensive.Orm.Sync
     {
       get { return Wellknown.IdFormats; }
     }
+
+    /// <summary>
+    /// Gets the configuration settings for the provider.
+    /// </summary>
+    /// <returns>The configuration settings for the provider.</returns>
+    public new SyncConfiguration Configuration { get; private set; }
 
     /// <summary>
     /// When overridden in a derived class, notifies the provider that it is joining a synchronization session.
@@ -418,13 +424,23 @@ namespace Xtensive.Orm.Sync
     /// Initializes a new instance of the <see cref="SyncProviderImplementation"/> class.
     /// </summary>
     /// <param name="session">The session.</param>
-    [ServiceConstructor]
-    public SyncProviderImplementation(Session session)
+    /// <param name="configuration"> </param>
+    public SyncProviderImplementation(Session session, SyncConfiguration configuration)
     {
       this.session = session;
       accessor = session.Services.Get<DirectEntityAccessor>();
       syncRoots = new SyncRootSet(session.Domain.Model);
-      metadataStore = new SyncMetadataStore(session, syncRoots);
+
+      Configuration = new SyncConfiguration();
+      if (configuration.Types.Count > 0) {
+        var roots = configuration.Types
+          .Where(t => typeof(IEntity).IsAssignableFrom(t))
+          .Select(t => session.Domain.Model.Types[t].GetRoot().UnderlyingType)
+          .ToHashSet();
+        Configuration.Types.UnionWith(roots);
+      }
+
+      metadataStore = new SyncMetadataStore(session, syncRoots, configuration);
       keyMap = new KeyMap(session, syncRoots);
       keyDependencies = new Dictionary<Key,List<KeyDependency>>();
     }

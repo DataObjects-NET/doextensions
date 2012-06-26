@@ -8,7 +8,7 @@ namespace Xtensive.Orm.Sync
   /// <summary>
   /// <see cref="KnowledgeSyncProvider"/> wrapper.
   /// </summary>
-  [Service(typeof (SyncProvider), Singleton = true)]
+  [Service(typeof (SyncProviderWrapper), Singleton = true)]
   public class SyncProviderWrapper : KnowledgeSyncProvider,
     IDomainService
   {
@@ -33,6 +33,12 @@ namespace Xtensive.Orm.Sync
     }
 
     /// <summary>
+    /// Gets the configuration settings for the provider.
+    /// </summary>
+    /// <returns>The configuration settings for the provider.</returns>
+    public new SyncConfiguration Configuration { get; set; }
+
+    /// <summary>
     /// When overridden in a derived class, notifies the provider that it is joining a synchronization session.
     /// </summary>
     /// <param name="position">The position of this provider, relative to the other provider in the session.</param>
@@ -48,7 +54,7 @@ namespace Xtensive.Orm.Sync
         tm.Disable();
       transaction = session.OpenTransaction();
       persistLock = session.DisableSaveChanges();
-      implementation = session.Services.Get<SyncProviderImplementation>();
+      implementation = new SyncProviderImplementation(session, Configuration);
       implementation.BeginSession(position, syncSessionContext);
     }
 
@@ -166,6 +172,7 @@ namespace Xtensive.Orm.Sync
     public SyncProviderWrapper(Domain domain)
     {
       this.domain = domain;
+      Configuration = new SyncConfiguration();
     }
   }
 }
