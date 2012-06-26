@@ -71,6 +71,7 @@
     <Compile Include="Internals\KeyMap.cs" />
     <Compile Include="Internals\ChangeSet.cs" />
     <Compile Include="Internals\KeyDependency.cs" />
+    <Compile Include="Internals\Replica.cs" />
     <Compile Include="Internals\SyncRootSet.cs" />
     <Compile Include="SyncConfiguration.cs" />
     <Compile Include="SyncProviderImplementation.cs" />

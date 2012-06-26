@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Xml.Serialization;
 using Microsoft.Synchronization;
-using Xtensive.Orm.Metadata;
 using Xtensive.Orm.Services;
 
 namespace Xtensive.Orm.Sync
@@ -14,32 +11,15 @@ namespace Xtensive.Orm.Sync
   internal class SyncMetadataStore : SessionBound
   {
     private readonly DirectEntityAccessor accessor;
-    private readonly SyncTickGenerator tickGenerator;
     private readonly SyncRootSet syncRoots;
     private readonly SyncConfiguration configuration;
 
-    public SyncIdFormatGroup IdFormats { get { return Wellknown.IdFormats; } }
-
-    public SyncId ReplicaId { get; private set; }
-
-    public SyncKnowledge CurrentKnowledge { get; private set; }
-
-    public ForgottenKnowledge ForgottenKnowledge { get; private set; }
-
-    public long TickCount
-    {
-      get { return tickGenerator.GetLastTick(Session); }
-    }
-
-    public long NextTick
-    {
-      get { return tickGenerator.GetNextTick(Session); }
-    }
+    public Replica Replica { get; private set; }
 
     public IEnumerable<ChangeSet> DetectChanges(uint batchSize, SyncKnowledge destinationKnowledge)
     {
-      var mappedKnowledge = CurrentKnowledge.MapRemoteKnowledgeToLocal(destinationKnowledge);
-      mappedKnowledge.ReplicaKeyMap.FindOrAddReplicaKey(CurrentKnowledge.ReplicaId);
+      var mappedKnowledge = Replica.CurrentKnowledge.MapRemoteKnowledgeToLocal(destinationKnowledge);
+      mappedKnowledge.ReplicaKeyMap.FindOrAddReplicaKey(Replica.Id);
 
       var filteredSyncRoots = syncRoots.AsEnumerable();
       if (configuration.Types.Count > 0)
@@ -70,10 +50,10 @@ namespace Xtensive.Orm.Sync
           lastChangeVersion = item.TombstoneVersion;
         }
 
-        if (mappedKnowledge.Contains(ReplicaId, item.SyncId, lastChangeVersion))
+        if (mappedKnowledge.Contains(Replica.Id, item.SyncId, lastChangeVersion))
           continue;
 
-        var change = new ItemChange(IdFormats, ReplicaId, item.SyncId, changeKind, createdVersion, lastChangeVersion);
+        var change = new ItemChange(Wellknown.IdFormats, Replica.Id, item.SyncId, changeKind, createdVersion, lastChangeVersion);
         var changeData = new ItemChangeData {
           Change = change,
           Identity = new Identity(item.GlobalId, item.SyncTargetKey),
@@ -154,7 +134,7 @@ namespace Xtensive.Orm.Sync
           }
         }
 
-        var localChange = new ItemChange(IdFormats, ReplicaId, change.ItemId, changeKind, createdVersion, lastChangeVersion);
+        var localChange = new ItemChange(Wellknown.IdFormats, Replica.Id, change.ItemId, changeKind, createdVersion, lastChangeVersion);
         localChange.SetAllChangeUnitsPresent();
         yield return localChange;
       }
@@ -181,7 +161,7 @@ namespace Xtensive.Orm.Sync
       if (syncRoot == null)
         return null;
 
-      long tick = NextTick;
+      long tick = Replica.NextTick;
       var result = (SyncInfo) accessor.CreateEntity(syncRoot.ItemType);
       accessor.SetReferenceKey(result, syncRoot.EntityField, entityKey);
       result.CreatedReplicaKey = Wellknown.LocalReplicaKey;
@@ -194,7 +174,7 @@ namespace Xtensive.Orm.Sync
 
     internal void UpdateMetadata(SyncInfo item, bool markAsTombstone = false)
     {
-      long tick = NextTick;
+      long tick = Replica.NextTick;
       item.ChangeReplicaKey = Wellknown.LocalReplicaKey;
       item.ChangeTickCount = tick;
 
@@ -319,96 +299,13 @@ namespace Xtensive.Orm.Sync
       }
     }
 
-    #region Initialization & knowledge update bits
-
-    private void ReadKnowledge()
-    {
-      var names = new[] {Wellknown.FieldNames.ReplicaId, Wellknown.FieldNames.CurrentKnowledge, Wellknown.FieldNames.ForgottenKnowledge};
-      var values = Session.Query.All<Extension>()
-        .Where(e => e.Name.In(names)).ToArray();
-
-      var value = values.SingleOrDefault(v => v.Name==Wellknown.FieldNames.ReplicaId);
-      if (value==null) {
-        ReplicaId = new SyncId(Guid.NewGuid());
-        using (Session.Activate())
-          new Extension(Wellknown.FieldNames.ReplicaId) {
-            Text = ReplicaId.GetGuidId().ToString()
-          };
-      }
-      else {
-        try { ReplicaId = new SyncId(new Guid(value.Text)); }
-        catch (Exception) { }
-      }
-
-      value = values.SingleOrDefault(v => v.Name==Wellknown.FieldNames.CurrentKnowledge);
-      if (value!=null) {
-        CurrentKnowledge = Deserialize<SyncKnowledge>(value.Text);
-        CurrentKnowledge.SetLocalTickCount((ulong) TickCount);
-      }
-      else
-        CurrentKnowledge = new SyncKnowledge(IdFormats, ReplicaId, (ulong) TickCount);
-
-      value = values.SingleOrDefault(v => v.Name==Wellknown.FieldNames.ForgottenKnowledge);
-      if (value!=null)
-        ForgottenKnowledge = Deserialize<ForgottenKnowledge>(value.Text);
-      else
-        ForgottenKnowledge = new ForgottenKnowledge(IdFormats, CurrentKnowledge);
-    }
-
-    internal void UpdateKnowledge(SyncKnowledge syncKnowledge, ForgottenKnowledge forgottenKnowledge)
-    {
-      if (syncKnowledge==null)
-        throw new ArgumentNullException("syncKnowledge");
-
-      var names = new[] {Wellknown.FieldNames.CurrentKnowledge, Wellknown.FieldNames.ForgottenKnowledge};
-      var values = Session.Query.All<Extension>()
-        .Where(e => e.Name.In(names)).ToArray();
-
-      var value = Session.Query.SingleOrDefault<Extension>(Wellknown.FieldNames.CurrentKnowledge);
-      if (value==null)
-        using (Session.Activate())
-          value = new Extension(Wellknown.FieldNames.CurrentKnowledge);
-      value.Text = Serialize(syncKnowledge);
-
-      if (forgottenKnowledge == null)
-        return;
-
-      value = Session.Query.SingleOrDefault<Extension>(Wellknown.FieldNames.ForgottenKnowledge);
-      if (value==null)
-        using (Session.Activate())
-          value = new Extension(Wellknown.FieldNames.ForgottenKnowledge);
-      value.Text = Serialize(forgottenKnowledge);
-    }
-
-    private static T Deserialize<T>(string value)
-    {
-      using (var reader = new StringReader(value)) {
-        var serializer = new XmlSerializer(typeof (T));
-        return (T) serializer.Deserialize(reader);
-      }
-    }
-
-    private static string Serialize<T>(T value)
-    {
-      using (var writer = new StringWriter()) {
-        var serializer = new XmlSerializer(typeof (T));
-        serializer.Serialize(writer, value);
-        return writer.ToString();
-      }
-    }
-
-    #endregion
-
     public SyncMetadataStore(Session session, SyncRootSet syncRoots, SyncConfiguration configuration)
       : base(session)
     {
       this.syncRoots = syncRoots;
       this.configuration = configuration;
       accessor = session.Services.Get<DirectEntityAccessor>();
-      if (tickGenerator == null)
-        tickGenerator = session.Domain.Services.Get<SyncTickGenerator>();
-      
-      ReadKnowledge();
-   }
+      Replica = new Replica(session);
+    }
   }
 }

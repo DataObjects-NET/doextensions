@@ -83,7 +83,7 @@ namespace Xtensive.Orm.Sync
     public override void GetSyncBatchParameters(out uint batchSize, out SyncKnowledge knowledge)
     {
       batchSize = Wellknown.SyncBatchSize;
-      knowledge = metadataStore.CurrentKnowledge;
+      knowledge = metadataStore.Replica.CurrentKnowledge;
     }
 
     /// <summary>
@@ -99,7 +99,7 @@ namespace Xtensive.Orm.Sync
       out object changeDataRetriever)
     {
       changeDataRetriever = this;
-      var result = new ChangeBatch(IdFormats, destinationKnowledge, metadataStore.ForgottenKnowledge);
+      var result = new ChangeBatch(IdFormats, destinationKnowledge, metadataStore.Replica.ForgottenKnowledge);
       bool hasNext;
 
       if (changeSetEnumerator==null) {
@@ -108,7 +108,7 @@ namespace Xtensive.Orm.Sync
         hasNext = changeSetEnumerator.MoveNext();
         if (!hasNext) {
           result.BeginUnorderedGroup();
-          result.EndUnorderedGroup(metadataStore.CurrentKnowledge, true);
+          result.EndUnorderedGroup(metadataStore.Replica.CurrentKnowledge, true);
           result.SetLastBatch();
           return result;
         }
@@ -120,11 +120,11 @@ namespace Xtensive.Orm.Sync
 
       hasNext = changeSetEnumerator.MoveNext();
       if (!hasNext) {
-        result.EndUnorderedGroup(metadataStore.CurrentKnowledge, true);
+        result.EndUnorderedGroup(metadataStore.Replica.CurrentKnowledge, true);
         result.SetLastBatch();
       }
       else
-        result.EndUnorderedGroup(metadataStore.CurrentKnowledge, false);
+        result.EndUnorderedGroup(metadataStore.Replica.CurrentKnowledge, false);
 
       return result;
     }
@@ -158,8 +158,8 @@ namespace Xtensive.Orm.Sync
       object changeDataRetriever, SyncCallbacks syncCallbacks, SyncSessionStatistics sessionStatistics)
     {
       var localChanges = metadataStore.GetLocalChanges(sourceChanges).ToList();
-      var knowledge = metadataStore.CurrentKnowledge.Clone();
-      var forgottenKnowledge = metadataStore.ForgottenKnowledge;
+      var knowledge = metadataStore.Replica.CurrentKnowledge.Clone();
+      var forgottenKnowledge = metadataStore.Replica.ForgottenKnowledge;
       var changeApplier = new NotifyingChangeApplier(IdFormats);
 
       changeApplier.ApplyChanges(resolutionPolicy, sourceChanges, changeDataRetriever as IChangeDataRetriever,
@@ -337,7 +337,7 @@ namespace Xtensive.Orm.Sync
     /// </returns>
     public ulong GetNextTickCount()
     {
-      return (ulong) metadataStore.NextTick;
+      return (ulong) metadataStore.Replica.NextTick;
     }
 
     /// <summary>
@@ -354,11 +354,12 @@ namespace Xtensive.Orm.Sync
     /// <summary>
     /// Stores the knowledge for scope.
     /// </summary>
-    /// <param name="newCurrentKnowledge">The new current knowledge.</param>
-    /// <param name="newForgottenKnowledge">The new forgotten knowledge.</param>
-    public void StoreKnowledgeForScope(SyncKnowledge newCurrentKnowledge, ForgottenKnowledge newForgottenKnowledge)
+    /// <param name="currentKnowledge">The new current knowledge.</param>
+    /// <param name="forgottenKnowledge">The new forgotten knowledge.</param>
+    public void StoreKnowledgeForScope(SyncKnowledge currentKnowledge, ForgottenKnowledge forgottenKnowledge)
     {
-      metadataStore.UpdateKnowledge(newCurrentKnowledge, newForgottenKnowledge);
+      metadataStore.Replica.CurrentKnowledge = currentKnowledge;
+      metadataStore.Replica.ForgottenKnowledge = forgottenKnowledge;
     }
 
     /// <summary>
