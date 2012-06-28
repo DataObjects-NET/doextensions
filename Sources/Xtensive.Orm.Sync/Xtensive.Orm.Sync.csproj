@@ -72,16 +72,16 @@
     <Compile Include="Internals\ChangeSet.cs" />
     <Compile Include="Internals\KeyDependency.cs" />
     <Compile Include="Internals\Replica.cs" />
-    <Compile Include="Internals\SyncRootSet.cs" />
+    <Compile Include="Internals\MetadataStore.cs" />
+    <Compile Include="Internals\MetadataStore{T}.cs" />
     <Compile Include="SyncConfiguration.cs" />
     <Compile Include="SyncProviderImplementation.cs" />
-    <Compile Include="Internals\SyncRoot.cs" />
     <Compile Include="Internals\ItemChangeData.cs" />
     <Compile Include="SyncInfo.cs" />
     <Compile Include="SyncInfo{T}.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Internals\SyncMetadataStore.cs" />
+    <Compile Include="Internals\Metadata.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SyncModule.cs" />
     <Compile Include="SyncProviderWrapper.cs">

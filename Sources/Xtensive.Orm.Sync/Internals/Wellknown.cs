@@ -8,15 +8,12 @@ namespace Xtensive.Orm.Sync
     public const int KeyPreloadBatchSize = 25;
     public const int LocalReplicaKey = 0;
     public const string TickGeneratorName = "SyncInfo";
+    public const string EntityFieldName = "Entity";
+    public const string ReplicaIdFieldName = "Xtensive.Orm.Sync.ReplicaId";
+    public const string CurrentKnowledgeFieldName = "Xtensive.Orm.Sync.CurrentKnowledge";
+    public const string ForgottenKnowledgeFieldName = "Xtensive.Orm.Sync.ForgottenKnowledge";
 
     public static SyncIdFormatGroup IdFormats { get; private set; }
-
-    public static class FieldNames
-    {
-      public const string ReplicaId = "Xtensive.Orm.Sync.ReplicaId";
-      public const string CurrentKnowledge = "Xtensive.Orm.Sync.CurrentKnowledge";
-      public const string ForgottenKnowledge = "Xtensive.Orm.Sync.ForgottenKnowledge";
-    }
 
     static Wellknown()
     {

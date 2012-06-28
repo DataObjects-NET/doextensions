@@ -56,11 +56,11 @@ namespace Xtensive.Orm.Sync
 
     private void ReadId()
     {
-      var container = Session.Query.SingleOrDefault<Extension>(Wellknown.FieldNames.ReplicaId);
+      var container = Session.Query.SingleOrDefault<Extension>(Wellknown.ReplicaIdFieldName);
       if (container==null) {
         Id = new SyncId(Guid.NewGuid());
         using (Session.Activate())
-          new Extension(Wellknown.FieldNames.ReplicaId) {
+          new Extension(Wellknown.ReplicaIdFieldName) {
             Text = Id.GetGuidId().ToString()
           };
       }
@@ -70,7 +70,7 @@ namespace Xtensive.Orm.Sync
 
     private void ReadCurrentKnowledge()
     {
-      var container = Session.Query.SingleOrDefault<Extension>(Wellknown.FieldNames.CurrentKnowledge);
+      var container = Session.Query.SingleOrDefault<Extension>(Wellknown.CurrentKnowledgeFieldName);
       if (container!=null) {
         CurrentKnowledge = (SyncKnowledge) knowledgeSerializer.Value.Deserialize(new StringReader(container.Text));
         CurrentKnowledge.SetLocalTickCount((ulong) TickCount);
@@ -81,7 +81,7 @@ namespace Xtensive.Orm.Sync
 
     private void ReadForgottenKnowledge()
     {
-      var container = Session.Query.SingleOrDefault<Extension>(Wellknown.FieldNames.ForgottenKnowledge);
+      var container = Session.Query.SingleOrDefault<Extension>(Wellknown.ForgottenKnowledgeFieldName);
       if (container!=null)
         ForgottenKnowledge = (ForgottenKnowledge) forgottenKnowledgeSerializer.Value.Deserialize(new StringReader(container.Text));
       else
@@ -93,10 +93,10 @@ namespace Xtensive.Orm.Sync
       if (knowledge==null)
         throw new ArgumentNullException("knowledge");
 
-      var container = Session.Query.SingleOrDefault<Extension>(Wellknown.FieldNames.CurrentKnowledge);
+      var container = Session.Query.SingleOrDefault<Extension>(Wellknown.CurrentKnowledgeFieldName);
       if (container==null)
         using (Session.Activate())
-          container = new Extension(Wellknown.FieldNames.CurrentKnowledge);
+          container = new Extension(Wellknown.CurrentKnowledgeFieldName);
       var writer = new StringWriter();
       knowledgeSerializer.Value.Serialize(writer, knowledge);
       container.Text = writer.ToString();
@@ -107,10 +107,10 @@ namespace Xtensive.Orm.Sync
       if (knowledge==null)
         return;
 
-      var container = Session.Query.SingleOrDefault<Extension>(Wellknown.FieldNames.ForgottenKnowledge);
+      var container = Session.Query.SingleOrDefault<Extension>(Wellknown.ForgottenKnowledgeFieldName);
       if (container==null)
         using (Session.Activate())
-          container = new Extension(Wellknown.FieldNames.ForgottenKnowledge);
+          container = new Extension(Wellknown.ForgottenKnowledgeFieldName);
 
       var writer = new StringWriter();
       forgottenKnowledgeSerializer.Value.Serialize(writer, knowledge);
