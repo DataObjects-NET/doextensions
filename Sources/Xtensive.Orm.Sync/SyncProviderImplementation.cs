@@ -98,7 +98,8 @@ namespace Xtensive.Orm.Sync
       out object changeDataRetriever)
     {
       changeDataRetriever = this;
-      var result = new ChangeBatch(IdFormats, destinationKnowledge, metadata.Replica.ForgottenKnowledge);
+      var filterInfo = new ItemListFilterInfo(IdFormats);
+      var result = new ChangeBatch(IdFormats, destinationKnowledge, metadata.Replica.ForgottenKnowledge, filterInfo);
       bool hasNext;
 
       if (changeSetEnumerator==null) {
@@ -263,7 +264,10 @@ namespace Xtensive.Orm.Sync
 
     private void HandleUpdateEntity(ItemChangeData data)
     {
-      var syncInfo = session.Query.All<SyncInfo>().Single(s => s.GlobalId==data.Identity.GlobalId);
+      var syncInfo = session.Query.All<SyncInfo>().SingleOrDefault(s => s.GlobalId==data.Identity.GlobalId);
+      if (syncInfo == null)
+        return;
+
       metadata.UpdateMetadata(syncInfo, data.Change, false);
       var entity = syncInfo.SyncTarget;
       var state = accessor.GetEntityState(entity);
@@ -275,7 +279,10 @@ namespace Xtensive.Orm.Sync
 
     private void HandleRemoveEntity(ItemChange change)
     {
-      var syncInfo = session.Query.All<SyncInfo>().Single(s => s.GlobalId==change.ItemId.GetGuidId());
+      var syncInfo = session.Query.All<SyncInfo>().SingleOrDefault(s => s.GlobalId==change.ItemId.GetGuidId());
+      if (syncInfo == null)
+        return;
+
       metadata.UpdateMetadata(syncInfo, change, true);
       var entity = syncInfo.SyncTarget;
       var state = accessor.GetEntityState(entity);

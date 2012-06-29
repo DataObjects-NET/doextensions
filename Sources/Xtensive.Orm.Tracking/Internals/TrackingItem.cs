@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Xtensive.Tuples;
 using Tuple = Xtensive.Tuples.Tuple;
@@ -13,6 +14,7 @@ using Tuple = Xtensive.Tuples.Tuple;
 namespace Xtensive.Orm.Tracking
 {
   [Serializable]
+  [DebuggerDisplay("{Key}")]
   public class TrackingItem : ITrackingItem
   {
     public Key Key { get; private set; }

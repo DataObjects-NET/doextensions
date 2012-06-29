@@ -9,12 +9,17 @@ namespace Xtensive.Orm.Sync.Tests
   [TestFixture]
   public class FullSynchronizationTests : AutoBuildTest
   {
-    [Test]
-    public void CreateSyncTest()
+    private const int ItemNumber = 20;
+
+    public override void TestSetUp()
     {
       using (var session = LocalDomain.OpenSession()) {
         using (var t = session.OpenTransaction()) {
-          for (int i = 0; i < 20; i++) {
+
+          session.Query.All<MyEntity>().Remove();
+          session.Query.All<MyReferenceProperty>().Remove();
+
+          for (int i = 0; i < ItemNumber; i++) {
             new MyEntity(session) {
               Property = new MyReferenceProperty(session)
             };
@@ -23,13 +28,36 @@ namespace Xtensive.Orm.Sync.Tests
           t.Complete();
         }
       }
-
       var orchestrator = new SyncOrchestrator {
           LocalProvider = LocalDomain.GetSyncProvider(),
           RemoteProvider = RemoteDomain.GetSyncProvider(),
           Direction = SyncDirectionOrder.Upload
         };
       orchestrator.Synchronize();
+    }
+
+    [Test]
+    public void CreateSyncTest()
+    {
+      int myEntityCount, myReferencePropertyCount, syncInfoCount;
+      using (var session = LocalDomain.OpenSession()) {
+        using (var t = session.OpenTransaction()) {
+          myEntityCount = session.Query.All<MyEntity>().Count();
+          myReferencePropertyCount = session.Query.All<MyReferenceProperty>().Count();
+          syncInfoCount = session.Query.All<SyncInfo>().Count();
+          t.Complete();
+        }
+      }
+
+      using (var session = RemoteDomain.OpenSession()) {
+        using (var t = session.OpenTransaction()) {
+          Assert.AreEqual(myEntityCount, session.Query.All<MyEntity>().Count());
+          Assert.AreEqual(myReferencePropertyCount, session.Query.All<MyReferenceProperty>().Count());
+          Assert.AreEqual(0, session.Query.All<MyEntity>().Count(m => m.Property == null));
+          Assert.AreEqual(syncInfoCount, session.Query.All<SyncInfo>().Count());
+          t.Complete();
+        }
+      }
     }
 
     [Test]
@@ -37,12 +65,10 @@ namespace Xtensive.Orm.Sync.Tests
     {
       using (var session = LocalDomain.OpenSession()) {
         using (var t = session.OpenTransaction()) {
-          for (int i = 0; i < 2; i++) {
-            new MyEntity(session) {
-              Property = new MyReferenceProperty(session)
-            };
-          }
 
+          foreach (var entity in session.Query.All<MyEntity>()) {
+            entity.Date = DateTime.MaxValue;
+          }
           t.Complete();
         }
       }
@@ -54,49 +80,30 @@ namespace Xtensive.Orm.Sync.Tests
         };
       orchestrator.Synchronize();
 
+      int myEntityCount, myReferencePropertyCount, syncInfoCount;
       using (var session = LocalDomain.OpenSession()) {
         using (var t = session.OpenTransaction()) {
-
-          var p = session.Query.All<MyReferenceProperty>().First();
-
-          foreach (var entity in session.Query.All<MyEntity>()) {
-            entity.Date = DateTime.Now;
-            entity.Property = p;
-          }
+          myEntityCount = session.Query.All<MyEntity>().Count();
+          myReferencePropertyCount = session.Query.All<MyReferenceProperty>().Count();
+          syncInfoCount = session.Query.All<SyncInfo>().Count();
           t.Complete();
         }
       }
 
-      orchestrator = new SyncOrchestrator {
-          LocalProvider = LocalDomain.GetSyncProvider(),
-          RemoteProvider = RemoteDomain.GetSyncProvider(),
-          Direction = SyncDirectionOrder.Upload
-        };
-      orchestrator.Synchronize();
+      using (var session = RemoteDomain.OpenSession()) {
+        using (var t = session.OpenTransaction()) {
+          Assert.AreEqual(myEntityCount, session.Query.All<MyEntity>().Count());
+          Assert.AreEqual(myReferencePropertyCount, session.Query.All<MyReferenceProperty>().Count());
+          Assert.AreEqual(0, session.Query.All<MyEntity>().Count(m => m.Date != DateTime.MaxValue));
+          Assert.AreEqual(syncInfoCount, session.Query.All<SyncInfo>().Count());
+          t.Complete();
+        }
+      }
     }
 
     [Test]
     public void CreateSyncRemoveSyncTest()
     {
-      using (var session = LocalDomain.OpenSession()) {
-        using (var t = session.OpenTransaction()) {
-          for (int i = 0; i < 2; i++) {
-            new MyEntity(session) {
-              Property = new MyReferenceProperty(session)
-            };
-          }
-
-          t.Complete();
-        }
-      }
-
-      var orchestrator = new SyncOrchestrator {
-          LocalProvider = LocalDomain.GetSyncProvider(),
-          RemoteProvider = RemoteDomain.GetSyncProvider(),
-          Direction = SyncDirectionOrder.Upload
-        };
-      orchestrator.Synchronize();
-
       using (var session = LocalDomain.OpenSession()) {
         using (var t = session.OpenTransaction()) {
 
@@ -107,12 +114,31 @@ namespace Xtensive.Orm.Sync.Tests
         }
       }
 
-      orchestrator = new SyncOrchestrator {
+      var orchestrator = new SyncOrchestrator {
           LocalProvider = LocalDomain.GetSyncProvider(),
           RemoteProvider = RemoteDomain.GetSyncProvider(),
           Direction = SyncDirectionOrder.Upload
         };
       orchestrator.Synchronize();
+
+      int myEntityCount, myReferencePropertyCount, syncInfoCount;
+      using (var session = LocalDomain.OpenSession()) {
+        using (var t = session.OpenTransaction()) {
+          myEntityCount = session.Query.All<MyEntity>().Count();
+          myReferencePropertyCount = session.Query.All<MyReferenceProperty>().Count();
+          syncInfoCount = session.Query.All<SyncInfo>().Count();
+          t.Complete();
+        }
+      }
+
+      using (var session = RemoteDomain.OpenSession()) {
+        using (var t = session.OpenTransaction()) {
+          Assert.AreEqual(myEntityCount, session.Query.All<MyEntity>().Count());
+          Assert.AreEqual(myReferencePropertyCount, session.Query.All<MyReferenceProperty>().Count());
+          Assert.AreEqual(syncInfoCount, session.Query.All<SyncInfo>().Count());
+          t.Complete();
+        }
+      }
     }
   }
 }
