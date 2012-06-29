@@ -39,7 +39,7 @@ namespace Xtensive.Orm.Sync
         if (batchCount - i == 1 && lastBatchItemCount > 0)
           itemCount = lastBatchItemCount;
 
-        var filter = FilterByKeys<TEntity>(keys, i, itemCount);
+        var filter = FilterByKeys<TEntity>(keys, i*Wellknown.KeyPreloadBatchSize, itemCount);
         var items = Session.Query.All<SyncInfo<TEntity>>()
           .Where(filter)
           .Prefetch(s => s.Entity)
