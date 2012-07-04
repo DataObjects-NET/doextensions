@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using Xtensive.Orm.Linq;
 using Xtensive.Orm.Model;
-using Xtensive.Orm.Providers.Sql.Mappings;
 using Xtensive.Orm.Services;
 using Xtensive.Sql;
 using Xtensive.Sql.Dml;

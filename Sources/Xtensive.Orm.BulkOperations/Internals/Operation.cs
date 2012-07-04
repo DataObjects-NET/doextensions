@@ -7,8 +7,6 @@ using Xtensive.Core;
 using Xtensive.Orm.Linq;
 using Xtensive.Orm.Model;
 using Xtensive.Orm.Providers;
-using Xtensive.Orm.Providers.Sql;
-using Xtensive.Orm.Providers.Sql.Mappings;
 using Xtensive.Orm.Services;
 using QueryParameterBinding = Xtensive.Orm.Services.QueryParameterBinding;
 

@@ -5,6 +5,7 @@
 // Created:    2009.12.01
 
 using System.Globalization;
+using Xtensive.Core;
 using Xtensive.Internals.DocTemplates;
 using Xtensive.IoC;
 
