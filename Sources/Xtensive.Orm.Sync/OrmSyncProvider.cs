@@ -6,22 +6,33 @@ using Xtensive.Orm.Tracking;
 namespace Xtensive.Orm.Sync
 {
   /// <summary>
-  /// <see cref="KnowledgeSyncProvider"/> wrapper.
+  /// <see cref="KnowledgeSyncProvider"/> wrapper for <see cref="Xtensive.Orm"/>.
   /// </summary>
-  [Service(typeof (SyncProviderWrapper), Singleton = true)]
-  public class SyncProviderWrapper : KnowledgeSyncProvider,
+  [Service(typeof (OrmSyncProvider))]
+  public class OrmSyncProvider : KnowledgeSyncProvider,
+    IChangeDataRetriever,
+    INotifyingChangeApplierTarget,
     IDomainService
   {
     private readonly Domain domain;
-    private Session session;
-    private TransactionScope transaction;
     private SyncProviderImplementation implementation;
     private IDisposable persistLock;
+    private Session session;
+    private SyncSessionContext syncContext;
+    private TransactionScope transaction;
+    private readonly SyncConfiguration configuration;
 
     private bool IsRunning
     {
       get { return session!=null; }
     }
+
+    /// <summary>
+    /// Endpoint for fluent configuration of this instance.
+    /// </summary>
+    public SyncConfigurationEndpoint Sync { get; private set; }
+
+    #region KnowledgeSyncProvider Members
 
     /// <summary>
     /// When overridden in a derived class, gets the ID format schema of the provider.
@@ -33,12 +44,6 @@ namespace Xtensive.Orm.Sync
     }
 
     /// <summary>
-    /// Gets the configuration settings for the provider.
-    /// </summary>
-    /// <returns>The configuration settings for the provider.</returns>
-    public new SyncConfiguration Configuration { get; set; }
-
-    /// <summary>
     /// When overridden in a derived class, notifies the provider that it is joining a synchronization session.
     /// </summary>
     /// <param name="position">The position of this provider, relative to the other provider in the session.</param>
@@ -48,14 +53,16 @@ namespace Xtensive.Orm.Sync
       if (IsRunning)
         throw new InvalidOperationException("Sync is already running");
 
+      syncContext = syncSessionContext;
       session = domain.OpenSession();
       var tm = session.Services.Get<ISessionTrackingMonitor>();
-      if (tm != null)
+      if (tm!=null)
         tm.Disable();
       transaction = session.OpenTransaction();
       persistLock = session.DisableSaveChanges();
-      implementation = new SyncProviderImplementation(session, Configuration);
-      implementation.BeginSession(position, syncSessionContext);
+      if (configuration.SyncTypes.Count == 0 && configuration.Filters.Count == 0 && configuration.SkipTypes.Count == 0)
+        configuration.SyncAll = true;
+      implementation = new SyncProviderImplementation(session, configuration);
     }
 
     /// <summary>
@@ -67,8 +74,6 @@ namespace Xtensive.Orm.Sync
       if (!IsRunning)
         return;
 
-      implementation.EndSession(syncSessionContext);
-
       try {
         persistLock.Dispose();
         transaction.Complete();
@@ -78,19 +83,8 @@ namespace Xtensive.Orm.Sync
       finally {
         implementation = null;
         transaction = null;
-        session = null;        
+        session = null;
       }
-    }
-
-    /// <summary>
-    /// When overridden in a derived class, gets the number of item changes that will be included in change batches, and the current knowledge for the synchronization scope.
-    /// </summary>
-    /// <param name="batchSize">The number of item changes that will be included in change batches returned by this object.</param>
-    /// <param name="knowledge">The current knowledge for the synchronization scope, or a newly created knowledge object if no current knowledge exists.</param>
-    public override void GetSyncBatchParameters(out uint batchSize, out SyncKnowledge knowledge)
-    {
-      CheckIsRunning();
-      implementation.GetSyncBatchParameters(out batchSize, out knowledge);
     }
 
     /// <summary>
@@ -106,7 +100,20 @@ namespace Xtensive.Orm.Sync
       out object changeDataRetriever)
     {
       CheckIsRunning();
-      return implementation.GetChangeBatch(batchSize, destinationKnowledge, out changeDataRetriever);
+      changeDataRetriever = this;
+      return implementation.GetChangeBatch(batchSize, destinationKnowledge);
+    }
+
+    /// <summary>
+    /// When overridden in a derived class, gets the number of item changes that will be included in change batches, and the current knowledge for the synchronization scope.
+    /// </summary>
+    /// <param name="batchSize">The number of item changes that will be included in change batches returned by this object.</param>
+    /// <param name="knowledge">The current knowledge for the synchronization scope, or a newly created knowledge object if no current knowledge exists.</param>
+    public override void GetSyncBatchParameters(out uint batchSize, out SyncKnowledge knowledge)
+    {
+      CheckIsRunning();
+      batchSize = Wellknown.SyncBatchSize;
+      knowledge = implementation.Replica.CurrentKnowledge;
     }
 
     /// <summary>
@@ -121,8 +128,10 @@ namespace Xtensive.Orm.Sync
       object changeDataRetriever, SyncCallbacks syncCallbacks, SyncSessionStatistics sessionStatistics)
     {
       CheckIsRunning();
-      implementation.ProcessChangeBatch(resolutionPolicy, sourceChanges, changeDataRetriever, syncCallbacks, sessionStatistics);
+      implementation.ProcessChangeBatch(resolutionPolicy, sourceChanges, changeDataRetriever, syncCallbacks, sessionStatistics, syncContext, this);
     }
+
+    #endregion
 
     #region Not supported methods
 
@@ -164,15 +173,106 @@ namespace Xtensive.Orm.Sync
         throw new InvalidOperationException("Sync session is not active");
     }
 
+    #region IChangeDataRetriever Members
+
     /// <summary>
-    /// Initializes a new instance of the <see cref="SyncProviderWrapper"/> class.
+    /// When overridden in a derived class, this method retrieves item data for a change.
+    /// </summary>
+    /// <returns>
+    /// The item data for the change.
+    /// </returns>
+    /// <param name="loadChangeContext">Metadata that describes the change for which data should be retrieved.</param>
+    object IChangeDataRetriever.LoadChangeData(LoadChangeContext loadChangeContext)
+    {
+      return implementation.LoadChangeData(loadChangeContext);
+    }
+
+    #endregion
+
+    #region INotifyingChangeApplierTarget Members
+
+    /// <summary>
+    /// Gets an object that can be used to retrieve item data from a replica.
+    /// </summary>
+    /// <returns>
+    /// An object that can be used to retrieve item data from a replica.
+    /// </returns>
+    IChangeDataRetriever INotifyingChangeApplierTarget.GetDataRetriever()
+    {
+      return this;
+    }
+
+    /// <summary>
+    /// When overridden in a derived class, increments the tick count and returns the new tick count.
+    /// </summary>
+    /// <returns>
+    /// The newly incremented tick count.
+    /// </returns>
+    ulong INotifyingChangeApplierTarget.GetNextTickCount()
+    {
+      return implementation.GetNextTickCount();
+    }
+
+    /// <summary>
+    /// When overridden in a derived class, saves an item change that contains unit change changes to the item store.
+    /// </summary>
+    /// <param name="change">The item change to apply.</param><param name="context">Information about the change to be applied.</param>
+    void INotifyingChangeApplierTarget.SaveChangeWithChangeUnits(ItemChange change, SaveChangeWithChangeUnitsContext context)
+    {
+      throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// When overridden in a derived class, saves information about a change that caused a conflict.
+    /// </summary>
+    /// <param name="conflictingChange">The item metadata for the conflicting change.</param><param name="conflictingChangeData">The item data for the conflicting change.</param><param name="conflictingChangeKnowledge">The knowledge to be learned if this change is applied. This must be saved with the change.</param>
+    void INotifyingChangeApplierTarget.SaveConflict(ItemChange conflictingChange, object conflictingChangeData, SyncKnowledge conflictingChangeKnowledge)
+    {
+      implementation.SaveConflict(conflictingChange, conflictingChangeData, conflictingChangeKnowledge);
+    }
+
+    /// <summary>
+    /// When overridden in a derived class, saves an item change to the item store.
+    /// </summary>
+    /// <param name="saveChangeAction">The action to be performed for the change.</param><param name="change">The item change to save.</param><param name="context">Information about the change to be applied.</param>
+    void INotifyingChangeApplierTarget.SaveItemChange(SaveChangeAction saveChangeAction, ItemChange change, SaveChangeContext context)
+    {
+      implementation.SaveItemChange(saveChangeAction, change, context);
+    }
+
+    /// <summary>
+    /// When overridden in a derived class, stores the knowledge for the current scope.
+    /// </summary>
+    /// <param name="knowledge">The updated knowledge to be saved.</param><param name="forgottenKnowledge">The forgotten knowledge to be saved.</param>
+    void INotifyingChangeApplierTarget.StoreKnowledgeForScope(SyncKnowledge knowledge, ForgottenKnowledge forgottenKnowledge)
+    {
+      implementation.StoreKnowledgeForScope(knowledge, forgottenKnowledge);
+    }
+
+    /// <summary>
+    /// Gets the version of an item stored in the destination replica.
+    /// </summary>
+    /// <returns>
+    /// true if the item was found in the destination replica; otherwise, false. 
+    /// </returns>
+    /// <param name="sourceChange">The item change that is sent by the source provider.</param><param name="destinationVersion">Returns an item change that contains the version of the item in the destination replica.</param>
+    bool INotifyingChangeApplierTarget.TryGetDestinationVersion(ItemChange sourceChange, out ItemChange destinationVersion)
+    {
+      throw new NotImplementedException();
+    }
+
+    #endregion
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="OrmSyncProvider"/> class.
     /// </summary>
     /// <param name="domain">The domain.</param>
     [ServiceConstructor]
-    public SyncProviderWrapper(Domain domain)
+    public OrmSyncProvider(Domain domain)
     {
       this.domain = domain;
-      Configuration = new SyncConfiguration();
+      configuration = new SyncConfiguration();
+      Sync = configuration.Endpoint;
     }
   }
 }

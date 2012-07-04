@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 
 namespace Xtensive.Orm.Sync
 {
-  internal class MetadataStore<TEntity> : MetadataStore where TEntity : IEntity
+  internal class MetadataStore<TEntity> : MetadataStore where TEntity : class, IEntity
   {
     public override Type EntityType
     {
@@ -17,13 +17,18 @@ namespace Xtensive.Orm.Sync
       get { return typeof(SyncInfo<TEntity>); }
     }
 
-    public override IEnumerable<SyncInfo> GetMetadata()
+    public override IEnumerable<SyncInfo> GetMetadata(Expression filter)
     {
-      var items = Session.Query.All<SyncInfo<TEntity>>()
-        .Prefetch(s => s.Entity)
+      var outer = Session.Query.All<SyncInfo<TEntity>>();
+      var ex = filter as Expression<Func<TEntity, bool>>;
+      var inner = Session.Query.All<TEntity>();
+      if (ex != null)
+        inner = inner.Where(ex);
+      var items = outer
+        .LeftJoin(inner, si => si.Entity.Key, t => t.Key, (si, t) => new { SyncInfo = si, Target = t })
         .ToArray();
 
-      foreach (var item in UpdateItemState(items))
+      foreach (var item in UpdateItemState(items.Select(i => i.SyncInfo)))
         yield return item;
     }
 

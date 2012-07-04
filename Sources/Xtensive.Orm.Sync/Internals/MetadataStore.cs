@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using Xtensive.Orm.Model;
 using Xtensive.Orm.Services;
 
@@ -15,7 +16,7 @@ namespace Xtensive.Orm.Sync
 
     public DirectEntityAccessor EntityAccessor { get; private set; }
 
-    public abstract IEnumerable<SyncInfo> GetMetadata();
+    public abstract IEnumerable<SyncInfo> GetMetadata(Expression filter);
 
     public abstract IEnumerable<SyncInfo> GetMetadata(List<Key> keys);
 

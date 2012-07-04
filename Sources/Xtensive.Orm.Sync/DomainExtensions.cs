@@ -13,9 +13,9 @@ namespace Xtensive.Orm
     /// </summary>
     /// <param name="domain">The domain.</param>
     /// <returns></returns>
-    public static SyncProviderWrapper GetSyncProvider(this Domain domain)
+    public static OrmSyncProvider GetSyncProvider(this Domain domain)
     {
-      return domain.Services.Get<SyncProviderWrapper>();
+      return domain.Services.Get<OrmSyncProvider>();
     }
   }
 }

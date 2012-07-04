@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using Microsoft.Synchronization;
 using Xtensive.Graphs;
 using FieldInfo = Xtensive.Orm.Model.FieldInfo;
@@ -10,9 +11,10 @@ namespace Xtensive.Orm.Sync
   internal class Metadata : SessionBound
   {
     private readonly SyncConfiguration configuration;
-
     private List<MetadataStore> storeList;
     private Dictionary<Type, MetadataStore> storeIndex;
+    private readonly HashSet<Key> sentKeys;
+    private readonly HashSet<Key> requestedKeys;
 
     public Replica Replica { get; private set; }
 
@@ -22,22 +24,44 @@ namespace Xtensive.Orm.Sync
       mappedKnowledge.ReplicaKeyMap.FindOrAddReplicaKey(Replica.Id);
 
       var stores = storeList.AsEnumerable();
-      if (configuration.Types.Count > 0)
-        stores = stores.Where(r => configuration.Types.Contains(r.EntityType));
+
+      if (configuration.SyncTypes.Count > 0)
+        stores = stores.Where(s => s.EntityType.In(configuration.SyncTypes));
+
+      if (configuration.SkipTypes.Count > 0)
+        stores = stores.Where(s => !s.EntityType.In(configuration.SkipTypes));
 
       foreach (var store in stores) {
-        var changeSets = DetectChanges(store, batchSize, mappedKnowledge);
-        foreach (var changeSet in changeSets)
-          yield return changeSet;
+        Expression filter;
+        configuration.Filters.TryGetValue(store.EntityType, out filter);
+        var items = store.GetMetadata(filter);
+        var batches = DetectChanges(store, items, batchSize, mappedKnowledge);
+        foreach (var batch in batches)
+          yield return batch;
+      }
+
+      while (requestedKeys.Count > 0) {
+        var keys = requestedKeys.ToList();
+        var groups = keys.GroupBy(i => i.TypeReference.Type.Hierarchy.Root);
+
+        foreach (var @group in groups) {
+          MetadataStore store;
+          if (!storeIndex.TryGetValue(@group.Key.UnderlyingType, out store))
+            continue;
+
+          var items = store.GetMetadata(@group.ToList());
+          var batches = DetectChanges(store, items, batchSize, mappedKnowledge);
+          foreach (var batch in batches)
+            yield return batch;
+        }
       }
     }
 
-    private IEnumerable<ChangeSet> DetectChanges(MetadataStore store, uint batchSize, SyncKnowledge mappedKnowledge)
+    private IEnumerable<ChangeSet> DetectChanges(MetadataStore store, IEnumerable<SyncInfo> items, uint batchSize, SyncKnowledge mappedKnowledge)
     {
       int itemCount = 0;
       var result = new ChangeSet();
       var references = new HashSet<Key>();
-      var items = store.GetMetadata();
 
       foreach (var item in items) {
 
@@ -59,6 +83,7 @@ namespace Xtensive.Orm.Sync
           Identity = new Identity(item.GlobalId, item.SyncTargetKey),
         };
         if (!item.IsTombstone) {
+          RegisterKeySync(item.SyncTargetKey);
           changeData.Tuple = store.EntityAccessor.GetEntityState(item.SyncTarget).Tuple.Clone();
           var type = item.SyncTargetKey.TypeInfo;
           var fields = type.Fields.Where(f => f.IsEntity);
@@ -92,20 +117,49 @@ namespace Xtensive.Orm.Sync
       }
     }
 
-    private void LoadReferences(IEnumerable<ItemChangeData> result, IEnumerable<Key> keys)
+    private void LoadReferences(IEnumerable<ItemChangeData> items, IEnumerable<Key> keys)
     {
       var lookup = GetMetadata(keys.ToList())
         .Distinct()
         .ToDictionary(i => i.SyncTargetKey);
 
-      foreach (var data in result)
-        foreach (var reference in data.References.Values) {
-          SyncInfo item;
-          if (lookup.TryGetValue(reference.Key, out item)) {
-            reference.Key = item.SyncTargetKey;
-            reference.GlobalId = item.GlobalId;
+      foreach (var item in items)
+        foreach (var reference in item.References.Values) {
+          SyncInfo syncInfo;
+          if (lookup.TryGetValue(reference.Key, out syncInfo)) {
+            reference.Key = syncInfo.SyncTargetKey;
+            reference.GlobalId = syncInfo.GlobalId;
+            RequestKeySync(syncInfo.SyncTargetKey);
           }
         }
+    }
+
+    private void RegisterKeySync(Key key)
+    {
+      if (!TypeIsFilteredOrSkipped(key.TypeInfo.GetRoot().UnderlyingType))
+        return;
+      sentKeys.Add(key);
+      requestedKeys.Remove(key);
+    }
+
+    private void RequestKeySync(Key key)
+    {
+      if (!TypeIsFilteredOrSkipped(key.TypeInfo.GetRoot().UnderlyingType))
+        return;
+      if (sentKeys.Contains(key))
+        return;
+      requestedKeys.Add(key);
+    }
+
+    private bool TypeIsFilteredOrSkipped(Type type)
+    {
+      if (configuration.Filters.ContainsKey(type))
+        return true;
+      if (configuration.SkipTypes.Contains(type))
+        return true;
+      if (configuration.SyncAll)
+        return false;
+      return !configuration.SyncTypes.Contains(type);
     }
 
     public IEnumerable<ItemChange> GetLocalChanges(IEnumerable<ItemChange> changes)
@@ -271,6 +325,8 @@ namespace Xtensive.Orm.Sync
       this.configuration = configuration;
       Replica = new Replica(session);
       InitializeStores();
+      sentKeys = new HashSet<Key>();
+      requestedKeys = new HashSet<Key>();
     }
   }
 }

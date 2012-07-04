@@ -9,17 +9,13 @@ namespace Xtensive.Orm.Sync.Tests
   [TestFixture]
   public class FullSynchronizationTests : AutoBuildTest
   {
-    private const int ItemNumber = 20;
 
     public override void TestSetUp()
     {
       using (var session = LocalDomain.OpenSession()) {
         using (var t = session.OpenTransaction()) {
 
-          session.Query.All<MyEntity>().Remove();
-          session.Query.All<MyReferenceProperty>().Remove();
-
-          for (int i = 0; i < ItemNumber; i++) {
+          for (int i = 0; i < 20; i++) {
             new MyEntity(session) {
               Property = new MyReferenceProperty(session)
             };
