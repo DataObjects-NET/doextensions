@@ -75,7 +75,6 @@
     <Compile Include="TrackingItemState.cs" />
     <Compile Include="DomainTrackingMonitor.cs" />
     <Compile Include="Internals\TrackingStack.cs" />
-    <Compile Include="TrackingResult.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

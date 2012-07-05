@@ -4,6 +4,7 @@
 // Created by: Dmitri Maximov
 // Created:    2012.05.17
 
+using System;
 using System.Linq;
 using NUnit.Framework;
 using Xtensive.Orm.Tracking.Tests.Model;
@@ -48,13 +49,14 @@ namespace Xtensive.Orm.Tracking.Tests
     private void CreateInOutermostListener(object sender, TrackingCompletedEventArgs e)
     {
       ListenerIsCalled();
-      Assert.IsNotNull(e.Result.GetChanges());
-      Assert.AreEqual(1, e.Result.GetChanges().Count());
-      var ti = e.Result.GetChanges().First();
+      Assert.IsNotNull(e.Changes);
+      Assert.AreEqual(1, e.Changes.Count());
+      var ti = e.Changes.First();
       Assert.AreEqual(TrackingItemState.Created, ti.State);
       Assert.IsNotNull(ti.Key);
       Assert.IsNotNull(ti.RawData);
     }
+
     [Test]
     public void CreateAndModifyInOutermostTest()
     {
@@ -79,10 +81,21 @@ namespace Xtensive.Orm.Tracking.Tests
 
     private void CreateAndModifyInOutermostListener(object sender, TrackingCompletedEventArgs e)
     {
+      foreach (var change in e.Changes) {
+        Console.WriteLine(change.Key);
+        Console.WriteLine(change.State);
+        foreach (var value in change.ChangedValues) {
+          Console.WriteLine(value.Field.Name);
+          Console.WriteLine(value.OriginalValue);
+          Console.WriteLine(value.NewValue);
+        }
+      }
+
+
       ListenerIsCalled();
-      Assert.IsNotNull(e.Result.GetChanges());
-      Assert.AreEqual(1, e.Result.GetChanges().Count());
-      var ti = e.Result.GetChanges().First();
+      Assert.IsNotNull(e.Changes);
+      Assert.AreEqual(1, e.Changes.Count());
+      var ti = e.Changes.First();
       Assert.AreEqual(TrackingItemState.Created, ti.State);
       Assert.IsNotNull(ti.Key);
       Assert.IsNotNull(ti.RawData);
@@ -115,9 +128,9 @@ namespace Xtensive.Orm.Tracking.Tests
     private void CreateAndRemoveInOutermostListener(object sender, TrackingCompletedEventArgs e)
     {
       ListenerIsCalled();
-      Assert.IsNotNull(e.Result.GetChanges());
-      Assert.AreEqual(1, e.Result.GetChanges().Count());
-      var ti = e.Result.GetChanges().First();
+      Assert.IsNotNull(e.Changes);
+      Assert.AreEqual(1, e.Changes.Count());
+      var ti = e.Changes.First();
       Assert.AreEqual(TrackingItemState.Deleted, ti.State);
       Assert.IsNotNull(ti.Key);
       Assert.IsNotNull(ti.RawData);
@@ -177,14 +190,14 @@ namespace Xtensive.Orm.Tracking.Tests
     private void CreateInOutermostAndNestedListener(object sender, TrackingCompletedEventArgs e)
     {
       ListenerIsCalled();
-      Assert.IsNotNull(e.Result.GetChanges());
-      Assert.AreEqual(2, e.Result.GetChanges().Count());
-      var ti = e.Result.GetChanges().First();
+      Assert.IsNotNull(e.Changes);
+      Assert.AreEqual(2, e.Changes.Count());
+      var ti = e.Changes.First();
       Assert.AreEqual(TrackingItemState.Created, ti.State);
       Assert.IsNotNull(ti.Key);
       Assert.IsNotNull(ti.RawData);
       Assert.AreEqual("some text", ti.RawData.GetValue(2));
-      ti = e.Result.GetChanges().Skip(1).First();
+      ti = e.Changes.Skip(1).First();
       Assert.AreEqual(TrackingItemState.Created, ti.State);
       Assert.IsNotNull(ti.Key);
       Assert.IsNotNull(ti.RawData);
@@ -220,9 +233,9 @@ namespace Xtensive.Orm.Tracking.Tests
     private void CreateInOutermostAndModifyInNestedListener(object sender, TrackingCompletedEventArgs e)
     {
       ListenerIsCalled();
-      Assert.IsNotNull(e.Result.GetChanges());
-      Assert.AreEqual(1, e.Result.GetChanges().Count());
-      var ti = e.Result.GetChanges().First();
+      Assert.IsNotNull(e.Changes);
+      Assert.AreEqual(1, e.Changes.Count());
+      var ti = e.Changes.First();
       Assert.AreEqual(TrackingItemState.Created, ti.State);
       Assert.IsNotNull(ti.Key);
       Assert.IsNotNull(ti.RawData);
@@ -259,9 +272,9 @@ namespace Xtensive.Orm.Tracking.Tests
     private void CreateInOutermostAndRemoveInNestedListener(object sender, TrackingCompletedEventArgs e)
     {
       ListenerIsCalled();
-      Assert.IsNotNull(e.Result.GetChanges());
-      Assert.AreEqual(1, e.Result.GetChanges().Count());
-      var ti = e.Result.GetChanges().First();
+      Assert.IsNotNull(e.Changes);
+      Assert.AreEqual(1, e.Changes.Count());
+      var ti = e.Changes.First();
       Assert.AreEqual(TrackingItemState.Deleted, ti.State);
       Assert.IsNotNull(ti.Key);
       Assert.IsNotNull(ti.RawData);
@@ -300,9 +313,9 @@ namespace Xtensive.Orm.Tracking.Tests
     private void RemoveInOutermostAndCreateInNestedListener(object sender, TrackingCompletedEventArgs e)
     {
       ListenerIsCalled();
-      Assert.IsNotNull(e.Result.GetChanges());
-      Assert.AreEqual(1, e.Result.GetChanges().Count());
-      var ti = e.Result.GetChanges().First();
+      Assert.IsNotNull(e.Changes);
+      Assert.AreEqual(1, e.Changes.Count());
+      var ti = e.Changes.First();
       Assert.AreEqual(TrackingItemState.Changed, ti.State);
       Assert.IsNotNull(ti.Key);
       Assert.IsNotNull(ti.RawData);
@@ -345,14 +358,14 @@ namespace Xtensive.Orm.Tracking.Tests
     private void CreateAndModifyInNextListener(object sender, TrackingCompletedEventArgs e)
     {
       ListenerIsCalled();
-      Assert.IsNotNull(e.Result.GetChanges());
-      Assert.AreEqual(1, e.Result.GetChanges().Count());
-      var ti = e.Result.GetChanges().First();
+      Assert.IsNotNull(e.Changes);
+      Assert.AreEqual(1, e.Changes.Count());
+      var ti = e.Changes.First();
       Assert.AreEqual(TrackingItemState.Changed, ti.State);
       Assert.IsNotNull(ti.Key);
       Assert.IsNotNull(ti.RawData);
-      Assert.AreEqual(1, ti.GetChangedValues().Count());
-      var changedValue = ti.GetChangedValues().First();
+      Assert.AreEqual(1, ti.ChangedValues.Count());
+      var changedValue = ti.ChangedValues.First();
       Assert.AreEqual("some text", changedValue.OriginalValue);
       Assert.AreEqual("another text", changedValue.NewValue);
     }

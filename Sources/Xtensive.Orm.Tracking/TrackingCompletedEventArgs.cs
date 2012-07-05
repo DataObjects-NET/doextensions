@@ -1,17 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Xtensive.Orm.Tracking
 {
   public class TrackingCompletedEventArgs : EventArgs
   {
-    public TrackingResult Result { get; private set; }
+    public IEnumerable<ITrackingItem> Changes { get; private set; }
 
-    public TrackingCompletedEventArgs(TrackingResult result)
+    public TrackingCompletedEventArgs(IEnumerable<ITrackingItem> changes)
     {
-      if (result == null)
-        throw new ArgumentNullException("result");
+      if (changes == null)
+        throw new ArgumentNullException("changes");
 
-      Result = result;
+      Changes = changes;
     }
   }
 }

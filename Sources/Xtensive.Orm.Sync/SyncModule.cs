@@ -34,7 +34,7 @@ namespace Xtensive.Orm.Sync
 
     private void OnTrackingCompleted(object sender, TrackingCompletedEventArgs e)
     {
-      var changes = e.Result.GetChanges();
+      var changes = e.Changes;
       var items = changes
         .Where(TrackingItemFilter)
         .ToList();

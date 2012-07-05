@@ -23,28 +23,30 @@ namespace Xtensive.Orm.Tracking
 
     public TrackingItemState State { get; private set; }
 
-    public IEnumerable<ChangedValue> GetChangedValues()
+    public IEnumerable<ChangedValue> ChangedValues
     {
-      var origValues = RawData.Origin;
-      var changedValues = RawData.Difference;
+      get
+      {
+        var origValues = RawData.Origin;
+        var changedValues = RawData.Difference;
 
-      if (State==TrackingItemState.Created) {
-        origValues = null;
-        changedValues = RawData.Origin;
-      }
-
-      foreach (var field in Key.TypeInfo.Fields.Where(f => f.Column != null)) {
-        object origValue = null, changedValue = null;
-        int fieldIndex = field.MappingInfo.Offset;
-        if (origValues != null) 
-          origValue = origValues.GetValue(fieldIndex);
-        if (changedValues != null) {
-          if (changedValues.GetFieldState(fieldIndex) != TupleFieldState.Available)
-            continue;
-          changedValue = changedValues.GetValue(fieldIndex);
+        if (State==TrackingItemState.Created) {
+          origValues = null;
+          changedValues = RawData.Origin;
         }
-        yield return new ChangedValue(field, origValue, changedValue);
-           
+
+        foreach (var field in Key.TypeInfo.Fields.Where(f => f.Column!=null)) {
+          object origValue = null, changedValue = null;
+          int fieldIndex = field.MappingInfo.Offset;
+          if (origValues!=null)
+            origValue = origValues.GetValue(fieldIndex);
+          if (changedValues!=null) {
+            if (changedValues.GetFieldState(fieldIndex)!=TupleFieldState.Available)
+              continue;
+            changedValue = changedValues.GetValue(fieldIndex);
+          }
+          yield return new ChangedValue(field, origValue, changedValue);
+        }
       }
     }
 

@@ -109,7 +109,7 @@ namespace Xtensive.Orm.Tracking
 
       var items = target.Cast<ITrackingItem>().ToList();
       target.Clear();
-      trackingCompletedHandler.Invoke(this, new TrackingCompletedEventArgs(new TrackingResult(items)));
+      trackingCompletedHandler.Invoke(this, new TrackingCompletedEventArgs(items));
     }
 
     private void OnRollBackTransaction(object sender, TransactionEventArgs e)
