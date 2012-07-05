@@ -10,9 +10,9 @@
     <projectUrl>http://doextensions.codeplex.com/</projectUrl>
     <iconUrl>http://dataobjects.net/img/doex-nuget.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Adds support for easy localization for DataObjects.Net-powered domain models</description>
-    <tags>DataObjects.Net Extensions Persistence ORM Localization</tags>
-    <summary>Localization for DataObjects.Net</summary>
+    <description>Adds tracking functionality for DataObjects.Net-powered projects</description>
+    <tags>DataObjects.Net Extensions Persistence ORM tracking audit</tags>
+    <summary>Tracking extension for DataObjects.Net</summary>
     <dependencies>
       <dependency id="Xtensive.Orm" version="[4.6.0, 4.7.0)" />
     </dependencies>

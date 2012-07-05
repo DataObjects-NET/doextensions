@@ -5,7 +5,7 @@
 <Import Project="MSBuild\Tasks.targets" />
 
 <PropertyGroup>
-  <Version>4.5.2</Version>
+  <Version>4.6.0</Version>
 </PropertyGroup>
 
 <PropertyGroup>
@@ -57,6 +57,14 @@
   <Libraries Include="$(BinariesDir)Xtensive.Orm.Security.dll" />
   <Libraries Include="$(BinariesDir)Xtensive.Orm.Security.xml" />
   <Libraries Include="$(BinariesDir)Xtensive.Orm.Security.txt" />
+
+  <Libraries Include="$(BinariesDir)Xtensive.Orm.Tracking.dll" />
+  <Libraries Include="$(BinariesDir)Xtensive.Orm.Tracking.xml" />
+  <Libraries Include="$(BinariesDir)Xtensive.Orm.Tracking.txt" />
+
+  <Libraries Include="$(BinariesDir)Xtensive.Orm.Sync.dll" />
+  <Libraries Include="$(BinariesDir)Xtensive.Orm.Sync.xml" />
+  <Libraries Include="$(BinariesDir)Xtensive.Orm.Sync.txt" />
 </ItemGroup>
 
 <Target Name="InitBuildDir">

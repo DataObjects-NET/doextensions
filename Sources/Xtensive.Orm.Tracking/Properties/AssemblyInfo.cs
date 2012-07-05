@@ -1,3 +1,3 @@
 ﻿using System.Reflection;
 
-[assembly: AssemblyDescription("Change tracking extension for DataObjects.Net")]
+[assembly: AssemblyTitle("Change tracking extension for DataObjects.Net")]
