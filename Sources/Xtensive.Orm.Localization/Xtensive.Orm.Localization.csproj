@@ -60,6 +60,7 @@
     <Compile Include="Internals\TypeLocalizationMap.cs" />
     <Compile Include="Internals\QueryPreprocessor.cs" />
     <Compile Include="ILocalizable.cs" />
+    <Compile Include="LocalizationModule.cs" />
     <Compile Include="QueryExtensions.cs" />
     <Compile Include="LocalizationContext.cs" />
     <Compile Include="Internals\LocalizationPair.cs" />

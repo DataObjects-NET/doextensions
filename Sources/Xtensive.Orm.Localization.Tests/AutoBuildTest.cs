@@ -23,7 +23,6 @@ namespace Xtensive.Orm.Localization.Tests
     public void TestFixtureSetUp()
     {
       Domain = Domain.Build(DomainConfiguration.Load("Default"));
-      TypeLocalizationMap.Initialize(Domain);
       PopulateDatabase();
     }
 
