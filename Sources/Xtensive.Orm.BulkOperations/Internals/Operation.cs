@@ -8,6 +8,7 @@ using Xtensive.Orm.Linq;
 using Xtensive.Orm.Model;
 using Xtensive.Orm.Providers;
 using Xtensive.Orm.Services;
+using Xtensive.Sql.Model;
 using QueryParameterBinding = Xtensive.Orm.Services.QueryParameterBinding;
 
 namespace Xtensive.Orm.BulkOperations
@@ -73,7 +74,10 @@ namespace Xtensive.Orm.BulkOperations
       TypeInfo =
         queryProvider.Session.Domain.Model.Hierarchies.SelectMany(a => a.Types).Single(
           a => a.UnderlyingType==entityType);
-      PrimaryIndexes = TypeInfo.AffectedIndexes.Where(a => a.IsPrimary).Select(a => DomainHandler.Mapping[a]).ToArray();
+      PrimaryIndexes = TypeInfo.AffectedIndexes
+        .Where(i => i.IsPrimary)
+        .Select(i => new PrimaryIndexMapping(i, DomainHandler.Mapping[i.ReflectedType]))
+        .ToArray();
       QueryBuilder = Session.Services.Get<QueryBuilder>();
     }
   }
