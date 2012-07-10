@@ -17,7 +17,7 @@ namespace Xtensive.Orm.Security.Configuration
   {
     /// <summary>
     /// Default SectionName value:
-    /// "<see langword="Xtensive.Security" />".
+    /// "<see langword="Xtensive.Orm.Security" />".
     /// </summary>
     public const string DefaultSectionName = "Xtensive.Orm.Security";
 

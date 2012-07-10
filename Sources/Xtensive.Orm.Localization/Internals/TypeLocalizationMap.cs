@@ -6,23 +6,19 @@
 
 using System;
 using System.Collections.Generic;
+using Xtensive.Orm.Localization.Configuration;
 using Xtensive.Orm.Model;
 using Xtensive.Orm;
 using Xtensive.Reflection;
 
 namespace Xtensive.Orm.Localization
 {
-  /// <summary>
-  /// Map of localizable types and their correspondent localizations
-  /// </summary>
-  public class TypeLocalizationMap
+  internal class TypeLocalizationMap
   {
     private readonly Dictionary<Type, TypeLocalizationInfo> map = new Dictionary<Type, TypeLocalizationInfo>();
 
-    /// <summary>
-    /// Initializes this instance and regis.
-    /// </summary>
-    /// <param name="domain">The domain.</param>
+    public LocalizationConfiguration Configuration { get; private set; }
+
     public static void Initialize(Domain domain)
     {
       if (domain == null)
@@ -30,7 +26,9 @@ namespace Xtensive.Orm.Localization
       if (domain.Extensions.Get<TypeLocalizationMap>() != null)
         return;
 
-      var map = new TypeLocalizationMap();
+      var map = new TypeLocalizationMap() {
+        Configuration = LocalizationConfiguration.Load()
+      };
       foreach (var localizableTypeInfo in domain.Model.Types.Entities) {
         var type = localizableTypeInfo.UnderlyingType;
         if (!type.IsOfGenericInterface(typeof (ILocalizable<>)))
@@ -41,7 +39,7 @@ namespace Xtensive.Orm.Localization
       domain.Extensions.Set(map);
     }
 
-    internal TypeLocalizationInfo Get(Type localizableType)
+    public TypeLocalizationInfo Get(Type localizableType)
     {
       TypeLocalizationInfo result;
       if (map.TryGetValue(localizableType, out result))

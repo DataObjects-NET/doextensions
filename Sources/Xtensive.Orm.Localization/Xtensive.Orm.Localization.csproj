@@ -57,6 +57,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration\Elements\DefaultCultureConfigurationElement.cs" />
+    <Compile Include="Configuration\Elements\ConfigurationSection.cs" />
+    <Compile Include="Configuration\LocalizationConfiguration.cs" />
     <Compile Include="Internals\LocalizationExpressionBuilder.cs" />
     <Compile Include="Internals\LocalizationExpressionVisitor.cs" />
     <Compile Include="Internals\TypeLocalizationInfo.cs" />
