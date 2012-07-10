@@ -60,7 +60,7 @@ namespace Xtensive.Orm.BulkOperations
 
     protected override bool SupportsJoin()
     {
-      return DomainHandler.ProviderInfo.Supports(ProviderFeatures.DeleteFrom);
+      return DomainHandler.Domain.StorageProviderInfo.Supports(ProviderFeatures.DeleteFrom);
     }
 
     #endregion
