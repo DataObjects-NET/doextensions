@@ -49,12 +49,6 @@ namespace Xtensive.Orm.Security
     /// <returns><see cref="IPrincipal"/> instance if the credentials are valid and <see langword="null" /> if they are not.</returns>
     protected virtual IPrincipal Authenticate(string username, string password)
     {
-      var config = Session.GetSecurityConfiguration();
-      var service = Session.Services.Get<IHashingService>(config.HashingServiceName);
-
-      if (service == null)
-        throw new InvalidOperationException(string.Format("Hashing service by name {0} is not found. Check Xtensive.Security configuration", config.HashingServiceName));
-
       // GenericPrincipal is not in the model, let's find its descendant
       var model = Session.Domain.Model;
       var rootPrincipalType = model.Hierarchies
@@ -68,6 +62,7 @@ namespace Xtensive.Orm.Security
         .Where(u => u.Name == username)
         .SingleOrDefault();
 
+      var service = Session.GetHashingService();
       if (candidate != null && service.VerifyHash(password, candidate.PasswordHash))
         return candidate;
 

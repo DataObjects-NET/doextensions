@@ -54,5 +54,12 @@ namespace Xtensive.Orm.Security
     protected Principal(Session session)
       : base(session)
     {}
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Principal"/> class.
+    /// </summary>
+    protected Principal()
+    {
+    }
   }
 }

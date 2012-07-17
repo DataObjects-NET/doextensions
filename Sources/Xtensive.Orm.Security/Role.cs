@@ -69,7 +69,7 @@ namespace Xtensive.Orm.Security
     /// Registers the permissions.
     /// </summary>
     [Infrastructure]
-    protected abstract void RegisterPermissions();
+    protected virtual void RegisterPermissions() {}
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Role"/> class.

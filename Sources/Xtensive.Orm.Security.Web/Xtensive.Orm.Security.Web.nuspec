@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <title>$title$</title>
+    <authors>$author$</authors>
+    <owners>$author$</owners>
+    <licenseUrl>http://doextensions.codeplex.com/license</licenseUrl>
+    <projectUrl>http://doextensions.codeplex.com/</projectUrl>
+    <iconUrl>http://dataobjects.net/img/doex-nuget.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>ASP.NET Membership provider for DataObjects.Net-powered projects</description>
+    <tags>DataObjects.Net Extensions Persistence ORM Security ASP.NET Membership</tags>
+    <summary>ASP.NET Membership provider for DataObjects.Net</summary>
+    <dependencies>
+      <dependency id="Xtensive.Orm" version="[4.5.0, 4.6.0)" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="Readme.txt" target="Readme.txt" />
+  </files>
+</package>

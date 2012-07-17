@@ -28,12 +28,7 @@ namespace Xtensive.Orm.Security
     /// <param name="password">The password.</param>
     public virtual void SetPassword(string password)
     {
-      var config = Session.GetSecurityConfiguration();
-      var service = Session.Services.Get<IHashingService>(config.HashingServiceName);
-
-      if (service == null)
-        throw new InvalidOperationException(string.Format("Hashing service by name {0} is not found. Check Xtensive.Security configuration", config.HashingServiceName));
-
+      var service = Session.GetHashingService();
       PasswordHash = service.ComputeHash(password);
     }
 
@@ -44,5 +39,13 @@ namespace Xtensive.Orm.Security
     protected GenericPrincipal(Session session)
       : base(session)
     {}
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GenericPrincipal"/> class.
+    /// </summary>
+    protected GenericPrincipal()
+      : base()
+    {
+    }
   }
 }

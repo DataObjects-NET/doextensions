@@ -64,7 +64,7 @@ namespace Xtensive.Orm.Web
     /// </remarks>
     /// <exception cref="NotSupportedException">Domain builder is already assigned.</exception>
     public static Func<Domain> DomainBuilder {
-      protected get {
+      get {
         return domainBuilder;
       }
       set {

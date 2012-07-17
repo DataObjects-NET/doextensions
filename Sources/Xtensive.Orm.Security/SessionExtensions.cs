@@ -4,6 +4,7 @@
 // Created by: Dmitri Maximov
 // Created:    2011.05.22
 
+using System;
 using System.Security.Principal;
 using Xtensive.Core;
 using Xtensive.Orm.Security;
@@ -17,6 +18,22 @@ namespace Xtensive.Orm
   /// </summary>
   public static class SessionExtensions
   {
+    /// <summary>
+    /// Gets the hashing service.
+    /// </summary>
+    /// <param name="session">The session.</param>
+    /// <returns></returns>
+    public static IHashingService GetHashingService(this Session session)
+    {
+      var config = session.GetSecurityConfiguration();
+      var service = session.Services.Get<IHashingService>(config.HashingServiceName);
+
+      if (service == null)
+        throw new InvalidOperationException(string.Format("Hashing service by name {0} is not found. Check Xtensive.Security configuration", config.HashingServiceName));
+
+      return service;
+    }
+
     /// <summary>
     /// Gets the security configuration.
     /// </summary>

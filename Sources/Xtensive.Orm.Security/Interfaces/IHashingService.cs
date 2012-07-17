@@ -16,16 +16,16 @@ namespace Xtensive.Orm.Security
     /// <summary>
     /// Computes the hash.
     /// </summary>
-    /// <param name="password">The password.</param>
+    /// <param name="value">The value.</param>
     /// <returns>String representation of hash.</returns>
-    string ComputeHash(string password);
+    string ComputeHash(string value);
 
     /// <summary>
     /// Verifies the hash.
     /// </summary>
-    /// <param name="password">The password.</param>
+    /// <param name="value">The value.</param>
     /// <param name="hash">The hash.</param>
     /// <returns><see langword="True" /> if hashes are equal; otherwise <see langword="false" />.</returns>
-    bool VerifyHash(string password, string hash);
+    bool VerifyHash(string value, string hash);
   }
 }

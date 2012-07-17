@@ -42,25 +42,25 @@ namespace Xtensive.Orm.Security.Cryptography
     /// <summary>
     /// Computes the hash.
     /// </summary>
-    /// <param name="password">The password.</param>
+    /// <param name="value">The value.</param>
     /// <param name="salt">The salt.</param>
     /// <returns>String representation of hash.</returns>
-    protected string ComputeHash(byte[] password, byte[] salt)
+    protected string ComputeHash(byte[] value, byte[] salt)
     {
-      var hash = HashAlgorithm.ComputeHash(salt.Concat(password).ToArray());
+      var hash = HashAlgorithm.ComputeHash(salt.Concat(value).ToArray());
       return Convert.ToBase64String(hash.Concat(salt).ToArray());
     }
 
     #region IHashingService Members
 
     /// <inheritdoc/>
-    public string ComputeHash(string password)
+    public string ComputeHash(string value)
     {
-      return ComputeHash(Encoding.UTF8.GetBytes(password), GetSalt());
+      return ComputeHash(Encoding.UTF8.GetBytes(value), GetSalt());
     }
 
     /// <inheritdoc/>
-    public bool VerifyHash(string password, string hash)
+    public bool VerifyHash(string value, string hash)
     {
       byte[] source;
       try {
@@ -76,7 +76,7 @@ namespace Xtensive.Orm.Security.Cryptography
         return false;
 
       var salt = source.Skip(hashSize).ToArray();
-      return StringComparer.Ordinal.Compare(hash, ComputeHash(Encoding.UTF8.GetBytes(password), salt)) == 0;
+      return StringComparer.Ordinal.Compare(hash, ComputeHash(Encoding.UTF8.GetBytes(value), salt)) == 0;
     }
 
     #endregion
