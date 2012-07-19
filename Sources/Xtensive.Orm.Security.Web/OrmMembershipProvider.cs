@@ -3,9 +3,7 @@ using System.Collections.Specialized;
 using System.Configuration.Provider;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text.RegularExpressions;
 using System.Web.Security;
-using Xtensive.Core;
 using Xtensive.Orm.Services;
 using Xtensive.Orm.Web;
 
@@ -16,9 +14,8 @@ namespace Xtensive.Orm.Security.Web
   /// </summary>
   public class OrmMembershipProvider : MembershipProvider
   {
-    internal Configuration Configuration { get; private set; }
-
     private Type rootPrincipalType;
+    private Configuration configuration;
 
     private Domain Domain
     {
@@ -38,8 +35,8 @@ namespace Xtensive.Orm.Security.Web
     /// <returns>The name of the application using the custom membership provider.</returns>
     public override string ApplicationName
     {
-      get { return Configuration.ApplicationName; }
-      set { Configuration.ApplicationName = value; }
+      get { return configuration.ApplicationName; }
+      set { configuration.ApplicationName = value; }
     }
 
     /// <summary>
@@ -48,7 +45,7 @@ namespace Xtensive.Orm.Security.Web
     /// <returns>The minimum length required for a password. </returns>
     public override int MinRequiredPasswordLength
     {
-      get { return Configuration.MinRequiredPasswordLength; }
+      get { return configuration.MinRequiredPasswordLength; }
     }
 
     /// <summary>
@@ -57,7 +54,7 @@ namespace Xtensive.Orm.Security.Web
     /// <returns>The minimum number of special characters that must be present in a valid password.</returns>
     public override int MinRequiredNonAlphanumericCharacters
     {
-      get { return Configuration.MinRequiredNonAlphanumericCharacters; }
+      get { return configuration.MinRequiredNonAlphanumericCharacters; }
     }
 
     /// <summary>
@@ -66,7 +63,7 @@ namespace Xtensive.Orm.Security.Web
     /// <returns>The number of invalid password or password-answer attempts allowed before the membership user is locked out.</returns>
     public override int MaxInvalidPasswordAttempts
     {
-      get { return Configuration.MaxInvalidPasswordAttempts; }
+      get { return configuration.MaxInvalidPasswordAttempts; }
     }
 
     /// <summary>
@@ -75,7 +72,7 @@ namespace Xtensive.Orm.Security.Web
     /// <returns>The number of minutes in which a maximum number of invalid password or password-answer attempts are allowed before the membership user is locked out.</returns>
     public override int PasswordAttemptWindow
     {
-      get { return Configuration.PasswordAttemptWindow; }
+      get { return configuration.PasswordAttemptWindow; }
     }
 
     /// <summary>
@@ -84,7 +81,7 @@ namespace Xtensive.Orm.Security.Web
     /// <returns>One of the <see cref="T:System.Web.Security.MembershipPasswordFormat"/> values indicating the format for storing passwords in the data store.</returns>
     public override MembershipPasswordFormat PasswordFormat
     {
-      get { return Configuration.PasswordFormat; }
+      get { return configuration.PasswordFormat; }
     }
 
     /// <summary>
@@ -93,7 +90,7 @@ namespace Xtensive.Orm.Security.Web
     /// <returns>A regular expression used to evaluate a password.</returns>
     public override string PasswordStrengthRegularExpression
     {
-      get { return Configuration.PasswordStrengthRegularExpression; }
+      get { return configuration.PasswordStrengthRegularExpression; }
     }
 
     /// <summary>
@@ -102,7 +99,7 @@ namespace Xtensive.Orm.Security.Web
     /// <returns>true if the membership provider supports password reset; otherwise, false. The default is true.</returns>
     public override bool EnablePasswordReset
     {
-      get { return Configuration.EnablePasswordReset; }
+      get { return configuration.EnablePasswordReset; }
     }
 
     /// <summary>
@@ -111,7 +108,7 @@ namespace Xtensive.Orm.Security.Web
     /// <returns>true if the membership provider is configured to support password retrieval; otherwise, false. The default is false.</returns>
     public override bool EnablePasswordRetrieval
     {
-      get { return Configuration.EnablePasswordRetrieval; }
+      get { return configuration.EnablePasswordRetrieval; }
     }
 
     /// <summary>
@@ -120,7 +117,7 @@ namespace Xtensive.Orm.Security.Web
     /// <returns>true if a password answer is required for password reset and retrieval; otherwise, false. The default is true.</returns>
     public override bool RequiresQuestionAndAnswer
     {
-      get { return Configuration.RequiresQuestionAndAnswer; }
+      get { return configuration.RequiresQuestionAndAnswer; }
     }
 
     /// <summary>
@@ -129,7 +126,7 @@ namespace Xtensive.Orm.Security.Web
     /// <returns>true if the membership provider requires a unique e-mail address; otherwise, false. The default is true.</returns>
     public override bool RequiresUniqueEmail
     {
-      get { return Configuration.RequiresUniqueEmail; }
+      get { return configuration.RequiresUniqueEmail; }
     }
 
     #endregion
@@ -145,7 +142,7 @@ namespace Xtensive.Orm.Security.Web
         name = Wellknown.MembershipProviderName;
 
       base.Initialize(name, settings);
-      Configuration = new Configuration(settings);
+      configuration = new Configuration(settings);
 
       rootPrincipalType = Domain.Model.Hierarchies
         .Select(h => h.Root.UnderlyingType)
@@ -166,9 +163,9 @@ namespace Xtensive.Orm.Security.Web
     /// </returns>
     public override bool ChangePassword(string username, string oldPassword, string newPassword)
     {
-      CheckParameter(ref username, "username");
-      CheckParameter(ref oldPassword, "oldPassword");
-      CheckPassword(ref newPassword, "newPassword");
+      Validation.CheckParameter(ref username, "username");
+      Validation.CheckParameter(ref oldPassword, "oldPassword");
+      Validation.CheckPassword(ref newPassword, "newPassword", configuration);
 
       var args = new ValidatePasswordEventArgs(username, newPassword, false);
       OnValidatingPassword(args);
@@ -207,10 +204,10 @@ namespace Xtensive.Orm.Security.Web
     /// </returns>
     public override bool ChangePasswordQuestionAndAnswer(string username, string password, string newPasswordQuestion, string newPasswordAnswer)
     {
-      CheckParameter(ref username, "username");
-      CheckParameter(ref password, "password");
-      CheckParameter(ref newPasswordQuestion, "newPasswordQuestion");
-      CheckParameter(ref newPasswordAnswer, "newPasswordAnswer");
+      Validation.CheckParameter(ref username, "username");
+      Validation.CheckParameter(ref password, "password");
+      Validation.CheckParameter(ref newPasswordQuestion, "newPasswordQuestion");
+      Validation.CheckParameter(ref newPasswordAnswer, "newPasswordAnswer");
 
       using (var session = Domain.OpenSession())
       using (var t = session.OpenTransaction()) {
@@ -243,24 +240,24 @@ namespace Xtensive.Orm.Security.Web
     public override MembershipUser CreateUser(string username, string password, string email, string passwordQuestion, string passwordAnswer, bool isApproved, object providerUserKey, out MembershipCreateStatus status)
     {
       status = MembershipCreateStatus.InvalidUserName;
-      if (!CheckParameter(ref username, "username", false))
+      if (!Validation.CheckParameter(ref username, "username", false))
         return null;
 
       status = MembershipCreateStatus.InvalidEmail;
-      if (!CheckParameter(ref email, "email", false))
+      if (!Validation.CheckParameter(ref email, "email", false))
         return null;
 
       status = MembershipCreateStatus.InvalidPassword;
-      if (!CheckPassword(ref password, "password", false))
+      if (!Validation.CheckPassword(ref password, "password", configuration, false))
         return null;
 
       if (RequiresQuestionAndAnswer) {
         status = MembershipCreateStatus.InvalidQuestion;
-        if (!CheckParameter(ref passwordQuestion, "passwordQuestion", false))
+        if (!Validation.CheckParameter(ref passwordQuestion, "passwordQuestion", false))
           return null;
 
         status = MembershipCreateStatus.InvalidAnswer;
-        if (!CheckParameter(ref passwordAnswer, "passwordAnswer", false))
+        if (!Validation.CheckParameter(ref passwordAnswer, "passwordAnswer", false))
           return null;
       }
 
@@ -329,7 +326,7 @@ namespace Xtensive.Orm.Security.Web
     /// </returns>
     public override bool DeleteUser(string username, bool deleteAllRelatedData)
     {
-      CheckParameter(ref username, "username");
+      Validation.CheckParameter(ref username, "username");
 
       using (var session = Domain.OpenSession())
       using (var t = session.OpenTransaction()) {
@@ -357,7 +354,7 @@ namespace Xtensive.Orm.Security.Web
     /// </returns>
     public override MembershipUserCollection FindUsersByEmail(string emailToMatch, int pageIndex, int pageSize, out int totalRecords)
     {
-      CheckParameter(ref emailToMatch, "emailToMatch");
+      Validation.CheckParameter(ref emailToMatch, "emailToMatch");
 
       return FindUsers(w => w.Email.ToLower() == emailToMatch, pageIndex, pageSize, out totalRecords);
     }
@@ -374,7 +371,7 @@ namespace Xtensive.Orm.Security.Web
     /// </returns>
     public override MembershipUserCollection FindUsersByName(string usernameToMatch, int pageIndex, int pageSize, out int totalRecords)
     {
-      CheckParameter(ref usernameToMatch, "usernameToMatch");
+      Validation.CheckParameter(ref usernameToMatch, "usernameToMatch");
 
       return FindUsers(w => w.Name == usernameToMatch, pageIndex, pageSize, out totalRecords);
     }
@@ -423,7 +420,7 @@ namespace Xtensive.Orm.Security.Web
       if (!EnablePasswordRetrieval)
         throw new NotSupportedException("Password retrieval is not supported");
 
-      CheckParameter(ref username, "username");
+      Validation.CheckParameter(ref username, "username");
 
       if (PasswordFormat == MembershipPasswordFormat.Hashed)
         throw new ProviderException("Unable to retrieve password as hashed password format is used");
@@ -455,7 +452,7 @@ namespace Xtensive.Orm.Security.Web
     /// </returns>
     public override MembershipUser GetUser(string username, bool userIsOnline)
     {
-      CheckParameter(ref username, "username");
+      Validation.CheckParameter(ref username, "username");
 
       using (var session = Domain.OpenSession()) {
         using (var t = session.OpenTransaction()) {
@@ -513,7 +510,7 @@ namespace Xtensive.Orm.Security.Web
     /// </returns>
     public override string GetUserNameByEmail(string email)
     {
-      CheckParameter(ref email, "email");
+      Validation.CheckParameter(ref email, "email");
 
       using (var session = Domain.OpenSession()) {
         using (var t = session.OpenTransaction()) {
@@ -538,8 +535,8 @@ namespace Xtensive.Orm.Security.Web
       if (!EnablePasswordReset)
         throw new NotSupportedException("Password resetting is not supported");
 
-      CheckParameter(ref username, "username");
-      if (!CheckParameter(ref answer, "answer", false) && RequiresQuestionAndAnswer)
+      Validation.CheckParameter(ref username, "username");
+      if (!Validation.CheckParameter(ref answer, "answer", false) && RequiresQuestionAndAnswer)
         throw new ArgumentException("answer");
 
       string password = GeneratePassword();
@@ -577,7 +574,7 @@ namespace Xtensive.Orm.Security.Web
     /// <returns></returns>
     public override bool UnlockUser(string username)
     {
-      if (!CheckParameter(ref username, "username", false))
+      if (!Validation.CheckParameter(ref username, "username", false))
         return false;
 
       using (var session = Domain.OpenSession())
@@ -598,11 +595,11 @@ namespace Xtensive.Orm.Security.Web
     /// <param name="user">A <see cref="T:System.Web.Security.MembershipUser"/> object that represents the user to update and the updated information for the user.</param>
     public override void UpdateUser(MembershipUser user)
     {
-      CheckParameter(user, "user");
+      Validation.CheckParameter(user, "user");
       var username = user.UserName;
-      CheckParameter(ref username, "username");
+      Validation.CheckParameter(ref username, "username");
       var email = user.Email;
-      CheckParameter(ref email, "e-mail");
+      Validation.CheckParameter(ref email, "e-mail");
 
       try {
         using (var session = Domain.OpenSession())
@@ -639,9 +636,9 @@ namespace Xtensive.Orm.Security.Web
     /// </returns>
     public override bool ValidateUser(string username, string password)
     {
-      if (!CheckParameter(ref username, "username", false))
+      if (!Validation.CheckParameter(ref username, "username", false))
         return false;
-      if (!CheckParameter(ref password, "password", false))
+      if (!Validation.CheckParameter(ref password, "password", false))
         return false;
 
       using (var session = Domain.OpenSession())
@@ -659,25 +656,12 @@ namespace Xtensive.Orm.Security.Web
       return true;
     }
 
-    /// <summary>
-    /// Gets the name of the user by.
-    /// </summary>
-    /// <param name="session">The session.</param>
-    /// <param name="username">The username.</param>
-    /// <returns></returns>
     private MembershipPrincipal GetUserByName(Session session, string username)
     {
       return GetQueryRoot(session)
         .SingleOrDefault(s => s.Name==username);
     }
 
-    /// <summary>
-    /// Gets the user by email.
-    /// </summary>
-    /// <param name="session">The session.</param>
-    /// <param name="email">The email.</param>
-    /// <param name="throwOnDuplicate">if set to <c>true</c> [throw on duplicate].</param>
-    /// <returns></returns>
     private MembershipPrincipal GetUserByEmail(Session session, string email, bool throwOnDuplicate)
     {
       var users = GetQueryRoot(session)
@@ -691,14 +675,6 @@ namespace Xtensive.Orm.Security.Web
       return users.FirstOrDefault();
     }
 
-    /// <summary>
-    /// Finds the users.
-    /// </summary>
-    /// <param name="condition">The condition.</param>
-    /// <param name="pageIndex">Index of the page.</param>
-    /// <param name="pageSize">Size of the page.</param>
-    /// <param name="totalRecords">The total records.</param>
-    /// <returns></returns>
     private MembershipUserCollection FindUsers(Expression<Func<MembershipPrincipal, bool>> condition, int pageIndex, int pageSize, out int totalRecords)
     {
       var result = new MembershipUserCollection();
@@ -749,56 +725,5 @@ namespace Xtensive.Orm.Security.Web
     {
       return Membership.GeneratePassword(MinRequiredPasswordLength, MinRequiredNonAlphanumericCharacters);
     }
-
-    #region Validation
-
-    private static void CheckParameter(object value, string parameterName)
-    {
-      ArgumentValidator.EnsureArgumentNotNull(value, parameterName);
-    }
-
-    private static bool CheckParameter(ref string value, string parameterName, bool throwOnError = true)
-    {
-      if (string.IsNullOrEmpty(value)) {
-        if (throwOnError)
-          throw new ArgumentNullException(parameterName);
-        return false;
-      }
-      value = value.Trim();
-      return true;
-    }
-
-    private bool CheckPassword(ref string value, string parameterName, bool throwOnError = true)
-    {
-      if (!CheckParameter(ref value, parameterName, throwOnError))
-        return false;
-
-      if (MinRequiredPasswordLength > 0) {
-        if (value.Length < MinRequiredPasswordLength)
-          throw new ArgumentException(
-            String.Format("New password is too short. Min length of {0} symbols is required", MinRequiredPasswordLength), parameterName);
-      }
-
-      if (MinRequiredNonAlphanumericCharacters > 0) {
-        int count = 0;
-
-        for (int i = 0; i < value.Length; i++)
-          if (!Char.IsLetterOrDigit(value, i))
-            count++;
-
-        if (count < MinRequiredNonAlphanumericCharacters)
-          throw new ArgumentException(
-            String.Format("Password needs more non alphanumeric chars. Min number of {0} such chars is required", MinRequiredNonAlphanumericCharacters),
-            parameterName);
-      }
-
-      if (!String.IsNullOrEmpty(PasswordStrengthRegularExpression))
-        if (!Regex.IsMatch(value, PasswordStrengthRegularExpression))
-          throw new ArgumentException("Password doens't meet regular expression", parameterName);
-
-      return true;
-    }
-
-    #endregion
   }
 }
