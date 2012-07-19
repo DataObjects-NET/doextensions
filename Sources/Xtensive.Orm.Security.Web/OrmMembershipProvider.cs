@@ -6,13 +6,14 @@ using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 using System.Web.Security;
 using Xtensive.Core;
-using Xtensive.Disposing;
-using Xtensive.Orm.Model;
 using Xtensive.Orm.Services;
 using Xtensive.Orm.Web;
 
 namespace Xtensive.Orm.Security.Web
 {
+  /// <summary>
+  /// Implementation of <see cref="MembershipProvider"/>.
+  /// </summary>
   public class OrmMembershipProvider : MembershipProvider
   {
     internal Configuration Configuration { get; private set; }
@@ -31,57 +32,101 @@ namespace Xtensive.Orm.Security.Web
 
     #region Settings
 
+    /// <summary>
+    /// The name of the application using the custom membership provider.
+    /// </summary>
+    /// <returns>The name of the application using the custom membership provider.</returns>
     public override string ApplicationName
     {
       get { return Configuration.ApplicationName; }
       set { Configuration.ApplicationName = value; }
     }
 
+    /// <summary>
+    /// Gets the minimum length required for a password.
+    /// </summary>
+    /// <returns>The minimum length required for a password. </returns>
     public override int MinRequiredPasswordLength
     {
       get { return Configuration.MinRequiredPasswordLength; }
     }
 
+    /// <summary>
+    /// Gets the minimum number of special characters that must be present in a valid password.
+    /// </summary>
+    /// <returns>The minimum number of special characters that must be present in a valid password.</returns>
     public override int MinRequiredNonAlphanumericCharacters
     {
       get { return Configuration.MinRequiredNonAlphanumericCharacters; }
     }
 
+    /// <summary>
+    /// Gets the number of invalid password or password-answer attempts allowed before the membership user is locked out.
+    /// </summary>
+    /// <returns>The number of invalid password or password-answer attempts allowed before the membership user is locked out.</returns>
     public override int MaxInvalidPasswordAttempts
     {
       get { return Configuration.MaxInvalidPasswordAttempts; }
     }
 
+    /// <summary>
+    /// Gets the number of minutes in which a maximum number of invalid password or password-answer attempts are allowed before the membership user is locked out.
+    /// </summary>
+    /// <returns>The number of minutes in which a maximum number of invalid password or password-answer attempts are allowed before the membership user is locked out.</returns>
     public override int PasswordAttemptWindow
     {
       get { return Configuration.PasswordAttemptWindow; }
     }
 
+    /// <summary>
+    /// Gets a value indicating the format for storing passwords in the membership data store.
+    /// </summary>
+    /// <returns>One of the <see cref="T:System.Web.Security.MembershipPasswordFormat"/> values indicating the format for storing passwords in the data store.</returns>
     public override MembershipPasswordFormat PasswordFormat
     {
       get { return Configuration.PasswordFormat; }
     }
 
+    /// <summary>
+    /// Gets the regular expression used to evaluate a password.
+    /// </summary>
+    /// <returns>A regular expression used to evaluate a password.</returns>
     public override string PasswordStrengthRegularExpression
     {
       get { return Configuration.PasswordStrengthRegularExpression; }
     }
 
+    /// <summary>
+    /// Indicates whether the membership provider is configured to allow users to reset their passwords.
+    /// </summary>
+    /// <returns>true if the membership provider supports password reset; otherwise, false. The default is true.</returns>
     public override bool EnablePasswordReset
     {
       get { return Configuration.EnablePasswordReset; }
     }
 
+    /// <summary>
+    /// Indicates whether the membership provider is configured to allow users to retrieve their passwords.
+    /// </summary>
+    /// <returns>true if the membership provider is configured to support password retrieval; otherwise, false. The default is false.</returns>
     public override bool EnablePasswordRetrieval
     {
       get { return Configuration.EnablePasswordRetrieval; }
     }
 
+    /// <summary>
+    /// Gets a value indicating whether the membership provider is configured to require the user to answer a password question for password reset and retrieval.
+    /// </summary>
+    /// <returns>true if a password answer is required for password reset and retrieval; otherwise, false. The default is true.</returns>
     public override bool RequiresQuestionAndAnswer
     {
       get { return Configuration.RequiresQuestionAndAnswer; }
     }
 
+    /// <summary>
+    /// Gets a value indicating whether the membership provider is configured to require a unique e-mail address for each user name.
+    /// </summary>
+    /// <returns>true if the membership provider requires a unique e-mail address; otherwise, false. The default is true.</returns>
     public override bool RequiresUniqueEmail
     {
       get { return Configuration.RequiresUniqueEmail; }
@@ -89,6 +134,11 @@ namespace Xtensive.Orm.Security.Web
 
     #endregion
 
+    /// <summary>
+    /// Initializes the specified name.
+    /// </summary>
+    /// <param name="name">The name.</param>
+    /// <param name="settings">The settings.</param>
     public override void Initialize(string name, NameValueCollection settings)
     {
       if (String.IsNullOrEmpty(name))
@@ -105,6 +155,15 @@ namespace Xtensive.Orm.Security.Web
         throw new InvalidOperationException("No descendants of MembershipPrincipal type are found in domain model");
     }
 
+    /// <summary>
+    /// Processes a request to update the password for a membership user.
+    /// </summary>
+    /// <param name="username">The user to update the password for.</param>
+    /// <param name="oldPassword">The current password for the specified user.</param>
+    /// <param name="newPassword">The new password for the specified user.</param>
+    /// <returns>
+    /// true if the password was updated successfully; otherwise, false.
+    /// </returns>
     public override bool ChangePassword(string username, string oldPassword, string newPassword)
     {
       CheckParameter(ref username, "username");
@@ -136,6 +195,16 @@ namespace Xtensive.Orm.Security.Web
       return true;
     }
 
+    /// <summary>
+    /// Processes a request to update the password question and answer for a membership user.
+    /// </summary>
+    /// <param name="username">The user to change the password question and answer for.</param>
+    /// <param name="password">The password for the specified user.</param>
+    /// <param name="newPasswordQuestion">The new password question for the specified user.</param>
+    /// <param name="newPasswordAnswer">The new password answer for the specified user.</param>
+    /// <returns>
+    /// true if the password question and answer are updated successfully; otherwise, false.
+    /// </returns>
     public override bool ChangePasswordQuestionAndAnswer(string username, string password, string newPasswordQuestion, string newPasswordAnswer)
     {
       CheckParameter(ref username, "username");
@@ -157,6 +226,20 @@ namespace Xtensive.Orm.Security.Web
       return true;
     }
 
+    /// <summary>
+    /// Adds a new membership user to the data source.
+    /// </summary>
+    /// <param name="username">The user name for the new user.</param>
+    /// <param name="password">The password for the new user.</param>
+    /// <param name="email">The e-mail address for the new user.</param>
+    /// <param name="passwordQuestion">The password question for the new user.</param>
+    /// <param name="passwordAnswer">The password answer for the new user</param>
+    /// <param name="isApproved">Whether or not the new user is approved to be validated.</param>
+    /// <param name="providerUserKey">The unique identifier from the membership data source for the user.</param>
+    /// <param name="status">A <see cref="T:System.Web.Security.MembershipCreateStatus"/> enumeration value indicating whether the user was created successfully.</param>
+    /// <returns>
+    /// A <see cref="T:System.Web.Security.MembershipUser"/> object populated with the information for the newly created user.
+    /// </returns>
     public override MembershipUser CreateUser(string username, string password, string email, string passwordQuestion, string passwordAnswer, bool isApproved, object providerUserKey, out MembershipCreateStatus status)
     {
       status = MembershipCreateStatus.InvalidUserName;
@@ -236,6 +319,14 @@ namespace Xtensive.Orm.Security.Web
       return result;
     }
 
+    /// <summary>
+    /// Removes a user from the membership data source.
+    /// </summary>
+    /// <param name="username">The name of the user to delete.</param>
+    /// <param name="deleteAllRelatedData">true to delete data related to the user from the database; false to leave data related to the user in the database.</param>
+    /// <returns>
+    /// true if the user was successfully deleted; otherwise, false.
+    /// </returns>
     public override bool DeleteUser(string username, bool deleteAllRelatedData)
     {
       CheckParameter(ref username, "username");
@@ -254,6 +345,16 @@ namespace Xtensive.Orm.Security.Web
       return true;
     }
 
+    /// <summary>
+    /// Gets a collection of membership users where the e-mail address contains the specified e-mail address to match.
+    /// </summary>
+    /// <param name="emailToMatch">The e-mail address to search for.</param>
+    /// <param name="pageIndex">The index of the page of results to return. <paramref name="pageIndex"/> is zero-based.</param>
+    /// <param name="pageSize">The size of the page of results to return.</param>
+    /// <param name="totalRecords">The total number of matched users.</param>
+    /// <returns>
+    /// A <see cref="T:System.Web.Security.MembershipUserCollection"/> collection that contains a page of <paramref name="pageSize"/><see cref="T:System.Web.Security.MembershipUser"/> objects beginning at the page specified by <paramref name="pageIndex"/>.
+    /// </returns>
     public override MembershipUserCollection FindUsersByEmail(string emailToMatch, int pageIndex, int pageSize, out int totalRecords)
     {
       CheckParameter(ref emailToMatch, "emailToMatch");
@@ -261,6 +362,16 @@ namespace Xtensive.Orm.Security.Web
       return FindUsers(w => w.Email.ToLower() == emailToMatch, pageIndex, pageSize, out totalRecords);
     }
 
+    /// <summary>
+    /// Gets a collection of membership users where the user name contains the specified user name to match.
+    /// </summary>
+    /// <param name="usernameToMatch">The user name to search for.</param>
+    /// <param name="pageIndex">The index of the page of results to return. <paramref name="pageIndex"/> is zero-based.</param>
+    /// <param name="pageSize">The size of the page of results to return.</param>
+    /// <param name="totalRecords">The total number of matched users.</param>
+    /// <returns>
+    /// A <see cref="T:System.Web.Security.MembershipUserCollection"/> collection that contains a page of <paramref name="pageSize"/><see cref="T:System.Web.Security.MembershipUser"/> objects beginning at the page specified by <paramref name="pageIndex"/>.
+    /// </returns>
     public override MembershipUserCollection FindUsersByName(string usernameToMatch, int pageIndex, int pageSize, out int totalRecords)
     {
       CheckParameter(ref usernameToMatch, "usernameToMatch");
@@ -268,11 +379,26 @@ namespace Xtensive.Orm.Security.Web
       return FindUsers(w => w.Name == usernameToMatch, pageIndex, pageSize, out totalRecords);
     }
 
+    /// <summary>
+    /// Gets a collection of all the users in the data source in pages of data.
+    /// </summary>
+    /// <param name="pageIndex">The index of the page of results to return. <paramref name="pageIndex"/> is zero-based.</param>
+    /// <param name="pageSize">The size of the page of results to return.</param>
+    /// <param name="totalRecords">The total number of matched users.</param>
+    /// <returns>
+    /// A <see cref="T:System.Web.Security.MembershipUserCollection"/> collection that contains a page of <paramref name="pageSize"/><see cref="T:System.Web.Security.MembershipUser"/> objects beginning at the page specified by <paramref name="pageIndex"/>.
+    /// </returns>
     public override MembershipUserCollection GetAllUsers(int pageIndex, int pageSize, out int totalRecords)
     {
       return FindUsers(null, pageIndex, pageSize, out totalRecords);
     }
 
+    /// <summary>
+    /// Gets the number of users currently accessing the application.
+    /// </summary>
+    /// <returns>
+    /// The number of users currently accessing the application.
+    /// </returns>
     public override int GetNumberOfUsersOnline()
     {
       var timeWindow = Membership.UserIsOnlineTimeWindow;
@@ -284,6 +410,14 @@ namespace Xtensive.Orm.Security.Web
           .Count(m => m.LastActivityDate > boundary);
     }
 
+    /// <summary>
+    /// Gets the password for the specified user name from the data source.
+    /// </summary>
+    /// <param name="username">The user to retrieve the password for.</param>
+    /// <param name="answer">The password answer for the user.</param>
+    /// <returns>
+    /// The password for the specified user name.
+    /// </returns>
     public override string GetPassword(string username, string answer)
     {
       if (!EnablePasswordRetrieval)
@@ -311,6 +445,14 @@ namespace Xtensive.Orm.Security.Web
       }
     }
 
+    /// <summary>
+    /// Gets information from the data source for a user. Provides an option to update the last-activity date/time stamp for the user.
+    /// </summary>
+    /// <param name="username">The name of the user to get information for.</param>
+    /// <param name="userIsOnline">true to update the last-activity date/time stamp for the user; false to return user information without updating the last-activity date/time stamp for the user.</param>
+    /// <returns>
+    /// A <see cref="T:System.Web.Security.MembershipUser"/> object populated with the specified user's information from the data source.
+    /// </returns>
     public override MembershipUser GetUser(string username, bool userIsOnline)
     {
       CheckParameter(ref username, "username");
@@ -332,6 +474,14 @@ namespace Xtensive.Orm.Security.Web
       }
     }
 
+    /// <summary>
+    /// Gets user information from the data source based on the unique identifier for the membership user. Provides an option to update the last-activity date/time stamp for the user.
+    /// </summary>
+    /// <param name="providerUserKey">The unique identifier for the membership user to get information for.</param>
+    /// <param name="userIsOnline">true to update the last-activity date/time stamp for the user; false to return user information without updating the last-activity date/time stamp for the user.</param>
+    /// <returns>
+    /// A <see cref="T:System.Web.Security.MembershipUser"/> object populated with the specified user's information from the data source.
+    /// </returns>
     public override MembershipUser GetUser(object providerUserKey, bool userIsOnline)
     {
       throw new NotImplementedException();
@@ -354,6 +504,13 @@ namespace Xtensive.Orm.Security.Web
 //      }
    }
 
+    /// <summary>
+    /// Gets the user name associated with the specified e-mail address.
+    /// </summary>
+    /// <param name="email">The e-mail address to search for.</param>
+    /// <returns>
+    /// The user name associated with the specified e-mail address. If no match is found, return null.
+    /// </returns>
     public override string GetUserNameByEmail(string email)
     {
       CheckParameter(ref email, "email");
@@ -368,6 +525,14 @@ namespace Xtensive.Orm.Security.Web
       return null;
     }
 
+    /// <summary>
+    /// Resets a user's password to a new, automatically generated password.
+    /// </summary>
+    /// <param name="username">The user to reset the password for.</param>
+    /// <param name="answer">The password answer for the specified user.</param>
+    /// <returns>
+    /// The new password for the specified user.
+    /// </returns>
     public override string ResetPassword(string username, string answer)
     {
       if (!EnablePasswordReset)
@@ -405,6 +570,11 @@ namespace Xtensive.Orm.Security.Web
       }
     }
 
+    /// <summary>
+    /// Unlocks the user.
+    /// </summary>
+    /// <param name="username">The username.</param>
+    /// <returns></returns>
     public override bool UnlockUser(string username)
     {
       if (!CheckParameter(ref username, "username", false))
@@ -422,6 +592,10 @@ namespace Xtensive.Orm.Security.Web
       }
     }
 
+    /// <summary>
+    /// Updates information about a user in the data source.
+    /// </summary>
+    /// <param name="user">A <see cref="T:System.Web.Security.MembershipUser"/> object that represents the user to update and the updated information for the user.</param>
     public override void UpdateUser(MembershipUser user)
     {
       CheckParameter(user, "user");
@@ -455,6 +629,14 @@ namespace Xtensive.Orm.Security.Web
       }
     }
 
+    /// <summary>
+    /// Verifies that the specified user name and password exist in the data source.
+    /// </summary>
+    /// <param name="username">The name of the user to validate.</param>
+    /// <param name="password">The password for the specified user.</param>
+    /// <returns>
+    /// true if the specified username and password are valid; otherwise, false.
+    /// </returns>
     public override bool ValidateUser(string username, string password)
     {
       if (!CheckParameter(ref username, "username", false))
@@ -477,12 +659,25 @@ namespace Xtensive.Orm.Security.Web
       return true;
     }
 
+    /// <summary>
+    /// Gets the name of the user by.
+    /// </summary>
+    /// <param name="session">The session.</param>
+    /// <param name="username">The username.</param>
+    /// <returns></returns>
     private MembershipPrincipal GetUserByName(Session session, string username)
     {
       return GetQueryRoot(session)
         .SingleOrDefault(s => s.Name==username);
     }
 
+    /// <summary>
+    /// Gets the user by email.
+    /// </summary>
+    /// <param name="session">The session.</param>
+    /// <param name="email">The email.</param>
+    /// <param name="throwOnDuplicate">if set to <c>true</c> [throw on duplicate].</param>
+    /// <returns></returns>
     private MembershipPrincipal GetUserByEmail(Session session, string email, bool throwOnDuplicate)
     {
       var users = GetQueryRoot(session)
@@ -496,6 +691,14 @@ namespace Xtensive.Orm.Security.Web
       return users.FirstOrDefault();
     }
 
+    /// <summary>
+    /// Finds the users.
+    /// </summary>
+    /// <param name="condition">The condition.</param>
+    /// <param name="pageIndex">Index of the page.</param>
+    /// <param name="pageSize">Size of the page.</param>
+    /// <param name="totalRecords">The total records.</param>
+    /// <returns></returns>
     private MembershipUserCollection FindUsers(Expression<Func<MembershipPrincipal, bool>> condition, int pageIndex, int pageSize, out int totalRecords)
     {
       var result = new MembershipUserCollection();
@@ -539,6 +742,9 @@ namespace Xtensive.Orm.Security.Web
       return user;
     }
 
+    /// <summary>
+    /// Generates the password.
+    /// </summary>
     protected virtual string GeneratePassword() 
     {
       return Membership.GeneratePassword(MinRequiredPasswordLength, MinRequiredNonAlphanumericCharacters);
