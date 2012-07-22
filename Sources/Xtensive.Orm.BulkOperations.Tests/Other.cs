@@ -11,8 +11,8 @@ namespace Xtensive.Orm.BulkOperations.Tests
     [Test]
     public void CompositeKeyUpdate()
     {
-      using (var session = Domain.OpenSession()) {
-        using (var trx = session.OpenTransaction()) {
+      using (Session session = Domain.OpenSession()) {
+        using (TransactionScope trx = session.OpenTransaction()) {
           DateTime date1 = DateTime.Now;
           DateTime date2 = DateTime.Now.AddDays(1);
           Guid id1 = Guid.NewGuid();
@@ -33,8 +33,8 @@ namespace Xtensive.Orm.BulkOperations.Tests
     [Test]
     public void SimpleDelete()
     {
-      using (var session = Domain.OpenSession()) {
-        using (var trx = session.OpenTransaction()) {
+      using (Session session = Domain.OpenSession()) {
+        using (TransactionScope trx = session.OpenTransaction()) {
           var bar1 = new Bar(session) {Name = "test", Count = 3};
           var bar2 = new Bar(session);
           var bar3 = new Bar(session);
@@ -58,10 +58,39 @@ namespace Xtensive.Orm.BulkOperations.Tests
     }
 
     [Test]
+    public void SimpleInsert()
+    {
+      using (Session session = Domain.OpenSession()) {
+        using (TransactionScope trx = session.OpenTransaction()) {
+          string s1 = "abccba";
+          int i = 5;
+          Key key =
+            session.Query.Insert(() => new Bar(session) {Name = "test1" + s1, Count = i * 2 + 1, Description = null});
+          Assert.That(key, Is.EqualTo(Key.Create<Bar>(session.Domain, 1)));
+          var bar = session.Query.Single<Bar>(key);
+          Assert.That(bar.Name, Is.EqualTo("test1abccba"));
+          Assert.That(bar.Count, Is.EqualTo(11));
+          Assert.That(bar.Description, Is.Null);
+
+          key =
+            session.Query.Insert(
+              () => new Bar(session) {Id = 100, Name = "test" + s1, Count = i * 2 + 1, Description = null});
+          Assert.That(key, Is.EqualTo(Key.Create<Bar>(session.Domain, 100)));
+          bar = session.Query.Single<Bar>(key);
+          Assert.That(bar.Name, Is.EqualTo("testabccba"));
+          Assert.That(bar.Count, Is.EqualTo(11));
+          Assert.That(bar.Description, Is.Null);
+
+          trx.Complete();
+        }
+      }
+    }
+
+    [Test]
     public void SimpleUpdate()
     {
-      using (var session = Domain.OpenSession()) {
-        using (var trx = session.OpenTransaction()) {
+      using (Session session = Domain.OpenSession()) {
+        using (TransactionScope trx = session.OpenTransaction()) {
           var bar1 = new Bar(session) {Name = "test", Count = 3};
           var bar2 = new Bar(session);
           string s = "test";
@@ -79,22 +108,45 @@ namespace Xtensive.Orm.BulkOperations.Tests
     }
 
     [Test]
+    public void SubqueryInsert()
+    {
+      using (Session session = Domain.OpenSession()) {
+        using (TransactionScope trx = session.OpenTransaction()) {
+          new Foo(session) {Name = "test"};
+          new Bar(session) {Name = "test1"};
+          session.SaveChanges();
+          Key key = null;
+          session.AssertCommandCount(
+            Is.EqualTo(1),
+            () => { key = session.Query.Insert(() => new Bar(session) {Count = session.Query.All<Bar>().Max(b => b.Count)}); });
+          var bar = session.Query.Single<Bar>(key);
+          Assert.That(bar.Count, Is.EqualTo(0));
+          trx.Complete();
+        }
+      }
+    }
+
+    [Test]
     public void SubqueryUpdate()
     {
-      using (var session = Domain.OpenSession()) {
-        using (var trx = session.OpenTransaction()) {
+      using (Session session = Domain.OpenSession()) {
+        using (TransactionScope trx = session.OpenTransaction()) {
           var bar = new Bar(session);
           var bar2 = new Bar(session) {Count = 1};
           new Foo(session) {Bar = bar, Name = "test"};
           new Foo(session) {Bar = bar, Name = "test1"};
           session.Query.All<Bar>().Where(a => a.Count==a.Foo.Count - 2).Set(a => a.Count, a => a.Foo.Count).Update();
           Assert.That(bar.Count, Is.EqualTo(2));
+
           session.AssertCommandCount(
             Is.EqualTo(1),
-            () =>
-              session.Query.All<Bar>().Where(a => a.Count==session.Query.All<Bar>().Max(b => b.Count)).Set(
-                a => a.Count, a => session.Query.All<Bar>().Min(b => b.Count)).Update());
-          Assert.That(bar.Count, Is.EqualTo(1));
+            () => session.Query.All<Bar>().Where(a => a.Count==session.Query.All<Bar>().Max(b => b.Count) + 1).Set(a => a.Count, a => session.Query.All<Bar>().Min(b => b.Count)).Update());
+          Assert.That(bar.Count, Is.EqualTo(2));
+
+          session.AssertCommandCount(
+            Is.EqualTo(1),
+            () => session.Query.All<Bar>().Where(a => a.Count==session.Query.All<Bar>().Max(b => b.Count) + 1).Set(a => a.Count, a => session.Query.All<Foo>().Count()).Update());
+
           trx.Complete();
         }
       }
@@ -103,8 +155,8 @@ namespace Xtensive.Orm.BulkOperations.Tests
     [Test]
     public void UpdateViaSet()
     {
-      using (var session = Domain.OpenSession()) {
-        using (var trx = session.OpenTransaction()) {
+      using (Session session = Domain.OpenSession()) {
+        using (TransactionScope trx = session.OpenTransaction()) {
           var bar1 = new Bar(session) {Name = "test", Count = 3};
           var bar2 = new Bar(session);
           string s = "test";
@@ -125,8 +177,8 @@ namespace Xtensive.Orm.BulkOperations.Tests
     [ExpectedException(typeof (NotSupportedException))]
     public void UpdateWithReferenceToUpdatingEntity()
     {
-      using (var session = Domain.OpenSession()) {
-        using (var trx = session.OpenTransaction()) {
+      using (Session session = Domain.OpenSession()) {
+        using (TransactionScope trx = session.OpenTransaction()) {
           var foo1 = new Foo(session) {Name = "Test"};
           var foo2 = new Foo(session);
           var foo3 = new Foo(session) {Name = "Test1"};

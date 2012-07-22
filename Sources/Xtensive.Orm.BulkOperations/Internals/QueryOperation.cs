@@ -11,8 +11,6 @@ namespace Xtensive.Orm.BulkOperations
   internal abstract class QueryOperation<T> : Operation<T>
     where T : class, IEntity
   {
-    protected SqlTableRef TableRef;
-
     #region Non-public methods
 
     protected abstract SqlTableRef GetStatementTable(SqlStatement statement);
@@ -25,7 +23,7 @@ namespace Xtensive.Orm.BulkOperations
         SetStatementTable(statement, sqlTableRef);
         SetStatementFrom(statement, sqlTableRef);
         SetStatementWhere(statement, select.Where);
-        TableRef = sqlTableRef;
+        JoinedTableRef = sqlTableRef;
         return;
       }
 
@@ -40,19 +38,12 @@ namespace Xtensive.Orm.BulkOperations
     protected abstract void SetStatementWhere(SqlStatement statement, SqlExpression where);
     protected abstract bool SupportsJoin();
 
-    protected QueryCommand ToCommand(SqlStatement statement)
-    {
-      return
-        QueryBuilder.CreateCommand(
-          QueryBuilder.CreateRequest(QueryBuilder.CompileQuery((ISqlCompileUnit) statement), Bindings));
-    }
-
 
     private void JoinViaIn(SqlStatement statement, SqlSelect @select)
     {
       SqlTableRef table = GetStatementTable(statement);
       SqlExpression where = GetStatementWhere(statement);
-      TableRef = table;
+      JoinedTableRef = table;
       PrimaryIndexMapping indexMapping = PrimaryIndexes[0];
       var columns = new List<ColumnInfo>();
       foreach (ColumnInfo columnInfo in indexMapping.PrimaryIndex.KeyColumns.Keys) {
@@ -83,7 +74,7 @@ namespace Xtensive.Orm.BulkOperations
         else
           joinExpression &= binary;
       }
-      TableRef = left;
+      JoinedTableRef = left;
       SqlJoinedTable joinedTable = left.InnerJoin(right, joinExpression);
       SetStatementFrom(statement, joinedTable);
     }

@@ -2,6 +2,7 @@
 using NUnit.Framework;
 using Xtensive.Orm.Reprocessing.Configuration;
 using Xtensive.Orm.Reprocessing.Tests.Model;
+using System.Linq;
 
 namespace Xtensive.Orm.Reprocessing.Tests
 {
@@ -54,6 +55,20 @@ namespace Xtensive.Orm.Reprocessing.Tests
     public void NestedSessionReuse()
     {
       Domain.Execute(session1 => Domain.Execute(session2 => Assert.That(session1, Is.SameAs(session2))));
+    }
+
+    [Test]
+    public void Test()
+    {
+      Domain.Execute(session => {
+        new Foo(session);
+      });
+      Domain.Execute(session => {
+        session.Query.All<Foo>().ToArray();
+        Domain.WithIsolationLevel(IsolationLevel.Serializable).Execute(session2 => {
+          session2.Query.All<Foo>().ToArray();
+        });
+      });
     }
   }
 }

@@ -11,7 +11,7 @@ namespace Xtensive.Orm.BulkOperations
     public SetDescriptor Descriptor { get; set; }
 
     public LambdaExpression Lambda { get; set; }
-    public SqlUpdate Update { get; set; }
+    public SetStatement Statement { get; set; }
 
     public FieldInfo Field { get; set; }
 

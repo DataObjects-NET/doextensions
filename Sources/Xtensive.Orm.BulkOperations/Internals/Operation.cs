@@ -9,6 +9,8 @@ using Xtensive.Orm.Model;
 using Xtensive.Orm.Providers.Sql;
 using Xtensive.Orm.Providers.Sql.Mappings;
 using Xtensive.Orm.Services;
+using Xtensive.Sql;
+using Xtensive.Sql.Dml;
 using QueryParameterBinding = Xtensive.Orm.Services.QueryParameterBinding;
 
 namespace Xtensive.Orm.BulkOperations
@@ -16,14 +18,15 @@ namespace Xtensive.Orm.BulkOperations
   internal abstract class Operation<T>
     where T : class, IEntity
   {
-    private static readonly MethodInfo TranslateQueryMethod = typeof (QueryBuilder).GetMethod("TranslateQuery");
-    protected readonly QueryProvider QueryProvider;
-    protected List<QueryParameterBinding> Bindings;
+    private static readonly MethodInfo TranslateQueryMethod = typeof(QueryBuilder).GetMethod("TranslateQuery");
+    public readonly QueryProvider QueryProvider;
+    public List<QueryParameterBinding> Bindings;
     protected DomainHandler DomainHandler;
     protected PrimaryIndexMapping[] PrimaryIndexes;
-    protected QueryBuilder QueryBuilder;
-    protected Session Session;
+    public QueryBuilder QueryBuilder;
+    public Session Session;
     protected TypeInfo TypeInfo;
+    public SqlTableRef JoinedTableRef;
 
     public int Execute()
     {
@@ -47,18 +50,18 @@ namespace Xtensive.Orm.BulkOperations
 
     protected abstract int ExecuteInternal();
 
-    protected QueryTranslationResult GetRequest(IQueryable<T> query)
+    public QueryTranslationResult GetRequest(IQueryable<T> query)
     {
       return QueryBuilder.TranslateQuery(query);
     }
 
-    protected QueryTranslationResult GetRequest(Type type, IQueryable query)
+    public QueryTranslationResult GetRequest(Type type, IQueryable query)
     {
       return
         (QueryTranslationResult) TranslateQueryMethod.MakeGenericMethod(type).Invoke(QueryBuilder, new object[] {query});
     }
 
-    protected TypeInfo GetTypeInfo(Type entityType)
+    public TypeInfo GetTypeInfo(Type entityType)
     {
       return Session.Domain.Model.Hierarchies.SelectMany(a => a.Types).Single(a => a.UnderlyingType==entityType);
     }
@@ -76,6 +79,13 @@ namespace Xtensive.Orm.BulkOperations
           a => a.UnderlyingType==entityType);
       PrimaryIndexes = TypeInfo.AffectedIndexes.Where(a => a.IsPrimary).Select(a => DomainHandler.Mapping[a]).ToArray();
       QueryBuilder = Session.Services.Get<QueryBuilder>();
+    }
+
+    protected QueryCommand ToCommand(SqlStatement statement)
+    {
+      return
+        QueryBuilder.CreateCommand(
+          QueryBuilder.CreateRequest(QueryBuilder.CompileQuery((ISqlCompileUnit) statement), Bindings));
     }
   }
 }

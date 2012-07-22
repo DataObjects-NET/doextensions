@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using System.Linq;
+using NUnit.Framework;
 using Xtensive.Orm.Reprocessing.Tests;
 using Xtensive.Orm.Reprocessing.Tests.Model;
 
@@ -35,14 +36,12 @@ namespace Xtensive.Orm.BulkOperations.Tests
 
           /*var bar2 = new Bar(session);
             session.SaveChanges();
-            using (AssertEx.ThatCommandsCount(Is.EqualTo(1)))
-            {
-                session.Query.All<Bar>().Where(a => a.Id == bar2.Id).Set(
-                    a => a.Rectangle,
-                    a=>session.Query.All<Bar>().Where(b => a.Id == bar.Id).Select(b => b.Rectangle).First()).
-                    Update();
-                Assert.That( counter.Count, Is.EqualTo(1));
-            }
+          session.AssertCommandCount(Is.EqualTo(1), () => {
+            session.Query.All<Bar>().Where(a => a.Id==bar2.Id).Set(
+              a => a.Rectangle,
+              a => session.Query.All<Bar>().Where(b => a.Id==bar.Id).Select(b => b.Rectangle).First()).
+              Update();
+          });
             Assert.That( bar2.Rectangle.First.X, Is.EqualTo(1));
             Assert.That(bar2.Rectangle.Second.X, Is.Null);
             bar2.Remove();*/
