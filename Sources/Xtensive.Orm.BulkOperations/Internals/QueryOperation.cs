@@ -21,7 +21,6 @@ namespace Xtensive.Orm.BulkOperations
       var sqlTableRef = @select.From as SqlTableRef;
       if (sqlTableRef!=null) {
         SetStatementTable(statement, sqlTableRef);
-        SetStatementFrom(statement, sqlTableRef);
         SetStatementWhere(statement, select.Where);
         JoinedTableRef = sqlTableRef;
         return;

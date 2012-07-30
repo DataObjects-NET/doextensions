@@ -48,7 +48,7 @@ namespace Xtensive.Orm.BulkOperations
 
     protected override void SetStatementFrom(SqlStatement statement, SqlTable from)
     {
-      var update = (SqlUpdate) statement;
+      var update = (SqlUpdate)statement;
       update.From = from;
     }
 
