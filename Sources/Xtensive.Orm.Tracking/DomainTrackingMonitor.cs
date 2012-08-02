@@ -9,6 +9,9 @@ using Xtensive.IoC;
 
 namespace Xtensive.Orm.Tracking
 {
+  /// <summary>
+  /// Implementation of <see cref="IDomainTrackingMonitor"/> interface.
+  /// </summary>
   [Service(typeof (IDomainTrackingMonitor), Singleton = true)]
   public class DomainTrackingMonitor : IDomainTrackingMonitor
   {
@@ -18,6 +21,14 @@ namespace Xtensive.Orm.Tracking
     private EventHandler<TrackingCompletedEventArgs> trackingCompletedHandler;
     private bool isDisabled;
 
+    /// <summary>
+    /// Gets or sets the filter that is applied to include only entities of required types.
+    /// </summary>
+    public Func<Type, bool> Filter { get; set; }
+
+    /// <summary>
+    /// Occurs when a single tracking operation is completed.
+    /// </summary>
     public event EventHandler<TrackingCompletedEventArgs> TrackingCompleted
     {
       add {
@@ -39,6 +50,9 @@ namespace Xtensive.Orm.Tracking
       }
     }
 
+    /// <summary>
+    /// Disables tracking.
+    /// </summary>
     public void Disable()
     {
       if (isDisabled)
@@ -49,6 +63,9 @@ namespace Xtensive.Orm.Tracking
         Detach();
     }
 
+    /// <summary>
+    /// Enables tracking.
+    /// </summary>
     public void Enable()
     {
       if (!isDisabled)
@@ -85,6 +102,9 @@ namespace Xtensive.Orm.Tracking
 
       session.Events.Disposing += OnDisposeSession;
       var tm = session.Services.Get<ISessionTrackingMonitor>();
+      if (Filter != null) {
+          tm.Filter = Filter;
+      }
       tm.TrackingCompleted += OnTrackingCompleted;
     }
 
@@ -112,6 +132,10 @@ namespace Xtensive.Orm.Tracking
       Detach();
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DomainTrackingMonitor"/> class.
+    /// </summary>
+    /// <param name="domain">The domain.</param>
     [ServiceConstructor]
     public DomainTrackingMonitor(Domain domain)
     {

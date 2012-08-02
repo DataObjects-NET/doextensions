@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Xtensive.IoC;
@@ -6,6 +7,9 @@ using Xtensive.Orm.Internals;
 
 namespace Xtensive.Orm.Tracking
 {
+  /// <summary>
+  /// Implementation of <see cref="ISessionTrackingMonitor"/> interface.
+  /// </summary>
   [Service(typeof (ISessionTrackingMonitor), Singleton = true)]
   public class SessionTrackingMonitor : SessionBound, ISessionTrackingMonitor
   {
@@ -17,6 +21,14 @@ namespace Xtensive.Orm.Tracking
     private EventHandler<TrackingCompletedEventArgs> trackingCompletedHandler;
     private bool isDisabled;
 
+    /// <summary>
+    /// Gets or sets the filter that is applied to include only entities of required types.
+    /// </summary>
+    public Func<Type, bool> Filter { get; set; }
+
+    /// <summary>
+    /// Occurs when a single tracking operation is completed.
+    /// </summary>
     public event EventHandler<TrackingCompletedEventArgs> TrackingCompleted
     {
       add {
@@ -37,6 +49,9 @@ namespace Xtensive.Orm.Tracking
       }
     }
 
+    /// <summary>
+    /// Disables tracking.
+    /// </summary>
     public void Disable()
     {
       if (isDisabled)
@@ -47,6 +62,9 @@ namespace Xtensive.Orm.Tracking
         Detach();
     }
 
+    /// <summary>
+    /// Enables tracking.
+    /// </summary>
     public void Enable()
     {
       if (!isDisabled)
@@ -134,14 +152,22 @@ namespace Xtensive.Orm.Tracking
         return;
       var frame = stack.Peek();
 
-      foreach (var state in registry.GetItems(PersistenceState.Removed))
+      foreach (var state in GetItems(registry, PersistenceState.Removed))
         frame.Register(new TrackingItem(state.Key, state.DifferentialTuple, TrackingItemState.Deleted));
 
-      foreach (var state in registry.GetItems(PersistenceState.New))
+      foreach (var state in GetItems(registry, PersistenceState.New))
         frame.Register(new TrackingItem(state.Key, state.DifferentialTuple, TrackingItemState.Created));
 
-      foreach (var state in registry.GetItems(PersistenceState.Modified))
+      foreach (var state in GetItems(registry, PersistenceState.Modified))
         frame.Register(new TrackingItem(state.Key, state.DifferentialTuple, TrackingItemState.Changed));
+    }
+
+    private IEnumerable<EntityState> GetItems(EntityChangeRegistry registry, PersistenceState state)
+    {
+      var result = registry.GetItems(state);
+      if (Filter!=null)
+        result = result.Where(i => Filter(i.Type.UnderlyingType));
+      return result;
     }
 
     private void OnDisposeSession(object sender, EventArgs e)
@@ -177,6 +203,12 @@ namespace Xtensive.Orm.Tracking
       }
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SessionTrackingMonitor"/> class.
+    /// </summary>
+    /// <param name="session"><see cref="T:Xtensive.Orm.Session"/>, to which current instance
+    /// is bound.</param>
+    /// <exception cref="T:System.ArgumentNullException"><paramref name="session"/> is <see langword="null"/>.</exception>
     [ServiceConstructor]
     public SessionTrackingMonitor(Session session)
       : base(session)

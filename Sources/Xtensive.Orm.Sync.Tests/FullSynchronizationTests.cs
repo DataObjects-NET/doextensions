@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using Microsoft.Synchronization;
 using NUnit.Framework;
 using Xtensive.Orm.Sync.Tests.Model;
@@ -24,6 +25,7 @@ namespace Xtensive.Orm.Sync.Tests
           t.Complete();
         }
       }
+      Thread.Sleep(TimeSpan.FromSeconds(2));
       var orchestrator = new SyncOrchestrator {
           LocalProvider = LocalDomain.GetSyncProvider(),
           RemoteProvider = RemoteDomain.GetSyncProvider(),
@@ -69,6 +71,7 @@ namespace Xtensive.Orm.Sync.Tests
         }
       }
 
+      Thread.Sleep(TimeSpan.FromSeconds(2));
       var orchestrator = new SyncOrchestrator {
           LocalProvider = LocalDomain.GetSyncProvider(),
           RemoteProvider = RemoteDomain.GetSyncProvider(),
@@ -110,6 +113,7 @@ namespace Xtensive.Orm.Sync.Tests
         }
       }
 
+      Thread.Sleep(TimeSpan.FromSeconds(2));
       var orchestrator = new SyncOrchestrator {
           LocalProvider = LocalDomain.GetSyncProvider(),
           RemoteProvider = RemoteDomain.GetSyncProvider(),

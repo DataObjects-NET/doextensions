@@ -87,7 +87,8 @@ namespace Xtensive.Orm.Tracking
         throw new NullReferenceException("tuple");
 
       Key = key;
-      RawData = (DifferentialTuple) tuple.Clone();
+      if (tuple != null)
+        RawData = (DifferentialTuple) tuple.Clone();
       State = state;
     }
   }

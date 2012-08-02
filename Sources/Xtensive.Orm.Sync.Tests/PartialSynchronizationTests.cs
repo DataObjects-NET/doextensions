@@ -1,4 +1,6 @@
-﻿using Microsoft.Synchronization;
+﻿using System;
+using System.Threading;
+using Microsoft.Synchronization;
 using NUnit.Framework;
 using Xtensive.Orm.Sync.Tests.Model;
 
@@ -36,6 +38,7 @@ namespace Xtensive.Orm.Sync.Tests
     [Test]
     public void SyncStandaloneEntitiesTest()
     {
+      Thread.Sleep(TimeSpan.FromSeconds(2));
       var localProvider = LocalDomain.GetSyncProvider();
       localProvider.Sync.All<MyReferenceProperty>();
       var orchestrator = new SyncOrchestrator {
@@ -56,6 +59,7 @@ namespace Xtensive.Orm.Sync.Tests
     [Test]
     public void SyncReferencingEntitiesTest()
     {
+      Thread.Sleep(TimeSpan.FromSeconds(2));
       var localProvider = LocalDomain.GetSyncProvider();
       localProvider.Sync.All<MyEntity>();
       var orchestrator = new SyncOrchestrator {

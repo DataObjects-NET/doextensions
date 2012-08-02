@@ -60,6 +60,8 @@
       <Link>Properties\ProductInfo.cs</Link>
     </Compile>
     <Compile Include="ChangedValue.cs" />
+    <Compile Include="SessionExtensions.cs" />
+    <Compile Include="DomainExtensions.cs" />
     <Compile Include="Interfaces\IDomainTrackingMonitor.cs" />
     <Compile Include="Interfaces\ISessionTrackingMonitor.cs" />
     <Compile Include="Interfaces\ITrackingItem.cs" />
