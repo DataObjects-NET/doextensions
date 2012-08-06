@@ -81,7 +81,6 @@
     <Compile Include="..\..\_Build\ProductInfo.cs">
       <Link>Properties\ProductInfo.cs</Link>
     </Compile>
-    <Compile Include="RequiresPostSharp.cs" />
     <Compile Include="Role.cs" />
     <Compile Include="SecureQueryRootBuilder.cs" />
     <Compile Include="Services\GenericAuthenticationService.cs" />

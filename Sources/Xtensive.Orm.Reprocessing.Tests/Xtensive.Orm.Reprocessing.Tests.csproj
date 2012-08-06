@@ -73,7 +73,6 @@
     <Compile Include="Model\Point.cs" />
     <Compile Include="Model\Rectangle.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RequiresPostSharp.cs" />
     <Compile Include="Tests\Other.cs" />
     <Compile Include="Tests\Reprocessing.cs" />
     <Compile Include="..\..\_Build\ProductInfo.cs">

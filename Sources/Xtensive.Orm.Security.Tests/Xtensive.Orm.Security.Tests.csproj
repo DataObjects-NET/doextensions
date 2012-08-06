@@ -68,7 +68,6 @@
     <Compile Include="Permissions\VipCustomerPermission.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Model\Employee.cs" />
-    <Compile Include="RequiresPostSharp.cs" />
     <Compile Include="Roles\AutomobileManagerRole.cs" />
     <Compile Include="Roles\AircraftManagerRole.cs" />
     <Compile Include="Roles\BranchOfficeManagerRole.cs" />

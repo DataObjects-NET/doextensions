@@ -15,6 +15,7 @@
     <DocumentationFile>..\..\_Build\Binaries\$(Configuration)\$(AssemblyName).xml</DocumentationFile>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\Extensions.snk</AssemblyOriginatorKeyFile>
+    <SkipPostSharp>True</SkipPostSharp>
     <DontImportPostSharp>True</DontImportPostSharp>
     <XtensiveOrmIntegratedPostSharp>false</XtensiveOrmIntegratedPostSharp>
   </PropertyGroup>
@@ -64,7 +65,6 @@
     <Compile Include="..\..\_Build\ProductInfo.cs">
       <Link>Properties\ProductInfo.cs</Link>
     </Compile>
-    <Compile Include="RequiresPostSharp.cs" />
     <Compile Include="SessionManager.cs" />
     <Compile Include="WebDomainConfiguration.cs" />
   </ItemGroup>
