@@ -5,6 +5,7 @@
 // Created:    2012.05.16
 
 using System;
+using System.Linq;
 using Xtensive.IoC;
 
 namespace Xtensive.Orm.Tracking
@@ -102,16 +103,18 @@ namespace Xtensive.Orm.Tracking
 
       session.Events.Disposing += OnDisposeSession;
       var tm = session.Services.Get<ISessionTrackingMonitor>();
-      if (Filter != null) {
-          tm.Filter = Filter;
-      }
       tm.TrackingCompleted += OnTrackingCompleted;
     }
 
     private void OnTrackingCompleted(object sender, TrackingCompletedEventArgs e)
     {
       var handler = trackingCompletedHandler;
-      handler.Invoke(this, e);
+      var items = e.Changes;
+      if (Filter!=null)
+        items = e.Changes
+          .Where(i => Filter(i.Key.TypeInfo.UnderlyingType))
+          .ToList();
+      handler.Invoke(this, new TrackingCompletedEventArgs(items));
     }
 
     private void OnDisposeSession(object sender, EventArgs e)
