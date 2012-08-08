@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -197,16 +198,31 @@ namespace Xtensive.Orm.Sync
 
     public IEnumerable<SyncInfo> GetMetadata(IEnumerable<Key> keys)
     {
-      var groups = keys.GroupBy(i => i.TypeReference.Type.Hierarchy.Root);
+      var groups = keys.GroupBy(i => i.TypeReference.Type);
 
       foreach (var @group in groups) {
         MetadataStore store;
-        if (!storeIndex.TryGetValue(@group.Key.UnderlyingType, out store))
-          continue;
+        var originalType = @group.Key;
 
-        var items = store.GetMetadata(@group.ToList());
-        foreach (var item in items)
-          yield return item;
+        if (storeIndex.TryGetValue(originalType.UnderlyingType, out store))
+          foreach (var item in store.GetMetadata(@group.ToList()))
+            yield return item;
+
+        // originalType is not hierarchy root or is an interface
+        if (originalType.IsInterface) {
+          var rootTypes = originalType.GetImplementors(false)
+            .Select(i => i.Hierarchy.Root);
+          foreach (var rootType in rootTypes)
+            if (storeIndex.TryGetValue(rootType.UnderlyingType, out store))
+              foreach (var item in store.GetMetadata(@group.ToList()))
+                yield return item;
+        }
+        else {
+          var rootType = originalType.Hierarchy.Root;
+          if (storeIndex.TryGetValue(rootType.UnderlyingType, out store))
+            foreach (var item in store.GetMetadata(@group.ToList()))
+              yield return item;
+        }
       }
     }
 
