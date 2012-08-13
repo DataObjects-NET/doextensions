@@ -182,7 +182,7 @@ namespace Xtensive.Orm.Sync
       }
       RegisterKeyMapping(data, mappedKey);
       metadata.CreateMetadata(mappedKey, data.Change);
-      var entity = accessor.CreateEntity(data.Identity.Key.TypeInfo.UnderlyingType, mappedKey.Value);
+      var entity = accessor.CreateEntity(entityType, mappedKey.Value);
       var state = accessor.GetEntityState(entity);
       offset = mappedKey.Value.Count;
       data.Tuple.CopyTo(state.Tuple, offset, offset, data.Tuple.Count - offset);

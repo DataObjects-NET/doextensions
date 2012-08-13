@@ -207,21 +207,23 @@ namespace Xtensive.Orm.Sync
         if (storeIndex.TryGetValue(originalType.UnderlyingType, out store))
           foreach (var item in store.GetMetadata(@group.ToList()))
             yield return item;
+        else {
 
-        // originalType is not hierarchy root or is an interface
-        if (originalType.IsInterface) {
-          var rootTypes = originalType.GetImplementors(false)
-            .Select(i => i.Hierarchy.Root);
-          foreach (var rootType in rootTypes)
+          // originalType is not hierarchy root or is an interface
+          if (originalType.IsInterface) {
+            var rootTypes = originalType.GetImplementors(false)
+              .Select(i => i.Hierarchy.Root);
+            foreach (var rootType in rootTypes)
+              if (storeIndex.TryGetValue(rootType.UnderlyingType, out store))
+                foreach (var item in store.GetMetadata(@group.ToList()))
+                  yield return item;
+          }
+          else {
+            var rootType = originalType.Hierarchy.Root;
             if (storeIndex.TryGetValue(rootType.UnderlyingType, out store))
               foreach (var item in store.GetMetadata(@group.ToList()))
                 yield return item;
-        }
-        else {
-          var rootType = originalType.Hierarchy.Root;
-          if (storeIndex.TryGetValue(rootType.UnderlyingType, out store))
-            foreach (var item in store.GetMetadata(@group.ToList()))
-              yield return item;
+          }
         }
       }
     }
