@@ -20,6 +20,7 @@ namespace Xtensive.Orm.Sync.Tests
             new MyEntity(session) {
               Property = new MyReferenceProperty(session)
             };
+            new AnotherEntity(session, Guid.NewGuid());
           }
 
           t.Complete();

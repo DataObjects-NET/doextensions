@@ -64,6 +64,7 @@
     <Compile Include="AutoBuildTest.cs" />
     <Compile Include="FullSynchronizationTests.cs" />
     <Compile Include="Log.cs" />
+    <Compile Include="Model\AnotherEntity.cs" />
     <Compile Include="Model\MyEntity.cs" />
     <Compile Include="Model\MyEnum.cs" />
     <Compile Include="Model\MyEntitySetItem.cs" />

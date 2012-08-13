@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Microsoft.Synchronization;
 using Xtensive.Orm.Model;
 using Xtensive.Orm.Services;
 using Xtensive.Tuples;
+using FieldInfo = Xtensive.Orm.Model.FieldInfo;
 
 namespace Xtensive.Orm.Sync
 {
@@ -14,6 +16,7 @@ namespace Xtensive.Orm.Sync
     private readonly KeyMap keyMap;
     private readonly DirectEntityAccessor accessor;
     private readonly Dictionary<Key, List<KeyDependency>> keyDependencies;
+    private readonly MethodInfo createKeyMethod;
 
     private IEnumerator<ChangeSet> changeSetEnumerator;
     private ChangeSet currentChangeSet;
@@ -150,7 +153,8 @@ namespace Xtensive.Orm.Sync
     private void HandleCreateEntity(ItemChangeData data)
     {
       var entityType = data.Identity.Key.TypeReference.Type.UnderlyingType;
-      var hierarchy = Session.Domain.Model.Types[entityType].Hierarchy;
+      var typeInfo = Session.Domain.Model.Types[entityType];
+      var hierarchy = typeInfo.Hierarchy;
       Key mappedKey = null;
       int offset;
       switch (hierarchy.Key.GeneratorKind) {
@@ -169,11 +173,11 @@ namespace Xtensive.Orm.Sync
 
             var mappedRefKey = TryResolveIdentity(identity);
             if (mappedRefKey == null)
-              throw new InvalidOperationException(string.Format("Mapped key for original key '{0}'", identity.Key.Format()));
+              throw new InvalidOperationException(string.Format("Mapped key for original key '{0}' is not found", identity.Key.Format()));
             offset = field.MappingInfo.Offset;
             mappedRefKey.Value.CopyTo(targetTuple, 0, offset, field.MappingInfo.Length);
           }
-          mappedKey = Key.Create(Session.Domain, entityType, targetTuple);
+          mappedKey = (Key) createKeyMethod.Invoke(null, new object[] {Session.Domain, typeInfo, TypeReferenceAccuracy.ExactType, targetTuple});
           break;
       }
       RegisterKeyMapping(data, mappedKey);
@@ -292,6 +296,7 @@ namespace Xtensive.Orm.Sync
       Replica = metadata.Replica;
       keyMap = new KeyMap();
       keyDependencies = new Dictionary<Key,List<KeyDependency>>();
+      createKeyMethod = typeof (Key).GetMethod("Create", BindingFlags.NonPublic | BindingFlags.Static, null, new [] {typeof(Domain), typeof(TypeInfo), typeof(TypeReferenceAccuracy), typeof(Tuples.Tuple)}, null);
     }
   }
 }
