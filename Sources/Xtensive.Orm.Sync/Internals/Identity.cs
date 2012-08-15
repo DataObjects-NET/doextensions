@@ -1,27 +1,58 @@
 ﻿using System;
+using System.Runtime.Serialization;
+using Xtensive.Core;
 
 namespace Xtensive.Orm.Sync
 {
   /// <summary>
   /// Pair of <see cref="Key"/> and <see cref="Guid"/>.
   /// </summary>
+  [Serializable]
   public class Identity
   {
     /// <summary>
     /// Gets or sets the global id.
     /// </summary>
-    /// <value>
-    /// The global id.
-    /// </value>
     public Guid GlobalId { get; set;}
+
+    [NonSerialized]
+    private Key key;
+
+    private string keyValue;
 
     /// <summary>
     /// Gets or sets the key.
     /// </summary>
-    /// <value>
-    /// The key.
-    /// </value>
-    public Key Key { get; set; }
+    public Key Key
+    {
+      get { return key; }
+      set
+      {
+        ArgumentValidator.EnsureArgumentNotNull(value, "value");
+        key = value;
+      }
+    }
+
+    [OnSerializing]
+    private void OnSerializing(StreamingContext context)
+    {
+      if (key==null)
+        return;
+
+      keyValue = key.Format();
+    }
+
+    /// <summary>
+    /// Binds all internal structures to <see cref="Domain"/>.
+    /// </summary>
+    /// <param name="domain">The domain.</param>
+    public void BindTo(Domain domain)
+    {
+      if (string.IsNullOrEmpty(keyValue))
+        return;
+
+      Key = Key.Parse(domain, keyValue);
+    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Identity"/> class.
@@ -38,9 +69,9 @@ namespace Xtensive.Orm.Sync
     /// <param name="globalId">The global id.</param>
     /// <param name="key">The key.</param>
     public Identity(Guid globalId, Key key)
+      : this(key)
     {
       GlobalId = globalId;
-      Key = key;
     }
   }
 }

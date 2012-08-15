@@ -41,6 +41,17 @@ namespace Xtensive.Orm.Sync
     public Dictionary<string, Identity> References { get; private set; }
 
     /// <summary>
+    /// Binds all internal structures to <see cref="Domain"/>.
+    /// </summary>
+    /// <param name="domain">The domain.</param>
+    public void BindTo(Domain domain)
+    {
+      Identity.BindTo(domain);
+      foreach (var identity in References.Values)
+        identity.BindTo(domain);
+    }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="ItemChangeData"/> class.
     /// </summary>
     public ItemChangeData()

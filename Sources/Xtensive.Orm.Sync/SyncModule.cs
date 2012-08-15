@@ -65,7 +65,7 @@ namespace Xtensive.Orm.Sync
             continue;
           using (var t = session.OpenTransaction()) {
             var ms = new Metadata(session, new SyncConfiguration());
-            var info = ms.GetMetadata(items.Select(i => i.Key));
+            var info = ms.GetMetadata(items.Select(i => i.Key)).ToList();
             var lookup = info
               .ToDictionary(i => i.SyncTargetKey);
 

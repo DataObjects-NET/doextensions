@@ -19,7 +19,8 @@ namespace Xtensive.Orm.Sync
     private readonly MethodInfo createKeyMethod;
 
     private IEnumerator<ChangeSet> changeSetEnumerator;
-    private ChangeSet currentChangeSet;
+    
+    public ChangeSet CurrentChangeSet { get; set; }
 
     public SyncIdFormatGroup IdFormats
     {
@@ -62,8 +63,8 @@ namespace Xtensive.Orm.Sync
       }
 
       result.BeginUnorderedGroup();
-      currentChangeSet = changeSetEnumerator.Current;
-      result.AddChanges(currentChangeSet.GetItemChanges());
+      CurrentChangeSet = changeSetEnumerator.Current;
+      result.AddChanges(CurrentChangeSet.GetItemChanges());
 
       hasNext = changeSetEnumerator.MoveNext();
       if (!hasNext) {
@@ -74,12 +75,6 @@ namespace Xtensive.Orm.Sync
         result.EndUnorderedGroup(Replica.CurrentKnowledge, false);
 
       return result;
-    }
-
-    public object LoadChangeData(LoadChangeContext loadChangeContext)
-    {
-      var id = loadChangeContext.ItemChange.ItemId.GetGuidId();
-      return currentChangeSet[id];
     }
 
     #endregion

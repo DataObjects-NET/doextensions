@@ -10,7 +10,6 @@ namespace Xtensive.Orm.Sync
   /// </summary>
   [Service(typeof (OrmSyncProvider))]
   public class OrmSyncProvider : KnowledgeSyncProvider,
-    IChangeDataRetriever,
     INotifyingChangeApplierTarget,
     IDomainService
   {
@@ -100,8 +99,9 @@ namespace Xtensive.Orm.Sync
       out object changeDataRetriever)
     {
       CheckIsRunning();
-      changeDataRetriever = this;
-      return implementation.GetChangeBatch(batchSize, destinationKnowledge);
+      var result = implementation.GetChangeBatch(batchSize, destinationKnowledge);
+      changeDataRetriever = (this as INotifyingChangeApplierTarget).GetDataRetriever();
+      return result;
     }
 
     /// <summary>
@@ -173,21 +173,6 @@ namespace Xtensive.Orm.Sync
         throw new InvalidOperationException("Sync session is not active");
     }
 
-    #region IChangeDataRetriever Members
-
-    /// <summary>
-    /// When overridden in a derived class, this method retrieves item data for a change.
-    /// </summary>
-    /// <returns>
-    /// The item data for the change.
-    /// </returns>
-    /// <param name="loadChangeContext">Metadata that describes the change for which data should be retrieved.</param>
-    object IChangeDataRetriever.LoadChangeData(LoadChangeContext loadChangeContext)
-    {
-      return implementation.LoadChangeData(loadChangeContext);
-    }
-
-    #endregion
 
     #region INotifyingChangeApplierTarget Members
 
@@ -199,7 +184,7 @@ namespace Xtensive.Orm.Sync
     /// </returns>
     IChangeDataRetriever INotifyingChangeApplierTarget.GetDataRetriever()
     {
-      return this;
+      return new ChangeDataRetriever(IdFormats, implementation.CurrentChangeSet);
     }
 
     /// <summary>

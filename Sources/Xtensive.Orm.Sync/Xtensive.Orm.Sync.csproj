@@ -61,6 +61,7 @@
     <Compile Include="..\..\_Build\ProductInfo.cs">
       <Link>Properties\ProductInfo.cs</Link>
     </Compile>
+    <Compile Include="ChangeDataRetriever.cs" />
     <Compile Include="DomainExtensions.cs" />
     <Compile Include="Interfaces\ISkippable.cs" />
     <Compile Include="Interfaces\IFilterable.cs" />
