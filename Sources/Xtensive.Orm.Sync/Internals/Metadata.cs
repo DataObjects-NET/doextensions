@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using Microsoft.Synchronization;
 using Xtensive.Collections.Graphs;
+using Xtensive.Orm.Model;
 using FieldInfo = Xtensive.Orm.Model.FieldInfo;
 
 namespace Xtensive.Orm.Sync
@@ -46,8 +47,8 @@ namespace Xtensive.Orm.Sync
         var groups = keys.GroupBy(i => i.TypeReference.Type.Hierarchy.Root);
 
         foreach (var @group in groups) {
-          MetadataStore store;
-          if (!storeIndex.TryGetValue(@group.Key.UnderlyingType, out store))
+          var store = GetStore(@group.Key);
+          if (store == null)
             continue;
 
           var items = store.GetMetadata(@group.ToList());
@@ -204,26 +205,19 @@ namespace Xtensive.Orm.Sync
         MetadataStore store;
         var originalType = @group.Key;
 
-        if (storeIndex.TryGetValue(originalType.UnderlyingType, out store))
+        if (originalType.IsInterface) {
+          var rootTypes = originalType.GetImplementors(false)
+            .Select(i => i.Hierarchy.Root);
+          foreach (var rootType in rootTypes) {
+            store = GetStore(rootType);
+            foreach (var item in store.GetMetadata(@group.ToList()))
+              yield return item;
+          }
+        }
+        else {
+          store = GetStore(originalType);
           foreach (var item in store.GetMetadata(@group.ToList()))
             yield return item;
-        else {
-
-          // originalType is not hierarchy root or is an interface
-          if (originalType.IsInterface) {
-            var rootTypes = originalType.GetImplementors(false)
-              .Select(i => i.Hierarchy.Root);
-            foreach (var rootType in rootTypes)
-              if (storeIndex.TryGetValue(rootType.UnderlyingType, out store))
-                foreach (var item in store.GetMetadata(@group.ToList()))
-                  yield return item;
-          }
-          else {
-            var rootType = originalType.Hierarchy.Root;
-            if (storeIndex.TryGetValue(rootType.UnderlyingType, out store))
-              foreach (var item in store.GetMetadata(@group.ToList()))
-                yield return item;
-          }
         }
       }
     }
@@ -247,8 +241,8 @@ namespace Xtensive.Orm.Sync
 
     public SyncInfo CreateMetadata(Key key)
     {
-      MetadataStore store;
-      if (!storeIndex.TryGetValue(key.TypeInfo.UnderlyingType, out store))
+      var store = GetStore(key.TypeInfo);
+      if (store == null)
         return null;
 
       long tick = Replica.NextTick;
@@ -263,9 +257,10 @@ namespace Xtensive.Orm.Sync
 
     public SyncInfo CreateMetadata(Key key, ItemChange change)
     {
-      MetadataStore store;
-      if (!storeIndex.TryGetValue(key.TypeInfo.UnderlyingType, out store))
+      var store = GetStore(key.TypeInfo);
+      if (store == null)
         return null;
+
       var result = store.CreateItem(key);
       result.GlobalId = change.ItemId.GetGuidId();
       result.CreationVersion = change.CreationVersion;
@@ -296,6 +291,13 @@ namespace Xtensive.Orm.Sync
 
       item.TombstoneVersion = change.ChangeVersion;
       item.IsTombstone = true;
+    }
+
+    private MetadataStore GetStore(TypeInfo type)
+    {
+      MetadataStore store;
+      storeIndex.TryGetValue(type.Hierarchy.Root.UnderlyingType, out store);
+      return store;
     }
 
     private void InitializeStores()

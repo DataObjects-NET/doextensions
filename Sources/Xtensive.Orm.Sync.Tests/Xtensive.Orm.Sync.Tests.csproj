@@ -64,12 +64,14 @@
     <Compile Include="AutoBuildTest.cs" />
     <Compile Include="FullSynchronizationTests.cs" />
     <Compile Include="Log.cs" />
+    <Compile Include="Model\AbstractEntity.cs" />
     <Compile Include="Model\AnotherEntity.cs" />
     <Compile Include="Model\MyEntity.cs" />
     <Compile Include="Model\MyEnum.cs" />
     <Compile Include="Model\MyEntitySetItem.cs" />
     <Compile Include="Model\MyReferenceProperty.cs" />
     <Compile Include="Model\MyStructure.cs" />
+    <Compile Include="Model\RegularEntity.cs" />
     <Compile Include="PartialSynchronizationTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SerializationTests.cs" />

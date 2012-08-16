@@ -20,16 +20,23 @@ namespace Xtensive.Orm.Sync
     public override IEnumerable<SyncInfo> GetMetadata(Expression filter)
     {
       var outer = Session.Query.All<SyncInfo<TEntity>>();
-      var ex = filter as Expression<Func<TEntity, bool>>;
       var inner = Session.Query.All<TEntity>();
-      if (ex != null)
-        inner = inner.Where(ex);
-      var items = outer
-        .LeftJoin(inner, si => si.Entity.Key, t => t.Key, (si, t) => new { SyncInfo = si, Target = t })
-        .ToArray();
+      IEnumerable<SyncInfo<TEntity>> result = null;
+      var predicate = filter as Expression<Func<TEntity, bool>>;
+      if (predicate!=null) {
+        inner = inner.Where(predicate);
+        result = outer.Join(inner, si => si.Entity.Key, t => t.Key, (si, t) => new {SyncInfo = si, Target = t})
+          .AsEnumerable()  // To fetch entities
+          .Select(i => i.SyncInfo)
+          .Union(outer.Where(s => s.IsTombstone));
+      }
+      else
+        result = outer
+          .LeftJoin(inner, si => si.Entity.Key, t => t.Key, (si, t) => new {SyncInfo = si, Target = t})
+          .AsEnumerable()  // To fetch entities
+          .Select(i => i.SyncInfo);
 
-      foreach (var item in UpdateItemState(items.Select(i => i.SyncInfo)))
-        yield return item;
+      return UpdateItemState(result);
     }
 
     public override IEnumerable<SyncInfo> GetMetadata(List<Key> keys)
