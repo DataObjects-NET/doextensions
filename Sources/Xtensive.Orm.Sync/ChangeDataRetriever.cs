@@ -44,6 +44,9 @@ namespace Xtensive.Orm.Sync
     /// <param name="domain">The domain.</param>
     public void BindTo(Domain domain)
     {
+      if (changeSet == null)
+        return;
+
       changeSet.BindTo(domain);
     }
 
