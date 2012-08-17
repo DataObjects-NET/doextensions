@@ -210,14 +210,17 @@ namespace Xtensive.Orm.Sync
             .Select(i => i.Hierarchy.Root);
           foreach (var rootType in rootTypes) {
             store = GetStore(rootType);
+            if (store == null)
+              continue;
             foreach (var item in store.GetMetadata(@group.ToList()))
               yield return item;
           }
         }
         else {
           store = GetStore(originalType);
-          foreach (var item in store.GetMetadata(@group.ToList()))
-            yield return item;
+          if (store!=null)
+            foreach (var item in store.GetMetadata(@group.ToList()))
+              yield return item;
         }
       }
     }
