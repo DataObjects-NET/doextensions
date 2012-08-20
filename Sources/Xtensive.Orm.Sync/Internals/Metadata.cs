@@ -309,10 +309,11 @@ namespace Xtensive.Orm.Sync
       var nodeIndex = new Dictionary<Type, Node<Type>>();
       var model = Session.Domain.Model;
 
-      var types = model.Types[typeof(SyncInfo)].GetDescendants();
+      var types = model.Types[typeof(SyncInfo)].GetDescendants()
+        .Select(t => t.UnderlyingType.GetGenericArguments().First());
       foreach (var type in types) {
-        var node = new Node<Type>(type.UnderlyingType);
-        nodeIndex[type.UnderlyingType] = node;
+        var node = new Node<Type>(type);
+        nodeIndex[type] = node;
         graph.Nodes.Add(node);
       }
 
@@ -333,12 +334,10 @@ namespace Xtensive.Orm.Sync
       storeIndex = new Dictionary<Type,MetadataStore>(rootTypes.Count);
 
       foreach (var rootType in rootTypes) {
-        var typeInfo = model.Types[rootType];
-        var itemType = typeInfo.Fields[Wellknown.EntityFieldName].ValueType; 
-        var storeType = typeof(MetadataStore<>).MakeGenericType(itemType);
+        var storeType = typeof(MetadataStore<>).MakeGenericType(rootType);
         var storeInstance = (MetadataStore)Activator.CreateInstance(storeType, Session);
         storeList.Add(storeInstance);
-        storeIndex[itemType] = storeInstance;
+        storeIndex[rootType] = storeInstance;
       }
     }
 
