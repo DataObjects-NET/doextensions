@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using Microsoft.Synchronization;
+using Xtensive.Tuples;
 using Tuple = Xtensive.Tuples.Tuple;
 
 namespace Xtensive.Orm.Sync
@@ -27,13 +29,28 @@ namespace Xtensive.Orm.Sync
     /// </value>
     public Identity Identity { get; set; }
 
+    [NonSerialized]
+    private Tuple tuple;
+
+    private string tupleValue;
+
     /// <summary>
     /// Gets or sets the tuple.
     /// </summary>
-    /// <value>
-    /// The tuple.
-    /// </value>
-    public Tuple Tuple { get; set; }
+    public Tuple Tuple
+    {
+      get { return tuple; }
+      set { tuple = value; }
+    }
+
+    [OnSerializing]
+    private void OnSerializing(StreamingContext context)
+    {
+      if (tuple==null)
+        return;
+
+      tupleValue = tuple.Format();
+    }
 
     /// <summary>
     /// Gets the references from this Entity .
@@ -47,8 +64,12 @@ namespace Xtensive.Orm.Sync
     public void BindTo(Domain domain)
     {
       Identity.BindTo(domain);
+
       foreach (var identity in References.Values)
         identity.BindTo(domain);
+
+      if (!string.IsNullOrEmpty(tupleValue))
+        tuple = Tuple.Parse(Identity.Key.TypeReference.Type.TupleDescriptor, tupleValue);
     }
 
     /// <summary>

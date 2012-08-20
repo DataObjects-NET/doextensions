@@ -5,6 +5,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using Microsoft.Synchronization;
 using NUnit.Framework;
 using Xtensive.Orm.Sync.Tests.Model;
+using Xtensive.Tuples;
 
 namespace Xtensive.Orm.Sync.Tests
 {
@@ -37,7 +38,8 @@ namespace Xtensive.Orm.Sync.Tests
       var id2 = new Identity(Guid.NewGuid(), key2);
       var data1 = new ItemChangeData();
       data1.Identity = id1;
-      data1.Tuple = Tuples.Tuple.Create(1, "string");
+      data1.Tuple = Tuples.Tuple.Create(key1.TypeInfo.TupleDescriptor);
+      key1.Value.CopyTo(data1.Tuple);
       data1.References.Add("field1", id2);
       ItemChangeData data2;
 
@@ -60,7 +62,8 @@ namespace Xtensive.Orm.Sync.Tests
       var id2 = new Identity(Guid.NewGuid(), key2);
       var data = new ItemChangeData();
       data.Identity = id1;
-      data.Tuple = Tuples.Tuple.Create(1, "string");
+      data.Tuple = Tuples.Tuple.Create(key1.TypeInfo.TupleDescriptor);
+      key1.Value.CopyTo(data.Tuple);
       data.References.Add("field1", id2);
       var changeSet1 = new ChangeSet();
       changeSet1.Add(data);
@@ -84,7 +87,8 @@ namespace Xtensive.Orm.Sync.Tests
       var id2 = new Identity(Guid.NewGuid(), key2);
       var data = new ItemChangeData();
       data.Identity = id1;
-      data.Tuple = Tuples.Tuple.Create(1, "string");
+      data.Tuple = Tuples.Tuple.Create(key1.TypeInfo.TupleDescriptor);
+      key1.Value.CopyTo(data.Tuple);
       data.References.Add("field1", id2);
       var changeSet = new ChangeSet();
       changeSet.Add(data);
