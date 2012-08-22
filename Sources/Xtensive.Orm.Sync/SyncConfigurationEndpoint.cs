@@ -19,6 +19,15 @@ namespace Xtensive.Orm.Sync
       return this;
     }
 
+    /// <summary>
+    /// Gets or sets the size of the synchronization batch.
+    /// </summary>
+    public int BatchSize
+    {
+      get { return configuration.BatchSize; }
+      set { configuration.BatchSize = value; }
+    }
+
     #region Implementation of IFilterable
 
     /// <summary>

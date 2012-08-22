@@ -4,7 +4,7 @@ namespace Xtensive.Orm.Sync
 {
   internal static class Wellknown
   {
-    public const uint SyncBatchSize = 64;
+    public const int SyncBatchSize = 64;
     public const int KeyPreloadBatchSize = 25;
     public const int LocalReplicaKey = 0;
     public const string TickGeneratorName = "SyncInfo";

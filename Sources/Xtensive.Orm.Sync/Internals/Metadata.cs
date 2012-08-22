@@ -76,8 +76,10 @@ namespace Xtensive.Orm.Sync
           lastChangeVersion = item.TombstoneVersion;
         }
 
-        if (mappedKnowledge.Contains(Replica.Id, item.SyncId, lastChangeVersion))
+        if (mappedKnowledge.Contains(Replica.Id, item.SyncId, lastChangeVersion)) {
+          requestedKeys.Remove(item.SyncTargetKey);
           continue;
+        }
 
         var change = new ItemChange(Wellknown.IdFormats, Replica.Id, item.SyncId, changeKind, createdVersion, lastChangeVersion);
         var changeData = new ItemChangeData {

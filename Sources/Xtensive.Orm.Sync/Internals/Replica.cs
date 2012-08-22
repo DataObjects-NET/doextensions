@@ -20,21 +20,13 @@ namespace Xtensive.Orm.Sync
     public SyncKnowledge CurrentKnowledge
     {
       get { return currentKnowledge; }
-      set
-      {
-        UpdateCurrentKnowledge(value);
-        currentKnowledge = value;
-      }
+      set { currentKnowledge = value; }
     }
 
     public ForgottenKnowledge ForgottenKnowledge
     {
       get { return forgottenKnowledge; }
-      set
-      {
-        UpdateForgottenKnowledge(value);
-        forgottenKnowledge = value;
-      }
+      set { forgottenKnowledge = value; }
     }
 
     public long TickCount
@@ -45,6 +37,12 @@ namespace Xtensive.Orm.Sync
     public long NextTick
     {
       get { return tickGenerator.GetNextTick(Session); }
+    }
+
+    public void UpdateState()
+    {
+      UpdateCurrentKnowledge(currentKnowledge);
+      UpdateForgottenKnowledge(forgottenKnowledge);
     }
 
     private void Initialize()

@@ -38,10 +38,16 @@ namespace Xtensive.Orm.Sync
     public Dictionary<Type, Expression> Filters { get; private set; }
 
     /// <summary>
+    /// Gets or sets the size of the synchronization batch.
+    /// </summary>
+    public int BatchSize { get; set; }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="SyncConfiguration"/> class.
     /// </summary>
     public SyncConfiguration()
     {
+      BatchSize = Wellknown.SyncBatchSize;
       Endpoint = new SyncConfigurationEndpoint(this);
       SyncTypes = new HashSet<Type>();
       SkipTypes = new HashSet<Type>();

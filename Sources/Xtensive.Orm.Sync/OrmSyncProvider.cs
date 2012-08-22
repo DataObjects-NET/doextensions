@@ -1,4 +1,7 @@
 ﻿using System;
+#if DEBUG
+using System.Diagnostics;
+#endif
 using Microsoft.Synchronization;
 using Xtensive.IoC;
 using Xtensive.Orm.Tracking;
@@ -20,6 +23,11 @@ namespace Xtensive.Orm.Sync
     private SyncSessionContext syncContext;
     private TransactionScope transaction;
     private readonly SyncConfiguration configuration;
+#if DEBUG
+    private int batchCounter;
+    private Stopwatch batchStopwatch;
+    private Stopwatch sessionStopwatch;
+#endif
 
     private bool IsRunning
     {
@@ -52,6 +60,14 @@ namespace Xtensive.Orm.Sync
       if (IsRunning)
         throw new InvalidOperationException("Sync is already running");
 
+#if DEBUG
+      batchCounter = 0;
+      batchStopwatch = new Stopwatch();
+      sessionStopwatch = new Stopwatch();
+      sessionStopwatch.Start();
+      Debug.WriteLine(string.Format("Starting synchronization session @ {0}", DateTime.Now));
+#endif
+
       syncContext = syncSessionContext;
       session = domain.OpenSession();
       var tm = session.Services.Get<ISessionTrackingMonitor>();
@@ -74,6 +90,14 @@ namespace Xtensive.Orm.Sync
         return;
 
       try {
+        implementation.Replica.UpdateState();
+#if DEBUG
+        sessionStopwatch.Stop();
+        Debug.WriteLine(string.Format("Finishing synchronization session. Elapsed time: {0}", sessionStopwatch.Elapsed));
+        sessionStopwatch = null;
+        batchStopwatch.Stop();
+        batchStopwatch = null;
+#endif
         persistLock.Dispose();
         transaction.Complete();
         transaction.Dispose();
@@ -98,9 +122,17 @@ namespace Xtensive.Orm.Sync
     public override ChangeBatch GetChangeBatch(uint batchSize, SyncKnowledge destinationKnowledge,
       out object changeDataRetriever)
     {
+#if DEBUG
+      ++batchCounter;
+      batchStopwatch.Start();
+#endif
       CheckIsRunning();
       var result = implementation.GetChangeBatch(batchSize, destinationKnowledge);
       changeDataRetriever = (this as INotifyingChangeApplierTarget).GetDataRetriever();
+#if DEBUG
+      batchStopwatch.Stop();
+      Debug.WriteLine(string.Format("GetChangeBatch #{0}, {1} ms", batchCounter, batchStopwatch.ElapsedMilliseconds));
+#endif
       return result;
     }
 
@@ -111,9 +143,17 @@ namespace Xtensive.Orm.Sync
     /// <param name="knowledge">The current knowledge for the synchronization scope, or a newly created knowledge object if no current knowledge exists.</param>
     public override void GetSyncBatchParameters(out uint batchSize, out SyncKnowledge knowledge)
     {
+#if DEBUG
+      ++batchCounter;
+      batchStopwatch.Start();
+#endif
       CheckIsRunning();
-      batchSize = Wellknown.SyncBatchSize;
+      batchSize = (uint) configuration.BatchSize;
       knowledge = implementation.Replica.CurrentKnowledge;
+#if DEBUG
+      batchStopwatch.Stop();
+      Debug.WriteLine(string.Format("GetSyncBatchParameters #{0}, {1} ms", batchCounter, batchStopwatch.ElapsedMilliseconds));
+#endif
     }
 
     /// <summary>
@@ -127,8 +167,15 @@ namespace Xtensive.Orm.Sync
     public override void ProcessChangeBatch(ConflictResolutionPolicy resolutionPolicy, ChangeBatch sourceChanges,
       object changeDataRetriever, SyncCallbacks syncCallbacks, SyncSessionStatistics sessionStatistics)
     {
+#if DEBUG
+      batchStopwatch.Start();
+#endif
       CheckIsRunning();
       implementation.ProcessChangeBatch(resolutionPolicy, sourceChanges, changeDataRetriever, syncCallbacks, sessionStatistics, syncContext, this);
+#if DEBUG
+      batchStopwatch.Stop();
+      Debug.WriteLine(string.Format("ProcessChangeBatch #{0}, {1} ms", batchCounter, batchStopwatch.ElapsedMilliseconds));
+#endif
     }
 
     #endregion

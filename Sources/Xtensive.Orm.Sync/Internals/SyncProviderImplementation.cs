@@ -278,8 +278,8 @@ namespace Xtensive.Orm.Sync
 
     public void StoreKnowledgeForScope(SyncKnowledge currentKnowledge, ForgottenKnowledge forgottenKnowledge)
     {
-      Replica.CurrentKnowledge = currentKnowledge;
-      Replica.ForgottenKnowledge = forgottenKnowledge;
+      Replica.CurrentKnowledge.Combine(currentKnowledge);
+      Replica.ForgottenKnowledge.Combine(forgottenKnowledge);
     }
 
     public SyncProviderImplementation(Session session, SyncConfiguration configuration)
