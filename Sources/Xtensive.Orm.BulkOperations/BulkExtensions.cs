@@ -110,6 +110,13 @@ namespace Xtensive.Orm.BulkOperations
       return new BulkUpdateOperation<T>(query).Execute();
     }
 
+    public static Key Insert<T>(this QueryEndpoint queryEndpoint, Expression<Func<T>> evaluator) where T : Entity
+    {
+      var operation = new InsertOperation<T>(queryEndpoint.Provider, evaluator);
+      operation.Execute();
+      return operation.Key;
+    }
+
     #region Non-public methods
 
 

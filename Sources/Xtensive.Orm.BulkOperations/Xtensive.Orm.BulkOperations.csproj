@@ -72,7 +72,9 @@
     <Compile Include="Internals\PrimaryIndexMapping.cs" />
     <Compile Include="Internals\QueryOperation.cs" />
     <Compile Include="Internals\SetDescriptor.cs" />
+    <Compile Include="Internals\SetStatement.cs" />
     <Compile Include="Internals\Updatable.cs" />
+    <Compile Include="Internals\SetOperation.cs" />
     <Compile Include="IUpdatable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="..\..\_Build\ProductInfo.cs">
