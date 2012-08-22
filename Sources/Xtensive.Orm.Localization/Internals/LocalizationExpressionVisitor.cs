@@ -4,17 +4,15 @@
 // Created by: Alexey Gamzov
 // Created:    2009.12.16
 
-using System;
 using System.Linq.Expressions;
 using Xtensive.Core;
-using Xtensive.Orm;
 using ExpressionVisitor = Xtensive.Linq.ExpressionVisitor;
 
 namespace Xtensive.Orm.Localization
 {
   internal class LocalizationExpressionVisitor : ExpressionVisitor
   {
-    public Domain Domain { get; private set; }
+    public TypeLocalizationMap Map { get; private set; }
 
     public Expression VisitExpression(Expression query)
     {
@@ -24,23 +22,22 @@ namespace Xtensive.Orm.Localization
     /// <inheritdoc/>
     protected override Expression VisitMemberAccess(MemberExpression me)
     {
-      var map = Domain.Extensions.Get<TypeLocalizationMap>();
-      if (map == null)
+      if (Map == null)
         return me;
 
-      var localizationInfo = map.Get(me.Member.ReflectedType);
+      var localizationInfo = Map.Get(me.Member.ReflectedType);
       if (localizationInfo == null || !localizationInfo.LocalizationTypeInfo.Fields.Contains(me.Member.Name))
         return base.VisitMemberAccess(me);
 
       var localizationSetExpression = Expression.MakeMemberAccess(me.Expression, localizationInfo.LocalizationSetProperty);
-      var localizationExpression = LocalizationExpressionBuilder.BuildExpression(localizationInfo, me);
+      var localizationExpression = LocalizationExpressionBuilder.BuildExpression(localizationInfo, me, Map.Configuration.DefaultCulture.Name);
       
       return localizationExpression.BindParameters(localizationSetExpression);
     }
 
-    public LocalizationExpressionVisitor(Domain domain)
+    public LocalizationExpressionVisitor(TypeLocalizationMap map)
     {
-      Domain = domain;
+      Map = map;
     }
   }
 }
