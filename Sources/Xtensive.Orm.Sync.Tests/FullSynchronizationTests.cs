@@ -16,7 +16,7 @@ namespace Xtensive.Orm.Sync.Tests
       using (var session = LocalDomain.OpenSession()) {
         using (var t = session.OpenTransaction()) {
 
-          for (int i = 0; i < 20; i++) {
+          for (int i = 0; i < 3200; i++) {
             new MyEntity(session) {
               Property = new MyReferenceProperty(session)
             };
@@ -26,10 +26,12 @@ namespace Xtensive.Orm.Sync.Tests
           t.Complete();
         }
       }
-      Thread.Sleep(TimeSpan.FromSeconds(2));
+      LocalDomain.WaitForPendingSyncTasks();
+      var remoteProvider = RemoteDomain.GetSyncProvider();
+      remoteProvider.Sync.BatchSize = 64;
       var orchestrator = new SyncOrchestrator {
           LocalProvider = LocalDomain.GetSyncProvider(),
-          RemoteProvider = RemoteDomain.GetSyncProvider(),
+          RemoteProvider = remoteProvider,
           Direction = SyncDirectionOrder.Upload
         };
       orchestrator.Synchronize();
@@ -72,7 +74,7 @@ namespace Xtensive.Orm.Sync.Tests
         }
       }
 
-      Thread.Sleep(TimeSpan.FromSeconds(2));
+      LocalDomain.WaitForPendingSyncTasks();
       var orchestrator = new SyncOrchestrator {
           LocalProvider = LocalDomain.GetSyncProvider(),
           RemoteProvider = RemoteDomain.GetSyncProvider(),
@@ -114,7 +116,7 @@ namespace Xtensive.Orm.Sync.Tests
         }
       }
 
-      Thread.Sleep(TimeSpan.FromSeconds(2));
+      LocalDomain.WaitForPendingSyncTasks();
       var orchestrator = new SyncOrchestrator {
           LocalProvider = LocalDomain.GetSyncProvider(),
           RemoteProvider = RemoteDomain.GetSyncProvider(),

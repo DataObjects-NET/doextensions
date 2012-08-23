@@ -40,7 +40,7 @@ namespace Xtensive.Orm.Sync.Tests
     [Test]
     public void SyncStandaloneEntitiesTest()
     {
-      Thread.Sleep(TimeSpan.FromSeconds(2));
+      LocalDomain.WaitForPendingSyncTasks();
       var localProvider = LocalDomain.GetSyncProvider();
       localProvider.Sync.All<MyReferenceProperty>();
       localProvider.Sync.All<AbstractEntity>();
@@ -63,7 +63,7 @@ namespace Xtensive.Orm.Sync.Tests
     [Test]
     public void SyncReferencingEntitiesTest()
     {
-      Thread.Sleep(TimeSpan.FromSeconds(2));
+      LocalDomain.WaitForPendingSyncTasks();
       var localProvider = LocalDomain.GetSyncProvider();
       localProvider.Sync.All<MyEntity>();
       var orchestrator = new SyncOrchestrator {
@@ -85,7 +85,7 @@ namespace Xtensive.Orm.Sync.Tests
     [Test]
     public void SyncWithFilterTest()
     {
-      Thread.Sleep(TimeSpan.FromSeconds(2));
+      LocalDomain.WaitForPendingSyncTasks();
       var orchestrator = new SyncOrchestrator {
           LocalProvider = LocalDomain.GetSyncProvider(),
           RemoteProvider = RemoteDomain.GetSyncProvider(),
@@ -104,7 +104,7 @@ namespace Xtensive.Orm.Sync.Tests
         }
       }
 
-      Thread.Sleep(TimeSpan.FromSeconds(2));
+      LocalDomain.WaitForPendingSyncTasks();
       var localProvider = LocalDomain.GetSyncProvider();
       localProvider.Sync.All<MyEntity>(e => false);
       orchestrator = new SyncOrchestrator {

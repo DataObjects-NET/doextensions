@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,7 +15,8 @@ namespace Xtensive.Orm.Sync
   public class SyncModule : IModule
   {
     private Domain domain;
-    private readonly BlockingCollection<List<ITrackingItem>> queuedItems;
+    private readonly BlockingCollection<List<ITrackingItem>> pendingItems;
+    private volatile bool isExecuting;
 
     /// <summary>
     /// Called when the build of <see cref="T:Xtensive.Orm.Building.Definitions.DomainModelDef"/> is completed.
@@ -32,6 +34,8 @@ namespace Xtensive.Orm.Sync
     public void OnBuilt(Domain domain)
     {
       this.domain = domain;
+      domain.Extensions.Set(this);
+
       // Initializing global structures
       using (var session = domain.OpenSession())
       using (var t = session.OpenTransaction()) {
@@ -41,6 +45,11 @@ namespace Xtensive.Orm.Sync
       var m = domain.GetTrackingMonitor();
       m.TrackingCompleted += OnTrackingCompleted;
       Task.Factory.StartNew(ProcessQueuedItems, TaskCreationOptions.PreferFairness | TaskCreationOptions.LongRunning);
+    }
+
+    internal bool HasPendingTasks
+    {
+      get { return isExecuting || pendingItems.Count > 0; }
     }
 
     private void OnTrackingCompleted(object sender, TrackingCompletedEventArgs e)
@@ -53,34 +62,41 @@ namespace Xtensive.Orm.Sync
       if (items.Count == 0)
         return;
 
-      queuedItems.Add(items);
+      pendingItems.Add(items);
     }
 
     private void ProcessQueuedItems()
     {
       using (var session = domain.OpenSession())
-        while (!queuedItems.IsCompleted) {
-          var items = queuedItems.Take();
-          if (items == null)
-            continue;
-          using (var t = session.OpenTransaction()) {
-            var ms = new Metadata(session, new SyncConfiguration());
-            var info = ms.GetMetadata(items.Select(i => i.Key)).ToList();
-            var lookup = info
-              .ToDictionary(i => i.SyncTargetKey);
+        while (!pendingItems.IsCompleted) {
+          var items = pendingItems.Take();
+          try {
+            isExecuting = true;
+            using (var t = session.OpenTransaction()) {
+              var ms = new Metadata(session, new SyncConfiguration());
+              var info = ms.GetMetadata(items.Select(i => i.Key)).ToList();
+              var lookup = info
+                .ToDictionary(i => i.SyncTargetKey);
 
-            foreach (var item in items) {
-              if (item.State==TrackingItemState.Created)
-                ms.CreateMetadata(item.Key);
-              else {
-                SyncInfo syncInfo;
-                if (lookup.TryGetValue(item.Key, out syncInfo))
-                  ms.UpdateMetadata(syncInfo, item.State==TrackingItemState.Deleted);
-                else
+              foreach (var item in items) {
+                if (item.State==TrackingItemState.Created)
                   ms.CreateMetadata(item.Key);
+                else {
+                  SyncInfo syncInfo;
+                  if (lookup.TryGetValue(item.Key, out syncInfo))
+                    ms.UpdateMetadata(syncInfo, item.State==TrackingItemState.Deleted);
+                  else
+                    ms.CreateMetadata(item.Key);
+                }
               }
+              t.Complete();
             }
-            t.Complete();
+          }
+          catch {
+            // Log somewhere
+          }
+          finally {
+            isExecuting = false;
           }
         }
     }
@@ -103,7 +119,7 @@ namespace Xtensive.Orm.Sync
     /// </summary>
     public SyncModule()
     {
-      queuedItems = new BlockingCollection<List<ITrackingItem>>(new ConcurrentQueue<List<ITrackingItem>>());
+      pendingItems = new BlockingCollection<List<ITrackingItem>>(new ConcurrentQueue<List<ITrackingItem>>());
     }
   }
 }
