@@ -13,24 +13,29 @@ namespace Xtensive.Orm.Localization
 {
   internal static class LocalizationExpressionBuilder
   {
-    private static readonly MethodInfo BuildExpressionMethodInfo = typeof (LocalizationExpressionBuilder).GetMethod("BuildExpression", BindingFlags.NonPublic | BindingFlags.Static);
+    private static readonly MethodInfo BuildExpressionMethodInfo = typeof(LocalizationExpressionBuilder).GetMethod("BuildExpression", BindingFlags.NonPublic | BindingFlags.Static);
 
-    public static LambdaExpression BuildExpression(TypeLocalizationInfo localizationInfo, MemberExpression me)
+    public static LambdaExpression BuildExpression(TypeLocalizationInfo localizationInfo, MemberExpression me, string defaultCultureName)
     {
-      return (LambdaExpression) BuildExpressionMethodInfo
+      return (LambdaExpression)BuildExpressionMethodInfo
         .MakeGenericMethod(localizationInfo.LocalizationTypeInfo.UnderlyingType)
-        .Invoke(null, new object[] {me.Member.Name});
+        .Invoke(null, new object[] { me.Member.Name, defaultCultureName });
 
     }
 
     // Helper method for building lambda expression in generic way
-    private static LambdaExpression BuildExpression<TLocalization>(string propertyName)
+    private static LambdaExpression BuildExpression<TLocalization>(string propertyName, string defaultCultureName)
       where TLocalization : Localization
     {
-      Expression<Func<LocalizationSet<TLocalization>, string>> result =
-        set => set.Where(localization => localization.CultureName==LocalizationContext.Current.CultureName)
-          .Select(localization => (string)localization[propertyName])
-          .FirstOrDefault();
+      Expression<Func<LocalizationSet<TLocalization>, string>> result = set => set
+        .Where(localization => localization.CultureName == LocalizationContext.Current.CultureName)
+        .Select(localization => (string)localization[propertyName])
+        .FirstOrDefault()
+          ??
+          set
+            .Where(localization => localization.CultureName == defaultCultureName)
+            .Select(localization => (string)localization[propertyName])
+            .FirstOrDefault();
 
       return result;
     }

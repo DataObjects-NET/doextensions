@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading;
 using NUnit.Framework;
@@ -46,6 +47,7 @@ namespace Xtensive.Orm.Localization.Tests
     [Test]
     public void ExplicitJoinTest()
     {
+      Thread.CurrentThread.CurrentCulture = EnglishCulture;
       using (var session = Domain.OpenSession()) {
         using (var ts = session.OpenTransaction()) {
 
@@ -80,5 +82,21 @@ namespace Xtensive.Orm.Localization.Tests
       }
     }
 
+    [Test]
+    public void UnknownCultureTest()
+    {
+      Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("ru-RU");
+      using (var session = Domain.OpenSession()) {
+        using (var ts = session.OpenTransaction()) {
+
+          var query = from p in session.Query.All<Page>()
+          select p.Title;
+          Console.Write(query.First());
+          Assert.AreEqual(1, query.Count());
+
+          ts.Complete();
+        }
+      }
+    }
   }
 }

@@ -2,9 +2,6 @@ using System;
 using System.Web;
 using System.Web.Configuration;
 using Xtensive.Core;
-using Xtensive.Disposing;
-using Xtensive.Orm;
-using Xtensive.Orm.Configuration;
 
 namespace Xtensive.Orm.Web
 {

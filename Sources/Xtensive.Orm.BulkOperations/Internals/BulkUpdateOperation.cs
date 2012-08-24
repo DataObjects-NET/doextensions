@@ -9,6 +9,7 @@ using Xtensive.Orm.Services;
 using Xtensive.Sql;
 using Xtensive.Sql.Dml;
 using FieldInfo = Xtensive.Orm.Model.FieldInfo;
+using QueryParameterBinding = Xtensive.Orm.Services.QueryParameterBinding;
 
 namespace Xtensive.Orm.BulkOperations
 {
@@ -66,7 +67,7 @@ namespace Xtensive.Orm.BulkOperations
 
     protected override bool SupportsJoin()
     {
-      return DomainHandler.ProviderInfo.Supports(ProviderFeatures.UpdateFrom);
+      return DomainHandler.Domain.StorageProviderInfo.Supports(ProviderFeatures.UpdateFrom);
     }
 
 

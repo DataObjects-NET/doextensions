@@ -4,22 +4,38 @@
 // Created by: Dmitri Maximov
 // Created:    2009.12.28
 
-using System;
 using System.Linq.Expressions;
 using Xtensive.IoC;
-using Xtensive.Orm;
 
 namespace Xtensive.Orm.Localization
 {
   [Service(typeof(IQueryPreprocessor))]
   internal class QueryPreprocessor : DomainBound, IQueryPreprocessor
   {
-    private readonly LocalizationExpressionVisitor visitor;
+    private LocalizationExpressionVisitor visitor;
 
     /// <inheritdoc/>
     public Expression Apply(Expression query)
     {
+      if (!IsInitialized)
+        TryInitialize();
+
+      if (!IsInitialized)
+        return query;
+
       return visitor.VisitExpression(query);
+    }
+
+    private void TryInitialize()
+    {
+      var map = Domain.Extensions.Get<TypeLocalizationMap>();
+      if (map != null)
+        visitor = new LocalizationExpressionVisitor(map);
+    }
+
+    private bool IsInitialized
+    {
+      get { return visitor != null; }
     }
 
     /// <inheritdoc/>
@@ -32,7 +48,6 @@ namespace Xtensive.Orm.Localization
     public QueryPreprocessor(Domain domain)
       : base(domain)
     {
-      visitor = new LocalizationExpressionVisitor(domain);
     }
   }
 }
