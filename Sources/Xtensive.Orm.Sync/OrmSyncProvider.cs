@@ -124,13 +124,12 @@ namespace Xtensive.Orm.Sync
     {
 #if DEBUG
       ++batchCounter;
-      batchStopwatch.Start();
+      batchStopwatch.Restart();
 #endif
       CheckIsRunning();
       var result = implementation.GetChangeBatch(batchSize, destinationKnowledge);
       changeDataRetriever = (this as INotifyingChangeApplierTarget).GetDataRetriever();
 #if DEBUG
-      batchStopwatch.Stop();
       Debug.WriteLine(string.Format("GetChangeBatch #{0}, {1} ms", batchCounter, batchStopwatch.ElapsedMilliseconds));
 #endif
       return result;
@@ -143,17 +142,9 @@ namespace Xtensive.Orm.Sync
     /// <param name="knowledge">The current knowledge for the synchronization scope, or a newly created knowledge object if no current knowledge exists.</param>
     public override void GetSyncBatchParameters(out uint batchSize, out SyncKnowledge knowledge)
     {
-#if DEBUG
-      ++batchCounter;
-      batchStopwatch.Start();
-#endif
       CheckIsRunning();
       batchSize = (uint) configuration.BatchSize;
       knowledge = implementation.Replica.CurrentKnowledge;
-#if DEBUG
-      batchStopwatch.Stop();
-      Debug.WriteLine(string.Format("GetSyncBatchParameters #{0}, {1} ms", batchCounter, batchStopwatch.ElapsedMilliseconds));
-#endif
     }
 
     /// <summary>
@@ -168,12 +159,12 @@ namespace Xtensive.Orm.Sync
       object changeDataRetriever, SyncCallbacks syncCallbacks, SyncSessionStatistics sessionStatistics)
     {
 #if DEBUG
-      batchStopwatch.Start();
+      ++batchCounter;
+      batchStopwatch.Restart();
 #endif
       CheckIsRunning();
       implementation.ProcessChangeBatch(resolutionPolicy, sourceChanges, changeDataRetriever, syncCallbacks, sessionStatistics, syncContext, this);
 #if DEBUG
-      batchStopwatch.Stop();
       Debug.WriteLine(string.Format("ProcessChangeBatch #{0}, {1} ms", batchCounter, batchStopwatch.ElapsedMilliseconds));
 #endif
     }
