@@ -16,10 +16,23 @@ namespace Xtensive.Orm.Security.Web
   {
     private Type rootPrincipalType;
     private Configuration configuration;
+    private Domain domain;
 
     private Domain Domain
     {
-      get { return SessionManager.Domain; }
+      get
+      {
+        if (domain != null)
+          return domain;
+        
+        if (SessionManager.DomainBuilder != null) {
+          domain = SessionManager.Domain;
+          return domain;
+        }
+
+        domain = DomainBuilder.Build();
+        return domain;
+      }
     }
 
     private IQueryable<MembershipPrincipal> GetQueryRoot(Session session)
@@ -703,7 +716,7 @@ namespace Xtensive.Orm.Security.Web
       var user = new MembershipUser(
         Name,
         principal.Name,
-        principal.Key,
+        principal.Key.Format(),
         principal.Email,
         principal.PasswordQuestion,
         principal.Comment,

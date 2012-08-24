@@ -22,7 +22,8 @@ namespace Xtensive.Orm.Security.Web.Tests
     {
       DomainConfiguration config = BuildConfiguration();
       Domain = BuildDomain(config);
-      SessionManager.DomainBuilder = () => Domain;
+      if (SessionManager.DomainBuilder == null)
+        SessionManager.DomainBuilder = () => Domain;
       Provider = BuildProvider();
       PopulateData();
     }
@@ -51,7 +52,7 @@ namespace Xtensive.Orm.Security.Web.Tests
     protected virtual OrmMembershipProvider BuildProvider()
     {
       var result = new OrmMembershipProvider();
-      NameValueCollection settings = BuildProviderConfiguration();
+      var settings = BuildProviderConfiguration();
       result.Initialize(Wellknown.MembershipProviderName, settings);
       return result;
     }
