@@ -28,7 +28,11 @@ namespace Xtensive.Orm.Sync
         result = outer.Join(inner, si => si.Entity.Key, t => t.Key, (si, t) => new {SyncInfo = si, Target = t})
           .AsEnumerable()  // To fetch entities
           .Select(i => i.SyncInfo)
-          .Union(outer.Where(s => s.IsTombstone));
+          .Union(
+            outer
+            .Where(s => s.IsTombstone)
+            .AsEnumerable()
+          );
       }
       else
         result = outer
@@ -51,8 +55,16 @@ namespace Xtensive.Orm.Sync
         if (batchCount - i == 1 && lastBatchItemCount > 0)
           itemCount = lastBatchItemCount;
 
+        var outer = Session.Query.All<SyncInfo<TEntity>>();
+        var inner = Session.Query.All<TEntity>();
         var filter = FilterByKeys<TEntity>(keys, i*Wellknown.KeyPreloadBatchSize, itemCount);
-        foreach(var item in GetMetadata(filter))
+        var items = outer
+          .Where(filter)
+          .Join(inner, si => si.Entity.Key, t => t.Key, (si, t) => new {SyncInfo = si, Target = t})
+          .Select(a => a.SyncInfo)
+          .ToArray();
+
+        foreach (var item in UpdateItemState(items))
           yield return item;
       }
     }
