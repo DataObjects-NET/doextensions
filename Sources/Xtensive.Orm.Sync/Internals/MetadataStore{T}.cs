@@ -52,12 +52,7 @@ namespace Xtensive.Orm.Sync
           itemCount = lastBatchItemCount;
 
         var filter = FilterByKeys<TEntity>(keys, i*Wellknown.KeyPreloadBatchSize, itemCount);
-        var items = Session.Query.All<SyncInfo<TEntity>>()
-          .Where(filter)
-          .Prefetch(s => s.Entity)
-          .ToArray();
-
-        foreach (var item in UpdateItemState(items))
+        foreach(var item in GetMetadata(filter))
           yield return item;
       }
     }
