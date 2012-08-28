@@ -20,6 +20,16 @@ namespace Xtensive.Orm.Sync
     }
 
     /// <summary>
+    /// Resets this instance.
+    /// </summary>
+    /// <returns></returns>
+    public IFilterable Reset()
+    {
+      configuration.Reset();
+      return this;
+    }
+
+    /// <summary>
     /// Gets or sets the size of the synchronization batch.
     /// </summary>
     public int BatchSize

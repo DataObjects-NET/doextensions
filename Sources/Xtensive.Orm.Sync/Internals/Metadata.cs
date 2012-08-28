@@ -140,7 +140,7 @@ namespace Xtensive.Orm.Sync
 
     private void RegisterKeySync(Key key)
     {
-      if (!TypeIsFilteredOrSkipped(key.TypeInfo.GetRoot().UnderlyingType))
+      if (!TypeIsFilteredOrSkipped(key.TypeReference.Type.GetRoot().UnderlyingType))
         return;
       sentKeys.Add(key);
       requestedKeys.Remove(key);
@@ -148,7 +148,7 @@ namespace Xtensive.Orm.Sync
 
     private void RequestKeySync(Key key)
     {
-      if (!TypeIsFilteredOrSkipped(key.TypeInfo.GetRoot().UnderlyingType))
+      if (!TypeIsFilteredOrSkipped(key.TypeReference.Type.GetRoot().UnderlyingType))
         return;
       if (sentKeys.Contains(key))
         return;

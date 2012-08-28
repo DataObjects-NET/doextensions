@@ -43,15 +43,28 @@ namespace Xtensive.Orm.Sync
     public int BatchSize { get; set; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SyncConfiguration"/> class.
+    /// Resets this instance.
     /// </summary>
-    public SyncConfiguration()
+    public void Reset()
+    {
+      Initialize();
+    }
+
+    private void Initialize()
     {
       BatchSize = Wellknown.SyncBatchSize;
       Endpoint = new SyncConfigurationEndpoint(this);
       SyncTypes = new HashSet<Type>();
       SkipTypes = new HashSet<Type>();
-      Filters = new Dictionary<Type,Expression>();
+      Filters = new Dictionary<Type, Expression>();
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SyncConfiguration"/> class.
+    /// </summary>
+    public SyncConfiguration()
+    {
+      Initialize();
     }
   }
 }
