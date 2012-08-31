@@ -8,8 +8,8 @@ namespace Xtensive.Orm.Sync
 {
   internal class Replica : SessionBound
   {
-    private static Lazy<XmlSerializer> knowledgeSerializer;
-    private static Lazy<XmlSerializer> forgottenKnowledgeSerializer;
+    private static readonly Lazy<XmlSerializer> KnowledgeSerializer;
+    private static readonly Lazy<XmlSerializer> ForgottenKnowledgeSerializer;
 
     private readonly SyncTickGenerator tickGenerator;
     private SyncKnowledge currentKnowledge;
@@ -70,7 +70,7 @@ namespace Xtensive.Orm.Sync
     {
       var container = Session.Query.SingleOrDefault<Extension>(Wellknown.CurrentKnowledgeFieldName);
       if (container!=null) {
-        CurrentKnowledge = (SyncKnowledge) knowledgeSerializer.Value.Deserialize(new StringReader(container.Text));
+        CurrentKnowledge = (SyncKnowledge) KnowledgeSerializer.Value.Deserialize(new StringReader(container.Text));
         CurrentKnowledge.SetLocalTickCount((ulong) TickCount);
       }
       else
@@ -81,7 +81,7 @@ namespace Xtensive.Orm.Sync
     {
       var container = Session.Query.SingleOrDefault<Extension>(Wellknown.ForgottenKnowledgeFieldName);
       if (container!=null)
-        ForgottenKnowledge = (ForgottenKnowledge) forgottenKnowledgeSerializer.Value.Deserialize(new StringReader(container.Text));
+        ForgottenKnowledge = (ForgottenKnowledge) ForgottenKnowledgeSerializer.Value.Deserialize(new StringReader(container.Text));
       else
         ForgottenKnowledge = new ForgottenKnowledge(Wellknown.IdFormats, CurrentKnowledge);
     }
@@ -96,7 +96,7 @@ namespace Xtensive.Orm.Sync
         using (Session.Activate())
           container = new Extension(Wellknown.CurrentKnowledgeFieldName);
       var writer = new StringWriter();
-      knowledgeSerializer.Value.Serialize(writer, knowledge);
+      KnowledgeSerializer.Value.Serialize(writer, knowledge);
       container.Text = writer.ToString();
     }
 
@@ -111,7 +111,7 @@ namespace Xtensive.Orm.Sync
           container = new Extension(Wellknown.ForgottenKnowledgeFieldName);
 
       var writer = new StringWriter();
-      forgottenKnowledgeSerializer.Value.Serialize(writer, knowledge);
+      ForgottenKnowledgeSerializer.Value.Serialize(writer, knowledge);
       container.Text = writer.ToString();
     }
 
@@ -119,9 +119,13 @@ namespace Xtensive.Orm.Sync
       : base(session)
     {
       tickGenerator = session.Domain.Services.Get<SyncTickGenerator>();
-      knowledgeSerializer = new Lazy<XmlSerializer>(() => new XmlSerializer(typeof(SyncKnowledge)));
-      forgottenKnowledgeSerializer = new Lazy<XmlSerializer>(() => new XmlSerializer(typeof(ForgottenKnowledge)));
       Initialize();
+    }
+
+    static Replica()
+    {
+      KnowledgeSerializer = new Lazy<XmlSerializer>(() => new XmlSerializer(typeof (SyncKnowledge)), true);
+      ForgottenKnowledgeSerializer = new Lazy<XmlSerializer>(() => new XmlSerializer(typeof (ForgottenKnowledge)), true);
     }
   }
 }

@@ -12,11 +12,12 @@ namespace Xtensive.Orm.Sync
 {
   internal class SyncProviderImplementation : SessionBound
   {
+    private static readonly MethodInfo CreateKeyMethod;
+
     private readonly Metadata metadata;
     private readonly KeyMap keyMap;
     private readonly DirectEntityAccessor accessor;
     private readonly Dictionary<Key, List<KeyDependency>> keyDependencies;
-    private readonly MethodInfo createKeyMethod;
 
     private IEnumerator<ChangeSet> changeSetEnumerator;
     
@@ -172,7 +173,7 @@ namespace Xtensive.Orm.Sync
             offset = field.MappingInfo.Offset;
             mappedRefKey.Value.CopyTo(targetTuple, 0, offset, field.MappingInfo.Length);
           }
-          mappedKey = (Key) createKeyMethod.Invoke(null, new object[] {Session.Domain, typeInfo, TypeReferenceAccuracy.ExactType, targetTuple});
+          mappedKey = (Key) CreateKeyMethod.Invoke(null, new object[] {Session.Domain, typeInfo, TypeReferenceAccuracy.ExactType, targetTuple});
           break;
       }
       RegisterKeyMapping(data, mappedKey);
@@ -180,7 +181,8 @@ namespace Xtensive.Orm.Sync
       var entity = accessor.CreateEntity(entityType, mappedKey.Value);
       var state = accessor.GetEntityState(entity);
       offset = mappedKey.Value.Count;
-      data.Tuple.CopyTo(state.Tuple, offset, offset, data.Tuple.Count - offset);
+      var changeDataTuple = data.Tuple;
+      changeDataTuple.CopyTo(state.Tuple, offset, offset, changeDataTuple.Count - offset);
       UpdateReferences(state, data.References);
     }
 
@@ -194,7 +196,8 @@ namespace Xtensive.Orm.Sync
       var entity = syncInfo.SyncTarget;
       var state = accessor.GetEntityState(entity);
       var offset = entity.Key.Value.Count;
-      data.Tuple.CopyTo(state.DifferentialTuple, offset, offset, data.Tuple.Count - offset);
+      var changeDataTuple = data.Tuple;
+      changeDataTuple.CopyTo(state.DifferentialTuple, offset, offset, changeDataTuple.Count - offset);
       state.PersistenceState = PersistenceState.Modified;
       UpdateReferences(state, data.References);
     }
@@ -291,7 +294,12 @@ namespace Xtensive.Orm.Sync
       Replica = metadata.Replica;
       keyMap = new KeyMap();
       keyDependencies = new Dictionary<Key,List<KeyDependency>>();
-      createKeyMethod = typeof (Key).GetMethod("Create", BindingFlags.NonPublic | BindingFlags.Static, null, new [] {typeof(Domain), typeof(TypeInfo), typeof(TypeReferenceAccuracy), typeof(Tuples.Tuple)}, null);
+    }
+
+    static SyncProviderImplementation()
+    {
+      CreateKeyMethod = typeof (Key).GetMethod("Create", BindingFlags.NonPublic | BindingFlags.Static, null,
+        new[] {typeof (Domain), typeof (TypeInfo), typeof (TypeReferenceAccuracy), typeof (Tuples.Tuple)}, null);
     }
   }
 }
