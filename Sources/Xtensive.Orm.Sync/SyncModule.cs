@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -30,11 +29,13 @@ namespace Xtensive.Orm.Sync
     /// <summary>
     /// Called when 'complex' build process is completed.
     /// </summary>
-    /// <param name="domain">The built domain.</param>
-    public void OnBuilt(Domain domain)
+    /// <param name="builtDomain">The built domain.</param>
+    public void OnBuilt(Domain builtDomain)
     {
-      this.domain = domain;
+      domain = builtDomain;
+
       domain.Extensions.Set(this);
+      domain.Extensions.Set(new CanonicalTupleConverterRegistry(domain));
 
       // Initializing global structures
       using (var session = domain.OpenSession())
@@ -42,6 +43,7 @@ namespace Xtensive.Orm.Sync
         new Replica(session);
         t.Complete();
       }
+
       var m = domain.GetTrackingMonitor();
       m.TrackingCompleted += OnTrackingCompleted;
       Task.Factory.StartNew(ProcessQueuedItems, TaskCreationOptions.PreferFairness | TaskCreationOptions.LongRunning);

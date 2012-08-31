@@ -28,7 +28,7 @@ namespace Xtensive.Orm.Sync
 
       var pairs = outer
         .LeftJoin(inner, si => si.Entity, t => t, (si, t) => new {SyncInfo = si, Target = t})
-      	.Where(pair => pair.Target!=null || pair.SyncInfo.IsTombstone)
+        .Where(pair => pair.Target!=null || pair.SyncInfo.IsTombstone)
         .ToList();
       var fetchedKeys = pairs
         .Where(p => !p.SyncInfo.IsTombstone)
@@ -59,10 +59,10 @@ namespace Xtensive.Orm.Sync
         var filter = FilterByKeys<TEntity>(keys, i*Wellknown.KeyPreloadBatchSize, itemCount);
         var pairs = outer
           .Where(filter)
-          .Join(inner, si => si.Entity, t => t, (si, t) => new {SyncInfo = si, Target = t})
+          .LeftJoin(inner, si => si.Entity, t => t, (si, t) => new {SyncInfo = si, Target = t})
           .ToList();
         var fetchedKeys = pairs
-          .Where(p => !p.SyncInfo.IsTombstone)
+          .Where(p => !p.SyncInfo.IsTombstone && p.Target!=null)
           .Select(p => p.Target.Key)
           .ToList();
         var items = pairs

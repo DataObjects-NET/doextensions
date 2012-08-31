@@ -13,10 +13,12 @@ namespace Xtensive.Orm.Sync
   internal class Metadata : SessionBound
   {
     private readonly SyncConfiguration configuration;
-    private List<MetadataStore> storeList;
-    private Dictionary<Type, MetadataStore> storeIndex;
     private readonly HashSet<Key> sentKeys;
     private readonly HashSet<Key> requestedKeys;
+    private readonly CanonicalTupleConverterRegistry tupleConverters;
+
+    private List<MetadataStore> storeList;
+    private Dictionary<Type, MetadataStore> storeIndex;
 
     public Replica Replica { get; private set; }
 
@@ -88,7 +90,10 @@ namespace Xtensive.Orm.Sync
         };
         if (!item.IsTombstone) {
           RegisterKeySync(item.SyncTargetKey);
-          changeData.Tuple = store.EntityAccessor.GetEntityState(item.SyncTarget).Tuple.Clone();
+          var entityTuple = store.EntityAccessor.GetEntityState(item.SyncTarget).Tuple;
+          changeData.Tuple = tupleConverters
+            .GetConverter(item.SyncTargetType)
+            .GetCanonicalTuple(entityTuple);
           var type = item.SyncTargetKey.TypeInfo;
           var fields = type.Fields.Where(f => f.IsEntity);
           foreach (var field in fields) {
@@ -346,11 +351,16 @@ namespace Xtensive.Orm.Sync
     public Metadata(Session session, SyncConfiguration configuration)
       : base(session)
     {
+      tupleConverters = session.Domain.Extensions.Get<CanonicalTupleConverterRegistry>();
+
       this.configuration = configuration;
+
       Replica = new Replica(session);
-      InitializeStores();
+
       sentKeys = new HashSet<Key>();
       requestedKeys = new HashSet<Key>();
+
+      InitializeStores();
     }
   }
 }

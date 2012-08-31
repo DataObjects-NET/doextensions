@@ -65,6 +65,8 @@
     <Compile Include="DomainExtensions.cs" />
     <Compile Include="Interfaces\ISkippable.cs" />
     <Compile Include="Interfaces\IFilterable.cs" />
+    <Compile Include="Internals\CanonicalTupleConverter.cs" />
+    <Compile Include="Internals\CanonicalTupleConverterRegistry.cs" />
     <Compile Include="Internals\Identity.cs" />
     <Compile Include="Internals\KeyMap.cs" />
     <Compile Include="Internals\ChangeSet.cs" />

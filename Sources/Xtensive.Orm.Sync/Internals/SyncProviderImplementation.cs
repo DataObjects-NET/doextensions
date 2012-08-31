@@ -18,6 +18,7 @@ namespace Xtensive.Orm.Sync
     private readonly KeyMap keyMap;
     private readonly DirectEntityAccessor accessor;
     private readonly Dictionary<Key, List<KeyDependency>> keyDependencies;
+    private readonly CanonicalTupleConverterRegistry tupleConverters;
 
     private IEnumerator<ChangeSet> changeSetEnumerator;
     
@@ -181,7 +182,7 @@ namespace Xtensive.Orm.Sync
       var entity = accessor.CreateEntity(entityType, mappedKey.Value);
       var state = accessor.GetEntityState(entity);
       offset = mappedKey.Value.Count;
-      var changeDataTuple = data.Tuple;
+      var changeDataTuple = tupleConverters.GetConverter(entityType).GetDomainTuple(data.Tuple);
       changeDataTuple.CopyTo(state.Tuple, offset, offset, changeDataTuple.Count - offset);
       UpdateReferences(state, data.References);
     }
@@ -196,7 +197,7 @@ namespace Xtensive.Orm.Sync
       var entity = syncInfo.SyncTarget;
       var state = accessor.GetEntityState(entity);
       var offset = entity.Key.Value.Count;
-      var changeDataTuple = data.Tuple;
+      var changeDataTuple = tupleConverters.GetConverter(entity.TypeInfo.UnderlyingType).GetDomainTuple(data.Tuple);
       changeDataTuple.CopyTo(state.DifferentialTuple, offset, offset, changeDataTuple.Count - offset);
       state.PersistenceState = PersistenceState.Modified;
       UpdateReferences(state, data.References);
@@ -288,8 +289,11 @@ namespace Xtensive.Orm.Sync
     public SyncProviderImplementation(Session session, SyncConfiguration configuration)
       : base(session)
     {
-      accessor = session.Services.Get<DirectEntityAccessor>();
       Configuration = configuration;
+
+      accessor = session.Services.Get<DirectEntityAccessor>();
+      tupleConverters = session.Domain.Extensions.Get<CanonicalTupleConverterRegistry>();
+
       metadata = new Metadata(session, configuration);
       Replica = metadata.Replica;
       keyMap = new KeyMap();

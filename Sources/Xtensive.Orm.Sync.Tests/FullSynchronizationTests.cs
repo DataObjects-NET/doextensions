@@ -10,30 +10,29 @@ namespace Xtensive.Orm.Sync.Tests
   [TestFixture]
   public class FullSynchronizationTests : AutoBuildTest
   {
-
     public override void TestSetUp()
     {
       using (var session = LocalDomain.OpenSession()) {
         using (var t = session.OpenTransaction()) {
-
-          for (int i = 0; i < 3200; i++) {
+          for (int i = 0; i < 32; i++) {
             new MyEntity(session) {
               Property = new MyReferenceProperty(session)
             };
             new AnotherEntity(session, Guid.NewGuid());
           }
-
           t.Complete();
         }
       }
+
       LocalDomain.WaitForPendingSyncTasks();
       var remoteProvider = RemoteDomain.GetSyncProvider();
       remoteProvider.Sync.BatchSize = 64;
       var orchestrator = new SyncOrchestrator {
-          LocalProvider = LocalDomain.GetSyncProvider(),
-          RemoteProvider = remoteProvider,
-          Direction = SyncDirectionOrder.Upload
-        };
+        LocalProvider = LocalDomain.GetSyncProvider(),
+        RemoteProvider = remoteProvider,
+        Direction = SyncDirectionOrder.Upload
+      };
+
       orchestrator.Synchronize();
     }
 
@@ -66,7 +65,6 @@ namespace Xtensive.Orm.Sync.Tests
     {
       using (var session = LocalDomain.OpenSession()) {
         using (var t = session.OpenTransaction()) {
-
           foreach (var entity in session.Query.All<MyEntity>()) {
             entity.Date = DateTime.MaxValue;
           }
@@ -108,7 +106,6 @@ namespace Xtensive.Orm.Sync.Tests
     {
       using (var session = LocalDomain.OpenSession()) {
         using (var t = session.OpenTransaction()) {
-
           foreach (var entity in session.Query.All<MyEntity>().ToList()) {
             entity.Remove();
           }
