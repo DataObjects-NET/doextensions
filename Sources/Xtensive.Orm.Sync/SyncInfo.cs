@@ -172,9 +172,6 @@ namespace Xtensive.Orm.Sync
     [Infrastructure]
     internal Key SyncTargetKey { get; set; }
 
-    [Infrastructure]
-    internal abstract Type SyncTargetType { get; }
-
     /// <summary>
     /// Initializes a new instance of the <see cref="SyncInfo"/> class.
     /// </summary>

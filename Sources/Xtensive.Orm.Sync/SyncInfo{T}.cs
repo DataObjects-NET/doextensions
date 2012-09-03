@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Xtensive.Orm.Sync
+﻿namespace Xtensive.Orm.Sync
 {
   /// <summary>
   /// Represents the metadata that is associated with an item in the synchronization scope.
@@ -17,11 +15,6 @@ namespace Xtensive.Orm.Sync
     internal override Entity SyncTarget
     {
       get { return (Entity)(object)Entity; }
-    }
-
-    internal override Type SyncTargetType
-    {
-      get { return typeof (TEntity); }
     }
 
     /// <summary>
