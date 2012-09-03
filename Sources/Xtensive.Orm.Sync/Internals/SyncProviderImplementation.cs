@@ -18,7 +18,7 @@ namespace Xtensive.Orm.Sync
     private readonly KeyMap keyMap;
     private readonly DirectEntityAccessor accessor;
     private readonly Dictionary<Key, List<KeyDependency>> keyDependencies;
-    private readonly CanonicalTupleConverterRegistry tupleConverters;
+    private readonly EntityTupleFormatterRegistry tupleFormatters;
 
     private IEnumerator<ChangeSet> changeSetEnumerator;
     
@@ -98,7 +98,7 @@ namespace Xtensive.Orm.Sync
     public void SaveItemChange(SaveChangeAction saveChangeAction, ItemChange change, SaveChangeContext context)
     {
       var data = context.ChangeData as ItemChangeData;
-      if (data != null)
+      if (data!=null)
         data.Change = change;
 
       switch (saveChangeAction) {
@@ -182,7 +182,7 @@ namespace Xtensive.Orm.Sync
       var entity = accessor.CreateEntity(entityType, mappedKey.Value);
       var state = accessor.GetEntityState(entity);
       offset = mappedKey.Value.Count;
-      var changeDataTuple = tupleConverters.GetConverter(entityType).GetDomainTuple(data.Tuple);
+      var changeDataTuple = tupleFormatters.Get(entityType).Parse(data.TupleValue);
       changeDataTuple.CopyTo(state.Tuple, offset, offset, changeDataTuple.Count - offset);
       UpdateReferences(state, data.References);
     }
@@ -197,7 +197,7 @@ namespace Xtensive.Orm.Sync
       var entity = syncInfo.SyncTarget;
       var state = accessor.GetEntityState(entity);
       var offset = entity.Key.Value.Count;
-      var changeDataTuple = tupleConverters.GetConverter(entity.TypeInfo.UnderlyingType).GetDomainTuple(data.Tuple);
+      var changeDataTuple = tupleFormatters.Get(entity.TypeInfo.UnderlyingType).Parse(data.TupleValue);
       changeDataTuple.CopyTo(state.DifferentialTuple, offset, offset, changeDataTuple.Count - offset);
       state.PersistenceState = PersistenceState.Modified;
       UpdateReferences(state, data.References);
@@ -292,7 +292,7 @@ namespace Xtensive.Orm.Sync
       Configuration = configuration;
 
       accessor = session.Services.Get<DirectEntityAccessor>();
-      tupleConverters = session.Domain.Extensions.Get<CanonicalTupleConverterRegistry>();
+      tupleFormatters = session.Domain.Extensions.Get<EntityTupleFormatterRegistry>();
 
       metadata = new Metadata(session, configuration);
       Replica = metadata.Replica;

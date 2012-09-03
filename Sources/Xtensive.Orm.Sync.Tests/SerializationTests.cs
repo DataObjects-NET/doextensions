@@ -16,7 +16,7 @@ namespace Xtensive.Orm.Sync.Tests
     public void SerializeIdentityTest()
     {
       var key = Key.Create<MyEntity>(LocalDomain, 1L);
-      var id1 = new Identity(Guid.NewGuid(), key);
+      var id1 = new Identity(key, Guid.NewGuid());
       Identity id2;
 
       var formatter = new BinaryFormatter();
@@ -33,13 +33,14 @@ namespace Xtensive.Orm.Sync.Tests
     public void SerializeItemChangeDataTest()
     {
       var key1 = Key.Create<MyEntity>(LocalDomain, 1L);
-      var id1 = new Identity(Guid.NewGuid(), key1);
+      var id1 = new Identity(key1, Guid.NewGuid());
       var key2 = Key.Create<MyEntity>(LocalDomain, 2L);
-      var id2 = new Identity(Guid.NewGuid(), key2);
+      var id2 = new Identity(key2, Guid.NewGuid());
       var data1 = new ItemChangeData();
       data1.Identity = id1;
-      data1.Tuple = Tuples.Tuple.Create(key1.TypeInfo.TupleDescriptor);
-      key1.Value.CopyTo(data1.Tuple);
+      var tuple = Tuples.Tuple.Create(key1.TypeInfo.TupleDescriptor);
+      key1.Value.CopyTo(tuple);
+      data1.TupleValue = tuple.Format();
       data1.References.Add("field1", id2);
       ItemChangeData data2;
 
@@ -50,6 +51,7 @@ namespace Xtensive.Orm.Sync.Tests
         data2 = (ItemChangeData) formatter.Deserialize(ms);
         data2.BindTo(RemoteDomain);
       }
+
       data1.CompareTo(data2);
     }
 
@@ -57,13 +59,14 @@ namespace Xtensive.Orm.Sync.Tests
     public void SerializeChangeSetTest()
     {
       var key1 = Key.Create<MyEntity>(LocalDomain, 1L);
-      var id1 = new Identity(Guid.NewGuid(), key1);
+      var id1 = new Identity(key1, Guid.NewGuid());
       var key2 = Key.Create<MyEntity>(LocalDomain, 2L);
-      var id2 = new Identity(Guid.NewGuid(), key2);
+      var id2 = new Identity(key2, Guid.NewGuid());
       var data = new ItemChangeData();
       data.Identity = id1;
-      data.Tuple = Tuples.Tuple.Create(key1.TypeInfo.TupleDescriptor);
-      key1.Value.CopyTo(data.Tuple);
+      var tuple = Tuples.Tuple.Create(key1.TypeInfo.TupleDescriptor);
+      key1.Value.CopyTo(tuple);
+      data.TupleValue = tuple.Format();
       data.References.Add("field1", id2);
       var changeSet1 = new ChangeSet();
       changeSet1.Add(data);
@@ -82,13 +85,14 @@ namespace Xtensive.Orm.Sync.Tests
     public void SerializeChangeDataRetrieverTest()
     {
       var key1 = Key.Create<MyEntity>(LocalDomain, 1L);
-      var id1 = new Identity(Guid.NewGuid(), key1);
+      var id1 = new Identity(key1, Guid.NewGuid());
       var key2 = Key.Create<MyEntity>(LocalDomain, 2L);
-      var id2 = new Identity(Guid.NewGuid(), key2);
+      var id2 = new Identity(key2, Guid.NewGuid());
       var data = new ItemChangeData();
       data.Identity = id1;
-      data.Tuple = Tuples.Tuple.Create(key1.TypeInfo.TupleDescriptor);
-      key1.Value.CopyTo(data.Tuple);
+      var tuple = Tuples.Tuple.Create(key1.TypeInfo.TupleDescriptor);
+      key1.Value.CopyTo(tuple);
+      data.TupleValue = tuple.Format();
       data.References.Add("field1", id2);
       var changeSet = new ChangeSet();
       changeSet.Add(data);
@@ -123,7 +127,7 @@ namespace Xtensive.Orm.Sync.Tests
     public static void CompareTo(this ItemChangeData left, ItemChangeData right)
     {
       left.Identity.CompareTo(right.Identity);
-      Assert.AreEqual(left.Tuple, right.Tuple);
+      Assert.AreEqual(left.TupleValue, right.TupleValue);
       var r1 = left.References.First();
       var r2 = right.References.First();
       Assert.AreEqual(r1.Key, r2.Key);

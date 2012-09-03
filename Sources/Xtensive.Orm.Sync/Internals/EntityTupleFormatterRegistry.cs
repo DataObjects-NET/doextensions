@@ -1,26 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xtensive.Orm.Model;
 
 namespace Xtensive.Orm.Sync
 {
-  internal sealed class CanonicalTupleConverterRegistry
+  internal sealed class EntityTupleFormatterRegistry
   {
-    private readonly Dictionary<Type, CanonicalTupleConverter> tupleConverters;
+    private readonly Dictionary<Type, EntityTupleFormatter> tupleConverters;
 
-    public CanonicalTupleConverter GetConverter(Type type)
+    public EntityTupleFormatter Get(Type type)
     {
       if (type==null)
         throw new ArgumentNullException("type");
       return tupleConverters[type];
     }
 
-    public CanonicalTupleConverterRegistry(Domain domain)
+    public EntityTupleFormatterRegistry(Domain domain)
     {
       tupleConverters = domain.Model.Types
         .Where(t => t.IsEntity)
-        .Select(t => new CanonicalTupleConverter(t))
+        .Select(t => new EntityTupleFormatter(t))
         .ToDictionary(c => c.Type, c => c);
     }
   }

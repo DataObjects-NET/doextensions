@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Linq;
-using Xtensive.Core;
 using Xtensive.Orm.Model;
 using Xtensive.Tuples;
-using Xtensive.Tuples.Transform;
 using Tuple = Xtensive.Tuples.Tuple;
 
 namespace Xtensive.Orm.Sync
 {
-  internal sealed class CanonicalTupleConverter
+  internal sealed class EntityTupleFormatter
   {
     public Type Type { get; private set; }
 
@@ -18,21 +16,28 @@ namespace Xtensive.Orm.Sync
     private readonly int[] domainToCanonicalMap;
     private readonly int[] canonicalToDomainMap;
 
-    public Tuple GetCanonicalTuple(Tuple tuple)
+    public string Format(Tuple domainTuple)
     {
-      var result = canonicalTuplePrototype.CreateNew();
-      tuple.CopyTo(result, domainToCanonicalMap);
-      return result;
+      if (domainTuple==null)
+        return null;
+
+      var canonicalTuple = canonicalTuplePrototype.CreateNew();
+      domainTuple.CopyTo(canonicalTuple, domainToCanonicalMap);
+      return canonicalTuple.Format();
     }
 
-    public Tuple GetDomainTuple(Tuple tuple)
+    public Tuple Parse(string value)
     {
-      var result = domainTuplePrototype.CreateNew();
-      tuple.CopyTo(result, canonicalToDomainMap);
-      return result;
+      if (value==null)
+        return null;
+
+      var canonicalTuple = canonicalTuplePrototype.Descriptor.Parse(value);
+      var domainTuple = domainTuplePrototype.CreateNew();
+      canonicalTuple.CopyTo(domainTuple, canonicalToDomainMap);
+      return domainTuple;
     }
 
-    public CanonicalTupleConverter(TypeInfo type)
+    public EntityTupleFormatter(TypeInfo type)
     {
       Type = type.UnderlyingType;
 

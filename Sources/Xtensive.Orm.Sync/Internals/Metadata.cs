@@ -7,6 +7,7 @@ using Microsoft.Synchronization;
 using Xtensive.Collections.Graphs;
 using Xtensive.Orm.Model;
 using FieldInfo = Xtensive.Orm.Model.FieldInfo;
+using Tuple = Xtensive.Tuples.Tuple;
 
 namespace Xtensive.Orm.Sync
 {
@@ -15,7 +16,7 @@ namespace Xtensive.Orm.Sync
     private readonly SyncConfiguration configuration;
     private readonly HashSet<Key> sentKeys;
     private readonly HashSet<Key> requestedKeys;
-    private readonly CanonicalTupleConverterRegistry tupleConverters;
+    private readonly EntityTupleFormatterRegistry tupleFormatters;
 
     private List<MetadataStore> storeList;
     private Dictionary<Type, MetadataStore> storeIndex;
@@ -86,14 +87,13 @@ namespace Xtensive.Orm.Sync
         var change = new ItemChange(Wellknown.IdFormats, Replica.Id, item.SyncId, changeKind, createdVersion, lastChangeVersion);
         var changeData = new ItemChangeData {
           Change = change,
-          Identity = new Identity(item.GlobalId, item.SyncTargetKey),
+          Identity = new Identity(item.SyncTargetKey, item.GlobalId),
         };
+
         if (!item.IsTombstone) {
           RegisterKeySync(item.SyncTargetKey);
           var entityTuple = store.EntityAccessor.GetEntityState(item.SyncTarget).Tuple;
-          changeData.Tuple = tupleConverters
-            .GetConverter(item.SyncTargetType)
-            .GetCanonicalTuple(entityTuple);
+          changeData.TupleValue = tupleFormatters.Get(item.SyncTarget.TypeInfo.UnderlyingType).Format(entityTuple);
           var type = item.SyncTargetKey.TypeInfo;
           var fields = type.Fields.Where(f => f.IsEntity);
           foreach (var field in fields) {
@@ -105,6 +105,7 @@ namespace Xtensive.Orm.Sync
             }
           }
         }
+
         result.Add(changeData);
         itemCount++;
 
@@ -351,7 +352,7 @@ namespace Xtensive.Orm.Sync
     public Metadata(Session session, SyncConfiguration configuration)
       : base(session)
     {
-      tupleConverters = session.Domain.Extensions.Get<CanonicalTupleConverterRegistry>();
+      tupleFormatters = session.Domain.Extensions.Get<EntityTupleFormatterRegistry>();
 
       this.configuration = configuration;
 

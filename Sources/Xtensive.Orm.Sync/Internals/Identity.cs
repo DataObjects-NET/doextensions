@@ -10,15 +10,15 @@ namespace Xtensive.Orm.Sync
   [Serializable]
   public class Identity
   {
-    /// <summary>
-    /// Gets or sets the global id.
-    /// </summary>
-    public Guid GlobalId { get; set;}
-
     [NonSerialized]
     private Key key;
 
     private string keyValue;
+
+    /// <summary>
+    /// Gets or sets the global id.
+    /// </summary>
+    public Guid GlobalId { get; set;}
 
     /// <summary>
     /// Gets or sets the key.
@@ -36,9 +36,6 @@ namespace Xtensive.Orm.Sync
     [OnSerializing]
     private void OnSerializing(StreamingContext context)
     {
-      if (key==null)
-        return;
-
       keyValue = key.Format();
     }
 
@@ -48,9 +45,6 @@ namespace Xtensive.Orm.Sync
     /// <param name="domain">The domain.</param>
     public void BindTo(Domain domain)
     {
-      if (string.IsNullOrEmpty(keyValue))
-        return;
-
       Key = Key.Parse(domain, keyValue);
     }
 
@@ -66,11 +60,11 @@ namespace Xtensive.Orm.Sync
     /// <summary>
     /// Initializes a new instance of the <see cref="Identity"/> class.
     /// </summary>
-    /// <param name="globalId">The global id.</param>
     /// <param name="key">The key.</param>
-    public Identity(Guid globalId, Key key)
-      : this(key)
+    /// <param name="globalId">The global id.</param>
+    public Identity(Key key, Guid globalId)
     {
+      Key = key;
       GlobalId = globalId;
     }
   }

@@ -35,7 +35,7 @@ namespace Xtensive.Orm.Sync
       domain = builtDomain;
 
       domain.Extensions.Set(this);
-      domain.Extensions.Set(new CanonicalTupleConverterRegistry(domain));
+      domain.Extensions.Set(new EntityTupleFormatterRegistry(domain));
 
       // Initializing global structures
       using (var session = domain.OpenSession())

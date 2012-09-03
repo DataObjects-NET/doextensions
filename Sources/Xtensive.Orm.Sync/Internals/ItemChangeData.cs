@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 using Microsoft.Synchronization;
-using Xtensive.Tuples;
-using Tuple = Xtensive.Tuples.Tuple;
 
 namespace Xtensive.Orm.Sync
 {
@@ -13,6 +10,8 @@ namespace Xtensive.Orm.Sync
   [Serializable]
   public class ItemChangeData
   {
+    private string tupleValue;
+
     /// <summary>
     /// Gets or sets the change.
     /// </summary>
@@ -29,31 +28,17 @@ namespace Xtensive.Orm.Sync
     /// </value>
     public Identity Identity { get; set; }
 
-    [NonSerialized]
-    private Tuple tuple;
-
-    private string tupleValue;
-
     /// <summary>
-    /// Gets or sets the tuple.
+    /// Gets or sets the tuple value in canonical representation.
     /// </summary>
-    public Tuple Tuple
+    public string TupleValue
     {
-      get { return tuple; }
-      set { tuple = value; }
-    }
-
-    [OnSerializing]
-    private void OnSerializing(StreamingContext context)
-    {
-      if (tuple==null)
-        return;
-
-      tupleValue = tuple.Format();
+      get { return tupleValue; }
+      set { tupleValue = value; }
     }
 
     /// <summary>
-    /// Gets the references from this Entity .
+    /// Gets the references from this entity.
     /// </summary>
     public Dictionary<string, Identity> References { get; private set; }
 
@@ -67,9 +52,6 @@ namespace Xtensive.Orm.Sync
 
       foreach (var identity in References.Values)
         identity.BindTo(domain);
-
-      if (!string.IsNullOrEmpty(tupleValue))
-        tuple = Tuple.Parse(Identity.Key.TypeReference.Type.TupleDescriptor, tupleValue);
     }
 
     /// <summary>
