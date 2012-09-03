@@ -9,9 +9,17 @@ namespace Xtensive.Orm.Sync
   [Serializable]
   public class ChangeDataRetriever : IChangeDataRetriever
   {
-    private ChangeSet changeSet;
+    private readonly ChangeSet changeSet;
 
     #region Implementation of IChangeDataRetriever
+
+    /// <summary>
+    /// Gets the ID format schema of the provider.
+    /// </summary>
+    /// <returns>
+    /// The ID format schema of the provider.
+    /// </returns>
+    public SyncIdFormatGroup IdFormats { get; private set; }
 
     /// <summary>
     /// When overridden in a derived class, this method retrieves item data for a change.
@@ -22,19 +30,11 @@ namespace Xtensive.Orm.Sync
     /// <param name="loadChangeContext">Metadata that describes the change for which data should be retrieved.</param>
     public object LoadChangeData(LoadChangeContext loadChangeContext)
     {
-      if (changeSet == null)
+      if (changeSet==null)
         return null;
       var globalId = loadChangeContext.ItemChange.ItemId.GetGuidId();
       return changeSet[globalId];
     }
-
-    /// <summary>
-    /// Gets the ID format schema of the provider.
-    /// </summary>
-    /// <returns>
-    /// The ID format schema of the provider.
-    /// </returns>
-    public SyncIdFormatGroup IdFormats { get; private set; }
 
     #endregion
 
@@ -44,9 +44,8 @@ namespace Xtensive.Orm.Sync
     /// <param name="domain">The domain.</param>
     public void BindTo(Domain domain)
     {
-      if (changeSet == null)
+      if (changeSet==null)
         return;
-
       changeSet.BindTo(domain);
     }
 

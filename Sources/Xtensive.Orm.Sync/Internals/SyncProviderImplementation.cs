@@ -22,16 +22,13 @@ namespace Xtensive.Orm.Sync
 
     private IEnumerator<ChangeSet> changeSetEnumerator;
     
-    public ChangeSet CurrentChangeSet { get; set; }
-
-    public SyncIdFormatGroup IdFormats
-    {
-      get { return Wellknown.IdFormats; }
-    }
+    public SyncIdFormatGroup IdFormats { get { return Wellknown.IdFormats; } }
     
+    public SyncConfiguration Configuration { get; private set; }
+
     public Replica Replica { get; private set; }
 
-    public SyncConfiguration Configuration { get; private set; }
+    public ChangeSet CurrentChangeSet { get; private set; }
 
     #region Source provider methods
 
@@ -50,6 +47,7 @@ namespace Xtensive.Orm.Sync
       }
       else
         result = new ChangeBatch(IdFormats, destinationKnowledge, Replica.ForgottenKnowledge);
+
       bool hasNext;
 
       if (changeSetEnumerator==null) {
@@ -84,7 +82,8 @@ namespace Xtensive.Orm.Sync
     #region Destination provider methods
 
     public void ProcessChangeBatch(ConflictResolutionPolicy resolutionPolicy, ChangeBatch sourceChanges,
-      object changeDataRetriever, SyncCallbacks syncCallbacks, SyncSessionStatistics sessionStatistics, SyncSessionContext syncContext, INotifyingChangeApplierTarget target)
+      object changeDataRetriever, SyncCallbacks syncCallbacks, SyncSessionStatistics sessionStatistics,
+      SyncSessionContext syncContext, INotifyingChangeApplierTarget target)
     {
       var localChanges = metadata.GetLocalChanges(sourceChanges).ToList();
       var knowledge = Replica.CurrentKnowledge.Clone();
@@ -154,6 +153,7 @@ namespace Xtensive.Orm.Sync
       var hierarchy = typeInfo.Hierarchy;
       Key mappedKey = null;
       int offset;
+
       switch (hierarchy.Key.GeneratorKind) {
         case KeyGeneratorKind.Custom:
         case KeyGeneratorKind.Default:
@@ -163,13 +163,11 @@ namespace Xtensive.Orm.Sync
           var originalTuple = data.Identity.Key.Value;
           var targetTuple = originalTuple.Clone();
           foreach (var field in hierarchy.Key.Fields.Where(f => f.IsEntity)) {
-
             Identity identity;
             if (!data.References.TryGetValue(field.Name, out identity))
               continue;
-
             var mappedRefKey = TryResolveIdentity(identity);
-            if (mappedRefKey == null)
+            if (mappedRefKey==null)
               throw new InvalidOperationException(string.Format("Mapped key for original key '{0}' is not found", identity.Key.Format()));
             offset = field.MappingInfo.Offset;
             mappedRefKey.Value.CopyTo(targetTuple, 0, offset, field.MappingInfo.Length);
@@ -177,6 +175,7 @@ namespace Xtensive.Orm.Sync
           mappedKey = (Key) CreateKeyMethod.Invoke(null, new object[] {Session.Domain, typeInfo, TypeReferenceAccuracy.ExactType, targetTuple});
           break;
       }
+
       RegisterKeyMapping(data, mappedKey);
       metadata.CreateMetadata(mappedKey, data.Change);
       var entity = accessor.CreateEntity(entityType, mappedKey.Value);
@@ -189,8 +188,8 @@ namespace Xtensive.Orm.Sync
 
     private void HandleUpdateEntity(ItemChangeData data)
     {
-      var syncInfo = Session.Query.All<SyncInfo>().SingleOrDefault(s => s.GlobalId==data.Identity.GlobalId);
-      if (syncInfo == null)
+      var syncInfo = FetchSyncInfo(data.Identity.GlobalId);
+      if (syncInfo==null)
         return;
 
       metadata.UpdateMetadata(syncInfo, data.Change, false);
@@ -205,14 +204,19 @@ namespace Xtensive.Orm.Sync
 
     private void HandleRemoveEntity(ItemChange change)
     {
-      var syncInfo = Session.Query.All<SyncInfo>().SingleOrDefault(s => s.GlobalId==change.ItemId.GetGuidId());
-      if (syncInfo == null)
+      var syncInfo = FetchSyncInfo(change.ItemId.GetGuidId());
+      if (syncInfo==null)
         return;
 
       metadata.UpdateMetadata(syncInfo, change, true);
       var entity = syncInfo.SyncTarget;
       var state = accessor.GetEntityState(entity);
       state.PersistenceState = PersistenceState.Removed;
+    }
+
+    private SyncInfo FetchSyncInfo(Guid globalId)
+    {
+      return Session.Query.Execute(q => q.All<SyncInfo>().SingleOrDefault(s => s.GlobalId==globalId));
     }
 
     private void RegisterKeyMapping(ItemChangeData data, Key mappedKey)
@@ -273,11 +277,6 @@ namespace Xtensive.Orm.Sync
     public ulong GetNextTickCount()
     {
       return (ulong) Replica.NextTick;
-    }
-
-    public void SaveConflict(ItemChange conflictingChange, object conflictingChangeData, SyncKnowledge conflictingChangeKnowledge)
-    {
-      throw new NotImplementedException();
     }
 
     public void StoreKnowledgeForScope(SyncKnowledge currentKnowledge, ForgottenKnowledge forgottenKnowledge)
