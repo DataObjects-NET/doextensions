@@ -22,7 +22,7 @@ namespace Xtensive.Orm.Sync
         return null;
 
       var canonicalTuple = canonicalTuplePrototype.CreateNew();
-      domainTuple.CopyTo(canonicalTuple, domainToCanonicalMap);
+      domainTuple.CopyTo(canonicalTuple, canonicalToDomainMap);
       return canonicalTuple.Format();
     }
 
@@ -33,7 +33,7 @@ namespace Xtensive.Orm.Sync
 
       var canonicalTuple = canonicalTuplePrototype.Descriptor.Parse(value);
       var domainTuple = domainTuplePrototype.CreateNew();
-      canonicalTuple.CopyTo(domainTuple, canonicalToDomainMap);
+      canonicalTuple.CopyTo(domainTuple, domainToCanonicalMap);
       return domainTuple;
     }
 
@@ -71,7 +71,7 @@ namespace Xtensive.Orm.Sync
 
       domainTuplePrototype = type.TuplePrototype;
       var domainTupleDescriptor = type.TupleDescriptor;
-      canonicalTuplePrototype = Tuple.Create(domainToCanonicalMap.Select(i => domainTupleDescriptor[i]).ToArray());
+      canonicalTuplePrototype = Tuple.Create(canonicalToDomainMap.Select(i => domainTupleDescriptor[i]).ToArray());
     }
   }
 }
