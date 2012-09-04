@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using NUnit.Framework;
 using Xtensive.Orm.Sync.Tests.Model;
 
@@ -10,8 +11,8 @@ namespace Xtensive.Orm.Sync.Tests
     [Test]
     public void IncludeAllTest()
     {
-      var configuration = new SyncConfiguration();
-      var sync = configuration.Endpoint;
+      var configuration = GetConfiguration();
+      var sync = GetEndpoint(configuration);
       sync.All();
 
       Assert.IsTrue(configuration.SyncAll);
@@ -20,8 +21,8 @@ namespace Xtensive.Orm.Sync.Tests
     [Test]
     public void IncludeTypeTest()
     {
-      var configuration = new SyncConfiguration();
-      var sync = configuration.Endpoint;
+      var configuration = GetConfiguration();
+      var sync = GetEndpoint(configuration);
       sync.All<MyEntity>();
 
       Assert.IsFalse(configuration.SyncAll);
@@ -31,8 +32,8 @@ namespace Xtensive.Orm.Sync.Tests
     [Test]
     public void IncludeAllAndIncludeTypeTest()
     {
-      var configuration = new SyncConfiguration();
-      var sync = configuration.Endpoint;
+      var configuration = GetConfiguration();
+      var sync = GetEndpoint(configuration);
       sync
         .All()
         .All<MyEntity>();
@@ -44,8 +45,8 @@ namespace Xtensive.Orm.Sync.Tests
     [Test]
     public void IncludeAllAndSkipTypeTest()
     {
-      var configuration = new SyncConfiguration();
-      var sync = configuration.Endpoint;
+      var configuration = GetConfiguration();
+      var sync = GetEndpoint(configuration);
       sync
         .All()
         .Skip<MyEntity>();
@@ -58,8 +59,8 @@ namespace Xtensive.Orm.Sync.Tests
     [Test]
     public void IncludeTypeAndSkipTypeTest()
     {
-      var configuration = new SyncConfiguration();
-      var sync = configuration.Endpoint;
+      var configuration = GetConfiguration();
+      var sync = GetEndpoint(configuration);
       sync
         .All<MyEntity>()
         .Skip<MyEntity>();
@@ -71,8 +72,8 @@ namespace Xtensive.Orm.Sync.Tests
     [Test]
     public void FilterTypeTest()
     {
-      var configuration = new SyncConfiguration();
-      var sync = configuration.Endpoint;
+      var configuration = GetConfiguration();
+      var sync = GetEndpoint(configuration);
       sync
         .All<MyEntity>(e => !e.IsRemoved);
 
@@ -84,8 +85,8 @@ namespace Xtensive.Orm.Sync.Tests
     [Test]
     public void FilterTypeAndSkipTypeTest()
     {
-      var configuration = new SyncConfiguration();
-      var sync = configuration.Endpoint;
+      var configuration = GetConfiguration();
+      var sync = GetEndpoint(configuration);
       sync
         .All<MyEntity>(e => !e.IsRemoved)
         .Skip<MyEntity>();
@@ -98,8 +99,8 @@ namespace Xtensive.Orm.Sync.Tests
     [Test]
     public void ThrowOnNonHierarchyRootTest()
     {
-      var configuration = new SyncConfiguration();
-      var sync = configuration.Endpoint;
+      var configuration = GetConfiguration();
+      var sync = GetEndpoint(configuration);
       Assert.Throws<InvalidOperationException>(
         () => sync
           .All<Entity>());
@@ -120,12 +121,25 @@ namespace Xtensive.Orm.Sync.Tests
     [Test]
     public void ThrowOnDoubleFilterForTypeTest()
     {
-      var configuration = new SyncConfiguration();
-      var sync = configuration.Endpoint;
+      var configuration = GetConfiguration();
+      var sync = GetEndpoint(configuration);
       Assert.Throws<InvalidOperationException>(
         () => sync
           .All<MyEntity>(e => !e.IsRemoved)
           .All<MyEntity>(e => !e.IsRemoved));
+    }
+
+    private SyncConfiguration GetConfiguration()
+    {
+      return (SyncConfiguration) Activator.CreateInstance(typeof (SyncConfiguration), true);
+    }
+
+    private SyncConfigurationEndpoint GetEndpoint(SyncConfiguration configuration)
+    {
+      return (SyncConfigurationEndpoint) Activator.CreateInstance(
+        typeof (SyncConfigurationEndpoint),
+        BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.CreateInstance,
+        null, new object[] {configuration}, null);
     }
   }
 }

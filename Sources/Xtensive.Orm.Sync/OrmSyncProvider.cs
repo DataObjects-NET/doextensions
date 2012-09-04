@@ -39,6 +39,11 @@ namespace Xtensive.Orm.Sync
     /// </summary>
     public SyncConfigurationEndpoint Sync { get; private set; }
 
+    /// <summary>
+    /// Gets <see cref="SyncConfiguration"/> for this instance.
+    /// </summary>
+    public SyncConfiguration SyncConfiguration { get { return configuration; } }
+
     #region KnowledgeSyncProvider Members
 
     /// <summary>
@@ -72,8 +77,7 @@ namespace Xtensive.Orm.Sync
         trackingMonitor.Disable();
       transaction = session.OpenTransaction();
       persistLock = session.DisableSaveChanges();
-      if (configuration.SyncTypes.Count==0 && configuration.Filters.Count==0 && configuration.SkipTypes.Count==0)
-        configuration.SyncAll = true;
+      configuration.Prepare();
       syncSession = new SyncSession(session, configuration);
     }
 
@@ -298,7 +302,7 @@ namespace Xtensive.Orm.Sync
     {
       this.domain = domain;
       configuration = new SyncConfiguration();
-      Sync = configuration.Endpoint;
+      Sync = new SyncConfigurationEndpoint(configuration);
     }
   }
 }

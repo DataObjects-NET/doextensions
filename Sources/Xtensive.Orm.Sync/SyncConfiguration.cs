@@ -10,11 +10,6 @@ namespace Xtensive.Orm.Sync
   public sealed class SyncConfiguration
   {
     /// <summary>
-    /// Gets the <see cref="SyncConfigurationEndpoint"/> instance for fluent configuration.
-    /// </summary>
-    public SyncConfigurationEndpoint Endpoint { get; private set; }
-
-    /// <summary>
     /// Gets or sets a value indicating whether all instances of all types should be synchronized.
     /// </summary>
     /// <value>
@@ -43,6 +38,12 @@ namespace Xtensive.Orm.Sync
     public int BatchSize { get; set; }
 
     /// <summary>
+    /// Gets or sets the <see cref="Session"/> to use for synchronization.
+    /// If set to null separate session would be created.
+    /// </summary>
+    public Session Session { get; set; }
+
+    /// <summary>
     /// Resets this instance.
     /// </summary>
     public void Reset()
@@ -50,19 +51,22 @@ namespace Xtensive.Orm.Sync
       Initialize();
     }
 
+    internal void Prepare()
+    {
+      if (SyncTypes.Count==0 && Filters.Count==0 && SkipTypes.Count==0)
+        SyncAll = true;
+    }
+
     private void Initialize()
     {
+      SyncAll = false;
       BatchSize = WellKnown.SyncBatchSize;
-      Endpoint = new SyncConfigurationEndpoint(this);
       SyncTypes = new HashSet<Type>();
       SkipTypes = new HashSet<Type>();
       Filters = new Dictionary<Type, Expression>();
     }
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="SyncConfiguration"/> class.
-    /// </summary>
-    public SyncConfiguration()
+    internal SyncConfiguration()
     {
       Initialize();
     }

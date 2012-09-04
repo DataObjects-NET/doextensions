@@ -19,25 +19,6 @@ namespace Xtensive.Orm.Sync
       return this;
     }
 
-    /// <summary>
-    /// Resets this instance.
-    /// </summary>
-    /// <returns></returns>
-    public IFilterable Reset()
-    {
-      configuration.Reset();
-      return this;
-    }
-
-    /// <summary>
-    /// Sets the size of the synchronization batch.
-    /// </summary>
-    public SyncConfigurationEndpoint WithBatchSize(int value)
-    {
-      configuration.BatchSize = value;
-      return this;
-    }
-
     #region Implementation of IFilterable
 
     /// <summary>
