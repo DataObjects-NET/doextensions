@@ -20,7 +20,7 @@ namespace Xtensive.Orm.Sync
     private readonly Domain domain;
     private readonly SyncConfiguration configuration;
 
-    private SyncProviderImplementation implementation;
+    private SyncSession syncSession;
     private Session session;
     private SyncSessionContext syncContext;
     private TransactionScope transaction;
@@ -74,7 +74,7 @@ namespace Xtensive.Orm.Sync
       persistLock = session.DisableSaveChanges();
       if (configuration.SyncTypes.Count==0 && configuration.Filters.Count==0 && configuration.SkipTypes.Count==0)
         configuration.SyncAll = true;
-      implementation = new SyncProviderImplementation(session, configuration);
+      syncSession = new SyncSession(session, configuration);
     }
 
     /// <summary>
@@ -87,7 +87,7 @@ namespace Xtensive.Orm.Sync
         return;
 
       try {
-        implementation.UpdateReplicaState();
+        syncSession.UpdateReplicaState();
 #if DEBUG
         sessionStopwatch.Stop();
         Debug.WriteLine("Finishing synchronization session. Elapsed time: {0}", sessionStopwatch.Elapsed);
@@ -101,7 +101,7 @@ namespace Xtensive.Orm.Sync
         session.Dispose();
       }
       finally {
-        implementation = null;
+        syncSession = null;
         transaction = null;
         session = null;
       }
@@ -125,7 +125,7 @@ namespace Xtensive.Orm.Sync
 #endif
 
       CheckIsRunning();
-      var result = implementation.GetChangeBatch(batchSize, destinationKnowledge);
+      var result = syncSession.GetChangeBatch(batchSize, destinationKnowledge);
       changeDataRetriever = (this as INotifyingChangeApplierTarget).GetDataRetriever();
 
 #if DEBUG
@@ -143,7 +143,7 @@ namespace Xtensive.Orm.Sync
     {
       CheckIsRunning();
       batchSize = (uint) configuration.BatchSize;
-      knowledge = implementation.Replica.CurrentKnowledge;
+      knowledge = syncSession.Replica.CurrentKnowledge;
     }
 
     /// <summary>
@@ -163,7 +163,7 @@ namespace Xtensive.Orm.Sync
 #endif
 
       CheckIsRunning();
-      implementation.ProcessChangeBatch(resolutionPolicy, sourceChanges, changeDataRetriever, syncCallbacks, sessionStatistics, syncContext, this);
+      syncSession.ProcessChangeBatch(resolutionPolicy, sourceChanges, changeDataRetriever, syncCallbacks, sessionStatistics, syncContext, this);
 
 #if DEBUG
       Debug.WriteLine("ProcessChangeBatch #{0}, {1} ms", batchCounter, batchStopwatch.ElapsedMilliseconds);
@@ -212,7 +212,7 @@ namespace Xtensive.Orm.Sync
     /// </returns>
     IChangeDataRetriever INotifyingChangeApplierTarget.GetDataRetriever()
     {
-      return new ChangeDataRetriever(IdFormats, implementation.CurrentChangeSet);
+      return new ChangeDataRetriever(IdFormats, syncSession.CurrentChangeSet);
     }
 
     /// <summary>
@@ -223,7 +223,7 @@ namespace Xtensive.Orm.Sync
     /// </returns>
     ulong INotifyingChangeApplierTarget.GetNextTickCount()
     {
-      return implementation.GetNextTickCount();
+      return syncSession.GetNextTickCount();
     }
 
     /// <summary>
@@ -255,7 +255,7 @@ namespace Xtensive.Orm.Sync
     /// <param name="context">Information about the change to be applied.</param>
     void INotifyingChangeApplierTarget.SaveItemChange(SaveChangeAction saveChangeAction, ItemChange change, SaveChangeContext context)
     {
-      implementation.SaveItemChange(saveChangeAction, change, context);
+      syncSession.SaveItemChange(saveChangeAction, change, context);
     }
 
     /// <summary>
@@ -265,7 +265,7 @@ namespace Xtensive.Orm.Sync
     /// <param name="forgottenKnowledge">The forgotten knowledge to be saved.</param>
     void INotifyingChangeApplierTarget.StoreKnowledgeForScope(SyncKnowledge knowledge, ForgottenKnowledge forgottenKnowledge)
     {
-      implementation.StoreKnowledgeForScope(knowledge, forgottenKnowledge);
+      syncSession.StoreKnowledgeForScope(knowledge, forgottenKnowledge);
     }
 
     /// <summary>

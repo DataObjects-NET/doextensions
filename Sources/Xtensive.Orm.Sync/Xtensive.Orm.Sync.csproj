@@ -76,7 +76,7 @@
     <Compile Include="Internals\MetadataStore{T}.cs" />
     <Compile Include="Internals\ReplicaManager.cs" />
     <Compile Include="SyncConfiguration.cs" />
-    <Compile Include="Internals\SyncProviderImplementation.cs" />
+    <Compile Include="Internals\SyncSession.cs" />
     <Compile Include="DataExchange\ItemChangeData.cs" />
     <Compile Include="SyncInfo.cs" />
     <Compile Include="Internals\SyncInfoFetcher.cs" />

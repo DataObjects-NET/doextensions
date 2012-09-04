@@ -11,10 +11,11 @@ using FieldInfo = Xtensive.Orm.Model.FieldInfo;
 
 namespace Xtensive.Orm.Sync
 {
-  internal sealed class SyncProviderImplementation : SessionBound
+  internal sealed class SyncSession : SessionBound
   {
     private static readonly MethodInfo CreateKeyMethod;
 
+    private readonly SyncConfiguration configuration;
     private readonly Metadata metadata;
     private readonly KeyMap keyMap;
     private readonly DirectEntityAccessor accessor;
@@ -27,8 +28,6 @@ namespace Xtensive.Orm.Sync
     private IEnumerator<ChangeSet> changeSetEnumerator;
 
     public SyncIdFormatGroup IdFormats { get { return WellKnown.IdFormats; } }
-    
-    public SyncConfiguration Configuration { get; private set; }
 
     public Replica Replica { get; private set; }
 
@@ -38,7 +37,7 @@ namespace Xtensive.Orm.Sync
 
     private bool FilteredBatchIsRequired()
     {
-      var c = Configuration;
+      var c = configuration;
       return c.SyncTypes.Count > 0 || c.Filters.Count > 0 || c.SkipTypes.Count > 0;
     }
 
@@ -289,10 +288,10 @@ namespace Xtensive.Orm.Sync
       Replica.ForgottenKnowledge.Combine(forgottenKnowledge);
     }
 
-    public SyncProviderImplementation(Session session, SyncConfiguration configuration)
+    public SyncSession(Session session, SyncConfiguration configuration)
       : base(session)
     {
-      Configuration = configuration;
+      this.configuration = configuration;
 
       accessor = session.Services.Get<DirectEntityAccessor>();
       replicaManager = session.Services.Get<ReplicaManager>();
@@ -309,7 +308,7 @@ namespace Xtensive.Orm.Sync
       keyDependencies = new Dictionary<Key, List<KeyDependency>>();
     }
 
-    static SyncProviderImplementation()
+    static SyncSession()
     {
       CreateKeyMethod = typeof (Key).GetMethod("Create", BindingFlags.NonPublic | BindingFlags.Static, null,
         new[] {typeof (Domain), typeof (TypeInfo), typeof (TypeReferenceAccuracy), typeof (Tuples.Tuple)}, null);
