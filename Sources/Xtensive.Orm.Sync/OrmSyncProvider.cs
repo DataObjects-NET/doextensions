@@ -3,8 +3,9 @@
 using System.Diagnostics;
 #endif
 using Microsoft.Synchronization;
+using Xtensive.Core;
 using Xtensive.IoC;
-using Xtensive.Orm.Sync.DataExchange;
+using Xtensive.Orm.Configuration;
 using Xtensive.Orm.Tracking;
 
 namespace Xtensive.Orm.Sync
@@ -13,18 +14,17 @@ namespace Xtensive.Orm.Sync
   /// <see cref="KnowledgeSyncProvider"/> wrapper for <see cref="Xtensive.Orm"/>.
   /// </summary>
   [Service(typeof (OrmSyncProvider))]
-  public sealed class OrmSyncProvider : KnowledgeSyncProvider,
-    INotifyingChangeApplierTarget,
-    IDomainService
+  public sealed class OrmSyncProvider : KnowledgeSyncProvider, IDomainService
   {
+    private static readonly SessionConfiguration OrmSessionConfiguration;
+
     private readonly Domain domain;
     private readonly SyncConfiguration configuration;
 
-    private SyncSession syncSession;
-    private Session session;
-    private SyncSessionContext syncContext;
     private TransactionScope transaction;
-    private IDisposable persistLock;
+    private IDisposable sessionResources;
+
+    private SyncSession syncSession;
 
 #if DEBUG
     private int batchCounter;
@@ -32,7 +32,7 @@ namespace Xtensive.Orm.Sync
     private Stopwatch sessionStopwatch;
 #endif
 
-    private bool IsRunning { get { return session!=null; } }
+    private bool IsRunning { get { return syncSession!=null; } }
 
     /// <summary>
     /// Endpoint for fluent configuration of this instance.
@@ -44,7 +44,7 @@ namespace Xtensive.Orm.Sync
     /// </summary>
     public SyncConfiguration SyncConfiguration { get { return configuration; } }
 
-    #region KnowledgeSyncProvider Members
+    #region KnowledgeSyncProvider members
 
     /// <summary>
     /// When overridden in a derived class, gets the ID format schema of the provider.
@@ -62,23 +62,47 @@ namespace Xtensive.Orm.Sync
       if (IsRunning)
         throw new InvalidOperationException("Sync is already running");
 
-#if DEBUG
-      batchCounter = 0;
-      batchStopwatch = new Stopwatch();
-      sessionStopwatch = new Stopwatch();
-      sessionStopwatch.Start();
-      Debug.WriteLine("Starting synchronization session @ {0}", DateTime.Now);
-#endif
+      BeginSessionTracing();
 
-      syncContext = syncSessionContext;
-      session = domain.OpenSession();
-      var trackingMonitor = session.Services.Get<ISessionTrackingMonitor>();
-      if (trackingMonitor!=null)
-        trackingMonitor.Disable();
-      transaction = session.OpenTransaction();
-      persistLock = session.DisableSaveChanges();
-      configuration.Prepare();
-      syncSession = new SyncSession(session, configuration);
+      var resources = new DisposableSet();
+
+      try {
+        Session session;
+
+        // Prepare session
+        if (configuration.Session==null) {
+          session = domain.OpenSession(OrmSessionConfiguration);
+          resources.Add(session);
+        }
+        else {
+          session = configuration.Session;
+          if (session.Configuration.Options.HasFlag(SessionOptions.Disconnected))
+            throw new NotSupportedException("Disconnected sessions are not supported for synchronization");
+        }
+
+        // Prepare tracking monitor
+        var trackingMonitor = session.Services.Get<ISessionTrackingMonitor>();
+        if (trackingMonitor!=null)
+          trackingMonitor.Disable();
+
+        // Prepare transaction
+        transaction = session.OpenTransaction();
+        resources.Add(transaction);
+
+        // Disable persisting
+        resources.Add(session.DisableSaveChanges());
+
+        // Prepare configuration
+        configuration.Prepare();
+
+        syncSession = new SyncSession(syncSessionContext, session, configuration);
+      }
+      catch {
+        ((IDisposable) resources).Dispose();
+        throw;
+      }
+
+      sessionResources = resources;
     }
 
     /// <summary>
@@ -92,23 +116,35 @@ namespace Xtensive.Orm.Sync
 
       try {
         syncSession.UpdateReplicaState();
-#if DEBUG
-        sessionStopwatch.Stop();
-        Debug.WriteLine("Finishing synchronization session. Elapsed time: {0}", sessionStopwatch.Elapsed);
-        sessionStopwatch = null;
-        batchStopwatch.Stop();
-        batchStopwatch = null;
-#endif
-        persistLock.Dispose();
         transaction.Complete();
-        transaction.Dispose();
-        session.Dispose();
+        sessionResources.Dispose();
+        EndSessionTracing();
       }
       finally {
         syncSession = null;
         transaction = null;
-        session = null;
+        sessionResources = null;
       }
+    }
+
+    [Conditional("DEBUG")]
+    private void BeginSessionTracing()
+    {
+      batchCounter = 0;
+      batchStopwatch = new Stopwatch();
+      sessionStopwatch = new Stopwatch();
+      sessionStopwatch.Start();
+      Debug.WriteLine("Starting synchronization session @ {0}", DateTime.Now);
+    }
+
+    [Conditional("DEBUG")]
+    private void EndSessionTracing()
+    {
+      sessionStopwatch.Stop();
+      Debug.WriteLine("Finishing synchronization session. Elapsed time: {0}", sessionStopwatch.Elapsed);
+      sessionStopwatch = null;
+      batchStopwatch.Stop();
+      batchStopwatch = null;
     }
 
     /// <summary>
@@ -130,7 +166,7 @@ namespace Xtensive.Orm.Sync
 
       CheckIsRunning();
       var result = syncSession.GetChangeBatch(batchSize, destinationKnowledge);
-      changeDataRetriever = (this as INotifyingChangeApplierTarget).GetDataRetriever();
+      changeDataRetriever = syncSession.GetDataRetriever();
 
 #if DEBUG
       Debug.WriteLine("GetChangeBatch #{0}, {1} ms", batchCounter, batchStopwatch.ElapsedMilliseconds);
@@ -167,7 +203,7 @@ namespace Xtensive.Orm.Sync
 #endif
 
       CheckIsRunning();
-      syncSession.ProcessChangeBatch(resolutionPolicy, sourceChanges, changeDataRetriever, syncCallbacks, sessionStatistics, syncContext, this);
+      syncSession.ProcessChangeBatch(resolutionPolicy, sourceChanges, changeDataRetriever, syncCallbacks);
 
 #if DEBUG
       Debug.WriteLine("ProcessChangeBatch #{0}, {1} ms", batchCounter, batchStopwatch.ElapsedMilliseconds);
@@ -206,87 +242,6 @@ namespace Xtensive.Orm.Sync
 
     #endregion
 
-    #region INotifyingChangeApplierTarget Members
-
-    /// <summary>
-    /// Gets an object that can be used to retrieve item data from a replica.
-    /// </summary>
-    /// <returns>
-    /// An object that can be used to retrieve item data from a replica.
-    /// </returns>
-    IChangeDataRetriever INotifyingChangeApplierTarget.GetDataRetriever()
-    {
-      return new ChangeDataRetriever(IdFormats, syncSession.CurrentChangeSet);
-    }
-
-    /// <summary>
-    /// When overridden in a derived class, increments the tick count and returns the new tick count.
-    /// </summary>
-    /// <returns>
-    /// The newly incremented tick count.
-    /// </returns>
-    ulong INotifyingChangeApplierTarget.GetNextTickCount()
-    {
-      return syncSession.GetNextTickCount();
-    }
-
-    /// <summary>
-    /// When overridden in a derived class, saves an item change that contains unit change changes to the item store.
-    /// </summary>
-    /// <param name="change">The item change to apply.</param>
-    /// <param name="context">Information about the change to be applied.</param>
-    void INotifyingChangeApplierTarget.SaveChangeWithChangeUnits(ItemChange change, SaveChangeWithChangeUnitsContext context)
-    {
-      throw new NotImplementedException();
-    }
-
-    /// <summary>
-    /// When overridden in a derived class, saves information about a change that caused a conflict.
-    /// </summary>
-    /// <param name="conflictingChange">The item metadata for the conflicting change.</param>
-    /// <param name="conflictingChangeData">The item data for the conflicting change.</param>
-    /// <param name="conflictingChangeKnowledge">The knowledge to be learned if this change is applied. This must be saved with the change.</param>
-    void INotifyingChangeApplierTarget.SaveConflict(ItemChange conflictingChange, object conflictingChangeData, SyncKnowledge conflictingChangeKnowledge)
-    {
-      throw new NotImplementedException();
-    }
-
-    /// <summary>
-    /// When overridden in a derived class, saves an item change to the item store.
-    /// </summary>
-    /// <param name="saveChangeAction">The action to be performed for the change.</param>
-    /// <param name="change">The item change to save.</param>
-    /// <param name="context">Information about the change to be applied.</param>
-    void INotifyingChangeApplierTarget.SaveItemChange(SaveChangeAction saveChangeAction, ItemChange change, SaveChangeContext context)
-    {
-      syncSession.SaveItemChange(saveChangeAction, change, context);
-    }
-
-    /// <summary>
-    /// When overridden in a derived class, stores the knowledge for the current scope.
-    /// </summary>
-    /// <param name="knowledge">The updated knowledge to be saved.</param>
-    /// <param name="forgottenKnowledge">The forgotten knowledge to be saved.</param>
-    void INotifyingChangeApplierTarget.StoreKnowledgeForScope(SyncKnowledge knowledge, ForgottenKnowledge forgottenKnowledge)
-    {
-      syncSession.StoreKnowledgeForScope(knowledge, forgottenKnowledge);
-    }
-
-    /// <summary>
-    /// Gets the version of an item stored in the destination replica.
-    /// </summary>
-    /// <returns>
-    /// true if the item was found in the destination replica; otherwise, false. 
-    /// </returns>
-    /// <param name="sourceChange">The item change that is sent by the source provider.</param>
-    /// <param name="destinationVersion">Returns an item change that contains the version of the item in the destination replica.</param>
-    bool INotifyingChangeApplierTarget.TryGetDestinationVersion(ItemChange sourceChange, out ItemChange destinationVersion)
-    {
-      throw new NotImplementedException();
-    }
-
-    #endregion
-
     private void CheckIsRunning()
     {
       if (!IsRunning)
@@ -303,6 +258,12 @@ namespace Xtensive.Orm.Sync
       this.domain = domain;
       configuration = new SyncConfiguration();
       Sync = new SyncConfigurationEndpoint(configuration);
+    }
+
+    static OrmSyncProvider()
+    {
+      OrmSessionConfiguration = new SessionConfiguration("Sync", SessionOptions.ServerProfile);
+      OrmSessionConfiguration.Lock();
     }
   }
 }

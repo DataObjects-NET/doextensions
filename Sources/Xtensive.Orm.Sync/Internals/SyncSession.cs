@@ -11,10 +11,11 @@ using FieldInfo = Xtensive.Orm.Model.FieldInfo;
 
 namespace Xtensive.Orm.Sync
 {
-  internal sealed class SyncSession : SessionBound
+  internal sealed class SyncSession : INotifyingChangeApplierTarget 
   {
     private static readonly MethodInfo CreateKeyMethod;
 
+    private readonly Session session;
     private readonly SyncConfiguration configuration;
     private readonly Metadata metadata;
     private readonly KeyMap keyMap;
@@ -24,14 +25,14 @@ namespace Xtensive.Orm.Sync
     private readonly ReplicaManager replicaManager;
     private readonly SyncInfoFetcher syncInfoFetcher;
     private readonly SyncTickGenerator tickGenerator;
+    private readonly SyncSessionContext syncContext;
 
+    private ChangeSet currentChangeSet;
     private IEnumerator<ChangeSet> changeSetEnumerator;
 
     public SyncIdFormatGroup IdFormats { get { return WellKnown.IdFormats; } }
 
     public Replica Replica { get; private set; }
-
-    public ChangeSet CurrentChangeSet { get; private set; }
 
     #region Source provider methods
 
@@ -66,8 +67,8 @@ namespace Xtensive.Orm.Sync
       }
 
       result.BeginUnorderedGroup();
-      CurrentChangeSet = changeSetEnumerator.Current;
-      result.AddChanges(CurrentChangeSet.GetItemChanges());
+      currentChangeSet = changeSetEnumerator.Current;
+      result.AddChanges(currentChangeSet.GetItemChanges());
 
       hasNext = changeSetEnumerator.MoveNext();
       if (!hasNext) {
@@ -84,9 +85,8 @@ namespace Xtensive.Orm.Sync
 
     #region Destination provider methods
 
-    public void ProcessChangeBatch(ConflictResolutionPolicy resolutionPolicy, ChangeBatch sourceChanges,
-      object changeDataRetriever, SyncCallbacks syncCallbacks, SyncSessionStatistics sessionStatistics,
-      SyncSessionContext syncContext, INotifyingChangeApplierTarget target)
+    public void ProcessChangeBatch(
+      ConflictResolutionPolicy resolutionPolicy, ChangeBatch sourceChanges, object changeDataRetriever, SyncCallbacks syncCallbacks)
     {
       var localChanges = metadata.GetLocalChanges(sourceChanges).ToList();
       var knowledge = Replica.CurrentKnowledge.Clone();
@@ -94,7 +94,12 @@ namespace Xtensive.Orm.Sync
       var changeApplier = new NotifyingChangeApplier(IdFormats);
 
       changeApplier.ApplyChanges(resolutionPolicy, sourceChanges, changeDataRetriever as IChangeDataRetriever,
-        localChanges, knowledge, forgottenKnowledge, target, syncContext, syncCallbacks);
+        localChanges, knowledge, forgottenKnowledge, this, syncContext, syncCallbacks);
+    }
+
+    public bool TryGetDestinationVersion(ItemChange sourceChange, out ItemChange destinationVersion)
+    {
+      throw new NotSupportedException("INotifyingChangeApplierTarget.TryGetDestinationVersion");
     }
 
     public void SaveItemChange(SaveChangeAction saveChangeAction, ItemChange change, SaveChangeContext context)
@@ -104,55 +109,24 @@ namespace Xtensive.Orm.Sync
         data.Change = change;
 
       switch (saveChangeAction) {
-        case SaveChangeAction.ChangeIdUpdateVersionAndDeleteAndStoreTombstone:
-          throw new NotImplementedException();
-        case SaveChangeAction.ChangeIdUpdateVersionAndMergeData:
-          throw new NotImplementedException();
-        case SaveChangeAction.ChangeIdUpdateVersionAndSaveData:
-          throw new NotImplementedException();
-        case SaveChangeAction.ChangeIdUpdateVersionOnly:
-          throw new NotImplementedException();
         case SaveChangeAction.Create:
           HandleCreateEntity(data);
           break;
-        case SaveChangeAction.CreateGhost:
-          throw new NotImplementedException();
-        case SaveChangeAction.DeleteAndRemoveTombstone:
-          throw new NotImplementedException();
         case SaveChangeAction.DeleteAndStoreTombstone:
           HandleRemoveEntity(change);
           break;
-        case SaveChangeAction.DeleteConflictingAndSaveSourceItem:
-          throw new NotImplementedException();
-        case SaveChangeAction.DeleteGhostAndStoreTombstone:
-          throw new NotImplementedException();
-        case SaveChangeAction.DeleteGhostWithoutTombstone:
-          throw new NotImplementedException();
-        case SaveChangeAction.MarkItemAsGhost:
-          throw new NotImplementedException();
-        case SaveChangeAction.RenameDestinationAndUpdateVersionData:
-          throw new NotImplementedException();
-        case SaveChangeAction.RenameSourceAndUpdateVersionAndData:
-          throw new NotImplementedException();
-        case SaveChangeAction.StoreMergeTombstone:
-          throw new NotImplementedException();
-        case SaveChangeAction.UnmarkItemAsGhost:
-          throw new NotImplementedException();
-        case SaveChangeAction.UpdateGhost:
-          throw new NotImplementedException();
         case SaveChangeAction.UpdateVersionAndData:
           HandleUpdateEntity(data);
           break;
-        case SaveChangeAction.UpdateVersionAndMergeData:
-        case SaveChangeAction.UpdateVersionOnly:
-          throw new NotImplementedException();
+        default:
+          throw new NotSupportedException(string.Format("SaveItemChange({0})", saveChangeAction.ToString()));
       }
     }
 
     private void HandleCreateEntity(ItemChangeData data)
     {
       var entityType = data.Identity.Key.TypeReference.Type.UnderlyingType;
-      var typeInfo = Session.Domain.Model.Types[entityType];
+      var typeInfo = session.Domain.Model.Types[entityType];
       var hierarchy = typeInfo.Hierarchy;
       Key mappedKey = null;
       int offset;
@@ -160,7 +134,7 @@ namespace Xtensive.Orm.Sync
       switch (hierarchy.Key.GeneratorKind) {
         case KeyGeneratorKind.Custom:
         case KeyGeneratorKind.Default:
-          mappedKey = Key.Create(Session, entityType);
+          mappedKey = Key.Create(session, entityType);
           break;
         case KeyGeneratorKind.None:
           var originalTuple = data.Identity.Key.Value;
@@ -175,7 +149,7 @@ namespace Xtensive.Orm.Sync
             offset = field.MappingInfo.Offset;
             mappedRefKey.Value.CopyTo(targetTuple, 0, offset, field.MappingInfo.Length);
           }
-          mappedKey = (Key) CreateKeyMethod.Invoke(null, new object[] {Session.Domain, typeInfo, TypeReferenceAccuracy.ExactType, targetTuple});
+          mappedKey = (Key) CreateKeyMethod.Invoke(null, new object[] {session.Domain, typeInfo, TypeReferenceAccuracy.ExactType, targetTuple});
           break;
       }
 
@@ -270,16 +244,14 @@ namespace Xtensive.Orm.Sync
       container.Add(new KeyDependency(state, field, value));
     }
 
-    #endregion
-
     public ulong GetNextTickCount()
     {
-      return (ulong) tickGenerator.GetNextTick(Session);
+      return (ulong) tickGenerator.GetNextTick(session);
     }
 
-    public void UpdateReplicaState()
+    public IChangeDataRetriever GetDataRetriever()
     {
-      replicaManager.SaveReplica(Replica);
+      return new ChangeDataRetriever(IdFormats, currentChangeSet);
     }
 
     public void StoreKnowledgeForScope(SyncKnowledge currentKnowledge, ForgottenKnowledge forgottenKnowledge)
@@ -288,9 +260,27 @@ namespace Xtensive.Orm.Sync
       Replica.ForgottenKnowledge.Combine(forgottenKnowledge);
     }
 
-    public SyncSession(Session session, SyncConfiguration configuration)
-      : base(session)
+    public void SaveChangeWithChangeUnits(ItemChange change, SaveChangeWithChangeUnitsContext context)
     {
+      throw new NotSupportedException("INotifyingChangeApplierTarget.SaveChangeWithChangeUnits");
+    }
+
+    public void SaveConflict(ItemChange conflictingChange, object conflictingChangeData, SyncKnowledge conflictingChangeKnowledge)
+    {
+      throw new NotSupportedException("INotifyingChangeApplierTarget.SaveConflict");
+    }
+
+    #endregion
+
+    public void UpdateReplicaState()
+    {
+      replicaManager.SaveReplica(Replica);
+    }
+
+    public SyncSession(SyncSessionContext syncContext, Session session, SyncConfiguration configuration)
+    {
+      this.syncContext = syncContext;
+      this.session = session;
       this.configuration = configuration;
 
       accessor = session.Services.Get<DirectEntityAccessor>();
