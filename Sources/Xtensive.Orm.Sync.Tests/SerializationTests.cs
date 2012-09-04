@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using Microsoft.Synchronization;
 using NUnit.Framework;
+using Xtensive.Orm.Sync.DataExchange;
 using Xtensive.Orm.Sync.Tests.Model;
 using Xtensive.Tuples;
 

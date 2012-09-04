@@ -61,15 +61,15 @@
     <Compile Include="..\..\_Build\ProductInfo.cs">
       <Link>Properties\ProductInfo.cs</Link>
     </Compile>
-    <Compile Include="ChangeDataRetriever.cs" />
+    <Compile Include="DataExchange\ChangeDataRetriever.cs" />
     <Compile Include="DomainExtensions.cs" />
     <Compile Include="Interfaces\ISkippable.cs" />
     <Compile Include="Interfaces\IFilterable.cs" />
     <Compile Include="Internals\EntityTupleFormatter.cs" />
     <Compile Include="Internals\EntityTupleFormatterRegistry.cs" />
-    <Compile Include="Identity.cs" />
+    <Compile Include="DataExchange\Identity.cs" />
     <Compile Include="Internals\KeyMap.cs" />
-    <Compile Include="ChangeSet.cs" />
+    <Compile Include="DataExchange\ChangeSet.cs" />
     <Compile Include="Internals\KeyDependency.cs" />
     <Compile Include="Internals\Replica.cs" />
     <Compile Include="Internals\MetadataStore.cs" />
@@ -77,7 +77,7 @@
     <Compile Include="Internals\ReplicaManager.cs" />
     <Compile Include="SyncConfiguration.cs" />
     <Compile Include="Internals\SyncProviderImplementation.cs" />
-    <Compile Include="ItemChangeData.cs" />
+    <Compile Include="DataExchange\ItemChangeData.cs" />
     <Compile Include="SyncInfo.cs" />
     <Compile Include="Internals\SyncInfoFetcher.cs" />
     <Compile Include="SyncInfo{T}.cs">
@@ -89,7 +89,7 @@
     <Compile Include="OrmSyncProvider.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="SyncTickGenerator.cs" />
+    <Compile Include="Internals\SyncTickGenerator.cs" />
     <Compile Include="Internals\WellKnown.cs" />
     <Compile Include="SyncConfigurationEndpoint.cs" />
   </ItemGroup>

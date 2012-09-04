@@ -2,7 +2,7 @@
 using System.Runtime.Serialization;
 using Xtensive.Core;
 
-namespace Xtensive.Orm.Sync
+namespace Xtensive.Orm.Sync.DataExchange
 {
   /// <summary>
   /// Pair of <see cref="Key"/> and <see cref="Guid"/>.

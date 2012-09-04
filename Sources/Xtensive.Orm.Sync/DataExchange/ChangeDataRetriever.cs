@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.Synchronization;
 
-namespace Xtensive.Orm.Sync
+namespace Xtensive.Orm.Sync.DataExchange
 {
   /// <summary>
   /// Implementation of <see cref="IChangeDataRetriever"/>.

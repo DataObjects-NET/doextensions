@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Synchronization;
 
-namespace Xtensive.Orm.Sync
+namespace Xtensive.Orm.Sync.DataExchange
 {
   /// <summary>
   /// Set of <see cref="ItemChange"/> items.
@@ -24,7 +24,7 @@ namespace Xtensive.Orm.Sync
     }
 
     /// <summary>
-    /// Gets the <see cref="Xtensive.Orm.Sync.ItemChangeData"/> with the specified global id.
+    /// Gets the <see cref="ItemChangeData"/> with the specified global id.
     /// </summary>
     public ItemChangeData this[Guid globalId]
     {

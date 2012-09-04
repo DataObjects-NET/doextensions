@@ -1,4 +1,5 @@
 ﻿using Xtensive.Orm.Model;
+using Xtensive.Orm.Sync.DataExchange;
 
 namespace Xtensive.Orm.Sync
 {

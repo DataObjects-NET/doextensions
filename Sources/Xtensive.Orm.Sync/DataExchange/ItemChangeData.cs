@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using Microsoft.Synchronization;
 
-namespace Xtensive.Orm.Sync
+namespace Xtensive.Orm.Sync.DataExchange
 {
   /// <summary>
   /// Additional information about and <see cref="Entity"/> being synchronized
   /// </summary>
   [Serializable]
-  public class ItemChangeData
+  public sealed class ItemChangeData
   {
     /// <summary>
     /// Gets or sets the change.

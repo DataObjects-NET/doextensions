@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using Microsoft.Synchronization;
 using Xtensive.Collections.Graphs;
 using Xtensive.Orm.Model;
+using Xtensive.Orm.Sync.DataExchange;
 using FieldInfo = Xtensive.Orm.Model.FieldInfo;
 
 namespace Xtensive.Orm.Sync

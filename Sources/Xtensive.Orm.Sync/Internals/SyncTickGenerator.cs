@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using Xtensive.IoC;
 using Xtensive.Orm.Model;
 
@@ -9,7 +8,7 @@ namespace Xtensive.Orm.Sync
   /// <see cref="IKeyGenerator"/> wrapper
   /// </summary>
   [Service(typeof(SyncTickGenerator), Singleton = true)]
-  public class SyncTickGenerator : IDomainService
+  internal sealed class SyncTickGenerator : IDomainService
   {
     private readonly IKeyGenerator generator;
     private readonly KeyInfo keyInfo;

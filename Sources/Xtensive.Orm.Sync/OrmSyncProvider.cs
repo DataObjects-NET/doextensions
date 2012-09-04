@@ -4,6 +4,7 @@ using System.Diagnostics;
 #endif
 using Microsoft.Synchronization;
 using Xtensive.IoC;
+using Xtensive.Orm.Sync.DataExchange;
 using Xtensive.Orm.Tracking;
 
 namespace Xtensive.Orm.Sync
