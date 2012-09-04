@@ -12,6 +12,7 @@ _ReSharper.*
 *.resharperoptions
 *.dotCover
 *.vs10x
+*.DotSettings
 
 packages
 obj
