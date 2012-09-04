@@ -30,12 +30,12 @@ namespace Xtensive.Orm.Sync
     }
 
     /// <summary>
-    /// Gets or sets the size of the synchronization batch.
+    /// Sets the size of the synchronization batch.
     /// </summary>
-    public int BatchSize
+    public SyncConfigurationEndpoint WithBatchSize(int value)
     {
-      get { return configuration.BatchSize; }
-      set { configuration.BatchSize = value; }
+      configuration.BatchSize = value;
+      return this;
     }
 
     #region Implementation of IFilterable

@@ -23,7 +23,7 @@ namespace Xtensive.Orm.Sync.Tests
 
       LocalDomain.WaitForPendingSyncTasks();
       var remoteProvider = RemoteDomain.GetSyncProvider();
-      remoteProvider.Sync.BatchSize = 64;
+      remoteProvider.Sync.WithBatchSize(64);
       var orchestrator = new SyncOrchestrator {
         LocalProvider = LocalDomain.GetSyncProvider(),
         RemoteProvider = remoteProvider,
