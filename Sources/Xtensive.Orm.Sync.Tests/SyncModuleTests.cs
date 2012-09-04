@@ -35,5 +35,12 @@ namespace Xtensive.Orm.Sync.Tests
         }
       }
     }
+
+    [Test]
+    public void SyncIdTest()
+    {
+      var syncId = LocalDomain.GetSyncId();
+      Assert.That(syncId, Is.Not.Null);
+    }
   }
 }

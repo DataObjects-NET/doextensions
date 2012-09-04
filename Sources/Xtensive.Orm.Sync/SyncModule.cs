@@ -7,23 +7,24 @@ using Xtensive.Orm.Building;
 using Xtensive.Orm.Building.Definitions;
 using Xtensive.Orm.Tracking;
 
-namespace Xtensive.Orm.Sync.Services
+namespace Xtensive.Orm.Sync
 {
   /// <summary>
-  /// <see cref="IModule"/> implementation for Sync extension
+  /// <see cref="IModule"/> implementation for Sync extension.
   /// </summary>
   public sealed class SyncModule : IModule
   {
-    private Domain domain;
     private readonly BlockingCollection<List<ITrackingItem>> pendingItems;
+    private Domain domain;
+
     private volatile bool isExecuting;
+
+    internal SyncId SyncId { get; private set; }
 
     internal bool HasPendingTasks
     {
       get { return isExecuting || pendingItems.Count > 0; }
     }
-
-    internal SyncId SyncId { get; private set; }
 
     /// <summary>
     /// Called when the build of <see cref="T:Xtensive.Orm.Building.Definitions.DomainModelDef"/> is completed.
