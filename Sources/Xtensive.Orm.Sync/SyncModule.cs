@@ -42,9 +42,7 @@ namespace Xtensive.Orm.Sync
     public void OnBuilt(Domain builtDomain)
     {
       domain = builtDomain;
-
       domain.Extensions.Set(this);
-      domain.Extensions.Set(new EntityTupleFormatterRegistry(domain));
 
       // Initializing global structures
 

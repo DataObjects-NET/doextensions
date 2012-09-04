@@ -295,7 +295,7 @@ namespace Xtensive.Orm.Sync
       accessor = session.Services.Get<DirectEntityAccessor>();
       replicaManager = session.Services.Get<ReplicaManager>();
       tickGenerator = session.Domain.Services.Get<SyncTickGenerator>();
-      tupleFormatters = session.Domain.Extensions.Get<EntityTupleFormatterRegistry>();
+      tupleFormatters = session.Domain.Services.Get<EntityTupleFormatterRegistry>();
 
       Replica = replicaManager.LoadReplica();
 

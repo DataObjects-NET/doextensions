@@ -351,7 +351,7 @@ namespace Xtensive.Orm.Sync
     {
       this.configuration = configuration;
 
-      tupleFormatters = session.Domain.Extensions.Get<EntityTupleFormatterRegistry>();
+      tupleFormatters = session.Domain.Services.Get<EntityTupleFormatterRegistry>();
       tickGenerator = session.Domain.Services.Get<SyncTickGenerator>();
       this.replica = replica;
 

@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Xtensive.IoC;
 
 namespace Xtensive.Orm.Sync
 {
-  internal sealed class EntityTupleFormatterRegistry
+  [Service(typeof (EntityTupleFormatterRegistry), Singleton = true)]
+  internal sealed class EntityTupleFormatterRegistry : IDomainService
   {
     private readonly Dictionary<Type, EntityTupleFormatter> tupleConverters;
 
@@ -15,6 +17,7 @@ namespace Xtensive.Orm.Sync
       return tupleConverters[type];
     }
 
+    [ServiceConstructor]
     public EntityTupleFormatterRegistry(Domain domain)
     {
       tupleConverters = domain.Model.Types
