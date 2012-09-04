@@ -82,7 +82,7 @@ namespace Xtensive.Orm.Sync
           continue;
         }
 
-        var change = new ItemChange(Wellknown.IdFormats, Replica.Id, item.SyncId, changeKind, createdVersion, lastChangeVersion);
+        var change = new ItemChange(WellKnown.IdFormats, Replica.Id, item.SyncId, changeKind, createdVersion, lastChangeVersion);
         var changeData = new ItemChangeData {
           Change = change,
           Identity = new Identity(item.SyncTargetKey, item.GlobalId),
@@ -197,7 +197,7 @@ namespace Xtensive.Orm.Sync
           }
         }
 
-        var localChange = new ItemChange(Wellknown.IdFormats, Replica.Id, change.ItemId, changeKind, createdVersion, lastChangeVersion);
+        var localChange = new ItemChange(WellKnown.IdFormats, Replica.Id, change.ItemId, changeKind, createdVersion, lastChangeVersion);
         localChange.SetAllChangeUnitsPresent();
         yield return localChange;
       }
@@ -253,11 +253,11 @@ namespace Xtensive.Orm.Sync
       if (store == null)
         return null;
 
-      long tick = Replica.NextTick;
+      long tick = Replica.GetNextTick();
       var result = store.CreateItem(key);
-      result.CreatedReplicaKey = Wellknown.LocalReplicaKey;
+      result.CreatedReplicaKey = WellKnown.LocalReplicaKey;
       result.CreatedTickCount = tick;
-      result.ChangeReplicaKey = Wellknown.LocalReplicaKey;
+      result.ChangeReplicaKey = WellKnown.LocalReplicaKey;
       result.ChangeTickCount = tick;
       result.GlobalId = Guid.NewGuid();
       return result;
@@ -278,14 +278,14 @@ namespace Xtensive.Orm.Sync
 
     public void UpdateMetadata(SyncInfo item, bool markAsTombstone)
     {
-      long tick = Replica.NextTick;
-      item.ChangeReplicaKey = Wellknown.LocalReplicaKey;
+      long tick = Replica.GetNextTick();
+      item.ChangeReplicaKey = WellKnown.LocalReplicaKey;
       item.ChangeTickCount = tick;
 
       if (!markAsTombstone)
         return;
 
-      item.TombstoneReplicaKey = Wellknown.LocalReplicaKey;
+      item.TombstoneReplicaKey = WellKnown.LocalReplicaKey;
       item.TombstoneTickCount = tick;
       item.IsTombstone = true;
     }

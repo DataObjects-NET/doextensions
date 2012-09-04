@@ -89,7 +89,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="SyncTickGenerator.cs" />
-    <Compile Include="Internals\Wellknown.cs" />
+    <Compile Include="Internals\WellKnown.cs" />
     <Compile Include="SyncConfigurationEndpoint.cs" />
   </ItemGroup>
   <ItemGroup>

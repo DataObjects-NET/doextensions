@@ -33,7 +33,7 @@ namespace Xtensive.Orm.Sync
       : base(session)
     {
       var typeInfo = session.Domain.Model.Types[ItemType];
-      EntityField = typeInfo.Fields[Wellknown.EntityFieldName];
+      EntityField = typeInfo.Fields[WellKnown.EntityFieldName];
       EntityAccessor = session.Services.Get<DirectEntityAccessor>();
     }
   }

@@ -51,7 +51,7 @@ namespace Xtensive.Orm.Sync
     public SyncTickGenerator(Domain domain)
     {
       keyInfo = domain.Model.Types[typeof (SyncInfo)].Key;
-      generator = domain.Services.Get<IKeyGenerator>(Wellknown.TickGeneratorName);
+      generator = domain.Services.Get<IKeyGenerator>(WellKnown.TickGeneratorName);
     }
   }
 }

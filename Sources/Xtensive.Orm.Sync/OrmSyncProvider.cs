@@ -44,7 +44,7 @@ namespace Xtensive.Orm.Sync
     /// When overridden in a derived class, gets the ID format schema of the provider.
     /// </summary>
     /// <returns>The ID format schema of the provider.</returns>
-    public override SyncIdFormatGroup IdFormats { get { return Wellknown.IdFormats; } }
+    public override SyncIdFormatGroup IdFormats { get { return WellKnown.IdFormats; } }
 
     /// <summary>
     /// When overridden in a derived class, notifies the provider that it is joining a synchronization session.

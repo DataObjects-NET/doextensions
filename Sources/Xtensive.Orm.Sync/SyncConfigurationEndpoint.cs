@@ -105,7 +105,7 @@ namespace Xtensive.Orm.Sync
 
     private static void CheckIsHierarchyRoot(Type candidate)
     {
-      if (candidate.IsDefined(typeof (HierarchyRootAttribute), false))
+      if (!candidate.IsDefined(typeof (HierarchyRootAttribute), false))
         throw new InvalidOperationException(string.Format("{0} is not a hierarchy root", candidate.Name));
     }
 

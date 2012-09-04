@@ -45,19 +45,19 @@ namespace Xtensive.Orm.Sync
 
     public override IEnumerable<SyncInfo> GetMetadata(List<Key> keys)
     {
-      int batchCount = keys.Count / Wellknown.KeyPreloadBatchSize;
-      int lastBatchItemCount = keys.Count % Wellknown.KeyPreloadBatchSize;
+      int batchCount = keys.Count / WellKnown.KeyPreloadBatchSize;
+      int lastBatchItemCount = keys.Count % WellKnown.KeyPreloadBatchSize;
       if (lastBatchItemCount > 0)
         batchCount++;
 
       for (int i = 0; i < batchCount; i++) {
-        var itemCount = Wellknown.KeyPreloadBatchSize;
+        var itemCount = WellKnown.KeyPreloadBatchSize;
         if (batchCount - i==1 && lastBatchItemCount > 0)
           itemCount = lastBatchItemCount;
 
         var outer = Session.Query.All<SyncInfo<TEntity>>();
         var inner = Session.Query.All<TEntity>();
-        var filter = FilterByKeys<TEntity>(keys, i * Wellknown.KeyPreloadBatchSize, itemCount);
+        var filter = FilterByKeys<TEntity>(keys, i * WellKnown.KeyPreloadBatchSize, itemCount);
         var pairs = outer
           .Where(filter)
           .LeftJoin(inner, si => si.Entity, t => t, (si, t) => new {SyncInfo = si, Target = t})
@@ -85,8 +85,8 @@ namespace Xtensive.Orm.Sync
     private Expression<Func<SyncInfo<TEntity>, bool>> FilterByKeys<T>(List<Key> keys, int start, int count)
     {
       var p = Expression.Parameter(typeof (SyncInfo<TEntity>), "p");
-      var ea = Expression.Property(p, Wellknown.EntityFieldName);
-      var ka = Expression.Property(ea, WellKnown.KeyFieldName);
+      var ea = Expression.Property(p, WellKnown.EntityFieldName);
+      var ka = Expression.Property(ea, Orm.WellKnown.KeyFieldName);
 
       var body = Expression.Equal(ka, Expression.Constant(keys[start]));
       for (int i = 1; i < count; i++)
@@ -95,7 +95,7 @@ namespace Xtensive.Orm.Sync
       return Expression.Lambda<Func<SyncInfo<TEntity>, bool>>(body, p);
     }
 
-    protected IEnumerable<SyncInfo> UpdateItemState(IEnumerable<SyncInfo<TEntity>> items)
+    private IEnumerable<SyncInfo> UpdateItemState(IEnumerable<SyncInfo<TEntity>> items)
     {
       foreach (var item in items) {
         UpdateItemState(item);

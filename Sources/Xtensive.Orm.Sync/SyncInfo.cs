@@ -8,7 +8,7 @@ namespace Xtensive.Orm.Sync
   /// <see cref="Entity"/> that contains synchronization-related information.
   /// </summary>
   [HierarchyRoot]
-  [KeyGenerator(Name = Wellknown.TickGeneratorName)]
+  [KeyGenerator(Name = WellKnown.TickGeneratorName)]
   [Index("GlobalId", Unique = true)]
   public abstract class SyncInfo : Entity
   {

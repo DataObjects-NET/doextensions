@@ -29,7 +29,7 @@ namespace Xtensive.Orm.Sync
 
       this.session = session;
       cache = new LruCache<Guid, SyncInfo>(
-        Wellknown.SyncInfoCacheSize, s => s.GlobalId,
+        WellKnown.SyncInfoCacheSize, s => s.GlobalId,
         new WeakCache<Guid, SyncInfo>(false, s => s.GlobalId));
     }
   }

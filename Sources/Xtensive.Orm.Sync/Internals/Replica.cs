@@ -8,82 +8,64 @@ namespace Xtensive.Orm.Sync
 {
   internal class Replica : SessionBound
   {
-    private static readonly Lazy<XmlSerializer> KnowledgeSerializer;
-    private static readonly Lazy<XmlSerializer> ForgottenKnowledgeSerializer;
+    private static readonly XmlSerializer KnowledgeSerializer = new XmlSerializer(typeof (SyncKnowledge));
+    private static readonly XmlSerializer ForgottenKnowledgeSerializer = new XmlSerializer(typeof (ForgottenKnowledge));
 
     private readonly SyncTickGenerator tickGenerator;
-    private SyncKnowledge currentKnowledge;
-    private ForgottenKnowledge forgottenKnowledge;
 
     public SyncId Id { get; private set; }
 
-    public SyncKnowledge CurrentKnowledge
+    public SyncKnowledge CurrentKnowledge { get; private set; }
+
+    public ForgottenKnowledge ForgottenKnowledge { get; private set; }
+
+    public long GetTickCount()
     {
-      get { return currentKnowledge; }
-      set { currentKnowledge = value; }
+      return tickGenerator.GetLastTick(Session);
     }
 
-    public ForgottenKnowledge ForgottenKnowledge
+    public long GetNextTick()
     {
-      get { return forgottenKnowledge; }
-      set { forgottenKnowledge = value; }
-    }
-
-    public long TickCount
-    {
-      get { return tickGenerator.GetLastTick(Session); }
-    }
-
-    public long NextTick
-    {
-      get { return tickGenerator.GetNextTick(Session); }
+      return tickGenerator.GetNextTick(Session);
     }
 
     public void UpdateState()
     {
-      UpdateCurrentKnowledge(currentKnowledge);
-      UpdateForgottenKnowledge(forgottenKnowledge);
-    }
-
-    private void Initialize()
-    {
-      ReadId();
-      ReadCurrentKnowledge();
-      ReadForgottenKnowledge();
+      UpdateCurrentKnowledge(CurrentKnowledge);
+      UpdateForgottenKnowledge(ForgottenKnowledge);
     }
 
     private void ReadId()
     {
-      var container = Session.Query.SingleOrDefault<Extension>(Wellknown.ReplicaIdFieldName);
-      if (container==null) {
+      var container = Session.Query.SingleOrDefault<Extension>(WellKnown.ReplicaIdExtensionName);
+      if (container!=null) {
+        Id = new SyncId(new Guid(container.Text));
+      }
+      else {
         Id = new SyncId(Guid.NewGuid());
         using (Session.Activate())
-          new Extension(Wellknown.ReplicaIdFieldName) {
-            Text = Id.GetGuidId().ToString()
-          };
+          new Extension(WellKnown.ReplicaIdExtensionName) {Text = Id.GetGuidId().ToString()};
       }
-      else
-        Id = new SyncId(new Guid(container.Text));
     }
 
     private void ReadCurrentKnowledge()
     {
-      var container = Session.Query.SingleOrDefault<Extension>(Wellknown.CurrentKnowledgeFieldName);
+      var container = Session.Query.SingleOrDefault<Extension>(WellKnown.CurrentKnowledgeExtensionName);
       if (container!=null) {
-        CurrentKnowledge = (SyncKnowledge) KnowledgeSerializer.Value.Deserialize(new StringReader(container.Text));
-        CurrentKnowledge.SetLocalTickCount((ulong) TickCount);
+        CurrentKnowledge = (SyncKnowledge) KnowledgeSerializer.Deserialize(new StringReader(container.Text));
+        CurrentKnowledge.SetLocalTickCount((ulong) GetTickCount());
       }
       else
-        CurrentKnowledge = new SyncKnowledge(Wellknown.IdFormats, Id, (ulong) TickCount);
+        CurrentKnowledge = new SyncKnowledge(WellKnown.IdFormats, Id, (ulong) GetTickCount());
     }
 
     private void ReadForgottenKnowledge()
     {
-      var container = Session.Query.SingleOrDefault<Extension>(Wellknown.ForgottenKnowledgeFieldName);
+      var container = Session.Query.SingleOrDefault<Extension>(WellKnown.ForgottenKnowledgeExtensionName);
       if (container!=null)
-        ForgottenKnowledge = (ForgottenKnowledge) ForgottenKnowledgeSerializer.Value.Deserialize(new StringReader(container.Text));
+        ForgottenKnowledge = (ForgottenKnowledge) ForgottenKnowledgeSerializer.Deserialize(new StringReader(container.Text));
       else
-        ForgottenKnowledge = new ForgottenKnowledge(Wellknown.IdFormats, CurrentKnowledge);
+        ForgottenKnowledge = new ForgottenKnowledge(WellKnown.IdFormats, CurrentKnowledge);
     }
 
     private void UpdateCurrentKnowledge(SyncKnowledge knowledge)
@@ -91,12 +73,13 @@ namespace Xtensive.Orm.Sync
       if (knowledge==null)
         throw new ArgumentNullException("knowledge");
 
-      var container = Session.Query.SingleOrDefault<Extension>(Wellknown.CurrentKnowledgeFieldName);
+      var container = Session.Query.SingleOrDefault<Extension>(WellKnown.CurrentKnowledgeExtensionName);
       if (container==null)
         using (Session.Activate())
-          container = new Extension(Wellknown.CurrentKnowledgeFieldName);
+          container = new Extension(WellKnown.CurrentKnowledgeExtensionName);
+
       var writer = new StringWriter();
-      KnowledgeSerializer.Value.Serialize(writer, knowledge);
+      KnowledgeSerializer.Serialize(writer, knowledge);
       container.Text = writer.ToString();
     }
 
@@ -105,13 +88,13 @@ namespace Xtensive.Orm.Sync
       if (knowledge==null)
         return;
 
-      var container = Session.Query.SingleOrDefault<Extension>(Wellknown.ForgottenKnowledgeFieldName);
+      var container = Session.Query.SingleOrDefault<Extension>(WellKnown.ForgottenKnowledgeExtensionName);
       if (container==null)
         using (Session.Activate())
-          container = new Extension(Wellknown.ForgottenKnowledgeFieldName);
+          container = new Extension(WellKnown.ForgottenKnowledgeExtensionName);
 
       var writer = new StringWriter();
-      ForgottenKnowledgeSerializer.Value.Serialize(writer, knowledge);
+      ForgottenKnowledgeSerializer.Serialize(writer, knowledge);
       container.Text = writer.ToString();
     }
 
@@ -119,13 +102,10 @@ namespace Xtensive.Orm.Sync
       : base(session)
     {
       tickGenerator = session.Domain.Services.Get<SyncTickGenerator>();
-      Initialize();
-    }
 
-    static Replica()
-    {
-      KnowledgeSerializer = new Lazy<XmlSerializer>(() => new XmlSerializer(typeof (SyncKnowledge)), true);
-      ForgottenKnowledgeSerializer = new Lazy<XmlSerializer>(() => new XmlSerializer(typeof (ForgottenKnowledge)), true);
+      ReadId();
+      ReadCurrentKnowledge();
+      ReadForgottenKnowledge();
     }
   }
 }

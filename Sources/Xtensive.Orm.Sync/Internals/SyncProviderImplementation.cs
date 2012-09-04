@@ -22,7 +22,7 @@ namespace Xtensive.Orm.Sync
 
     private IEnumerator<ChangeSet> changeSetEnumerator;
     
-    public SyncIdFormatGroup IdFormats { get { return Wellknown.IdFormats; } }
+    public SyncIdFormatGroup IdFormats { get { return WellKnown.IdFormats; } }
     
     public SyncConfiguration Configuration { get; private set; }
 
@@ -271,7 +271,7 @@ namespace Xtensive.Orm.Sync
 
     public ulong GetNextTickCount()
     {
-      return (ulong) Replica.NextTick;
+      return (ulong) Replica.GetNextTick();
     }
 
     public void StoreKnowledgeForScope(SyncKnowledge currentKnowledge, ForgottenKnowledge forgottenKnowledge)

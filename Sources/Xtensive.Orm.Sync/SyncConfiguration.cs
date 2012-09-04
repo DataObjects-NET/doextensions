@@ -52,7 +52,7 @@ namespace Xtensive.Orm.Sync
 
     private void Initialize()
     {
-      BatchSize = Wellknown.SyncBatchSize;
+      BatchSize = WellKnown.SyncBatchSize;
       Endpoint = new SyncConfigurationEndpoint(this);
       SyncTypes = new HashSet<Type>();
       SkipTypes = new HashSet<Type>();
