@@ -79,7 +79,7 @@
     <Compile Include="Internals\SyncProviderImplementation.cs" />
     <Compile Include="ItemChangeData.cs" />
     <Compile Include="SyncInfo.cs" />
-    <Compile Include="Internals\SyncInfoCache.cs" />
+    <Compile Include="Internals\SyncInfoFetcher.cs" />
     <Compile Include="SyncInfo{T}.cs">
       <SubType>Code</SubType>
     </Compile>

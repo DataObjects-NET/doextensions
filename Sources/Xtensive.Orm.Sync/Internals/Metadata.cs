@@ -16,6 +16,7 @@ namespace Xtensive.Orm.Sync
     private readonly HashSet<Key> requestedKeys;
     private readonly EntityTupleFormatterRegistry tupleFormatters;
     private readonly SyncTickGenerator tickGenerator;
+    private readonly SyncInfoFetcher syncInfoFetcher;
     private readonly Replica replica;
 
     private List<MetadataStore> storeList;
@@ -233,7 +234,7 @@ namespace Xtensive.Orm.Sync
 
     public SyncInfo GetMetadata(Guid globalId)
     {
-      var syncInfo = SyncInfo.Fetch(Session, globalId);
+      var syncInfo = syncInfoFetcher.Fetch(globalId);
 
       if (syncInfo==null)
         return null;
@@ -350,10 +351,11 @@ namespace Xtensive.Orm.Sync
       : base(session)
     {
       this.configuration = configuration;
+      this.replica = replica;
 
       tupleFormatters = session.Domain.Services.Get<EntityTupleFormatterRegistry>();
       tickGenerator = session.Domain.Services.Get<SyncTickGenerator>();
-      this.replica = replica;
+      syncInfoFetcher = session.Services.Get<SyncInfoFetcher>();
 
       sentKeys = new HashSet<Key>();
       requestedKeys = new HashSet<Key>();

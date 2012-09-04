@@ -172,21 +172,6 @@ namespace Xtensive.Orm.Sync
     [Infrastructure]
     internal Key SyncTargetKey { get; set; }
 
-    internal static SyncInfo Fetch(Session session, Guid globalId)
-    {
-      if (session==null)
-        throw new ArgumentNullException("session");
-
-      var cache = session.Extensions.Get<SyncInfoCache>();
-
-      if (cache==null) {
-        cache = new SyncInfoCache(session);
-        session.Extensions.Set(cache);
-      }
-
-      return cache.Get(globalId);
-    }
-
     /// <summary>
     /// Initializes a new instance of the <see cref="SyncInfo"/> class.
     /// </summary>

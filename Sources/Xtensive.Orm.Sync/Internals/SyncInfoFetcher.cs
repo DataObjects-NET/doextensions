@@ -1,15 +1,17 @@
 using System;
 using System.Linq;
 using Xtensive.Caching;
+using Xtensive.IoC;
 
 namespace Xtensive.Orm.Sync
 {
-  internal sealed class SyncInfoCache
+  [Service(typeof (SyncInfoFetcher), Singleton = true)]
+  internal sealed class SyncInfoFetcher : ISessionService
   {
     private readonly Session session;
     private readonly ICache<Guid, SyncInfo> cache;
 
-    public SyncInfo Get(Guid globalId)
+    public SyncInfo Fetch(Guid globalId)
     {
       SyncInfo result;
 
@@ -22,12 +24,14 @@ namespace Xtensive.Orm.Sync
       return result;
     }
 
-    public SyncInfoCache(Session session)
+    [ServiceConstructor]
+    public SyncInfoFetcher(Session session)
     {
       if (session==null)
         throw new ArgumentNullException("session");
 
       this.session = session;
+
       cache = new LruCache<Guid, SyncInfo>(
         WellKnown.SyncInfoCacheSize, s => s.GlobalId,
         new WeakCache<Guid, SyncInfo>(false, s => s.GlobalId));

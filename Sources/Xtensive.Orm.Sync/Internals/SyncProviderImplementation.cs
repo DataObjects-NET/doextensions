@@ -20,6 +20,7 @@ namespace Xtensive.Orm.Sync
     private readonly Dictionary<Key, List<KeyDependency>> keyDependencies;
     private readonly EntityTupleFormatterRegistry tupleFormatters;
     private readonly ReplicaManager replicaManager;
+    private readonly SyncInfoFetcher syncInfoFetcher;
     private readonly SyncTickGenerator tickGenerator;
 
     private IEnumerator<ChangeSet> changeSetEnumerator;
@@ -190,7 +191,7 @@ namespace Xtensive.Orm.Sync
 
     private void HandleUpdateEntity(ItemChangeData data)
     {
-      var syncInfo = SyncInfo.Fetch(Session, data.Identity.GlobalId);
+      var syncInfo = syncInfoFetcher.Fetch(data.Identity.GlobalId);
       if (syncInfo==null)
         return;
 
@@ -206,7 +207,7 @@ namespace Xtensive.Orm.Sync
 
     private void HandleRemoveEntity(ItemChange change)
     {
-      var syncInfo = SyncInfo.Fetch(Session, change.ItemId.GetGuidId());
+      var syncInfo = syncInfoFetcher.Fetch(change.ItemId.GetGuidId());
       if (syncInfo==null)
         return;
 
@@ -294,6 +295,8 @@ namespace Xtensive.Orm.Sync
 
       accessor = session.Services.Get<DirectEntityAccessor>();
       replicaManager = session.Services.Get<ReplicaManager>();
+      syncInfoFetcher = session.Services.Get<SyncInfoFetcher>();
+
       tickGenerator = session.Domain.Services.Get<SyncTickGenerator>();
       tupleFormatters = session.Domain.Services.Get<EntityTupleFormatterRegistry>();
 
