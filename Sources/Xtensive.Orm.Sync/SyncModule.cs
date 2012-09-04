@@ -19,7 +19,7 @@ namespace Xtensive.Orm.Sync
 
     private volatile bool isExecuting;
 
-    internal SyncId SyncId { get; private set; }
+    internal SyncId ReplicaId { get; private set; }
 
     internal bool HasPendingTasks
     {
@@ -48,7 +48,7 @@ namespace Xtensive.Orm.Sync
 
       using (var session = domain.OpenSession())
       using (var t = session.OpenTransaction()) {
-        SyncId = session.Services.Get<ReplicaManager>().GetSyncId();
+        ReplicaId = session.Services.Get<ReplicaManager>().LoadReplicaId();
         t.Complete();
       }
 

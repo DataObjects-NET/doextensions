@@ -16,14 +16,9 @@ namespace Xtensive.Orm.Sync
     private readonly Session session;
     private readonly SyncTickGenerator tickGenerator;
 
-    public SyncId GetSyncId()
-    {
-      return LoadSyncId();
-    }
-
     public Replica LoadReplica()
     {
-      var result = new Replica {Id = LoadSyncId()};
+      var result = new Replica {Id = LoadReplicaId()};
       LoadCurrentKnowledge(result);
       LoadForgottenKnowledge(result);
       return result;
@@ -35,7 +30,7 @@ namespace Xtensive.Orm.Sync
       SaveForgottenKnowledge(replica);
     }
 
-    private SyncId LoadSyncId()
+    public SyncId LoadReplicaId()
     {
       var container = GetContainer(WellKnown.ReplicaIdExtensionName);
       if (container!=null)

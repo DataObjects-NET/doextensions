@@ -26,12 +26,12 @@ namespace Xtensive.Orm
     /// </summary>
     /// <param name="domain">The domain to use.</param>
     /// <returns>Replica id for specified domain if sync is enabled, otherwise null.</returns>
-    public static SyncId GetSyncId(this Domain domain)
+    public static SyncId GetReplicaId(this Domain domain)
     {
       var syncModule =  domain.Extensions.Get<SyncModule>();
       if (syncModule==null)
         return null;
-      return syncModule.SyncId;
+      return syncModule.ReplicaId;
     }
 
     /// <summary>

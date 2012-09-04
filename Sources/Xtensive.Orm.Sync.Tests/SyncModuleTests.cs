@@ -37,9 +37,9 @@ namespace Xtensive.Orm.Sync.Tests
     }
 
     [Test]
-    public void SyncIdTest()
+    public void ReplicaIdTest()
     {
-      var syncId = LocalDomain.GetSyncId();
+      var syncId = LocalDomain.GetReplicaId();
       Assert.That(syncId, Is.Not.Null);
     }
   }
