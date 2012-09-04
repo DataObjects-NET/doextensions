@@ -2,7 +2,7 @@
 
 namespace Xtensive.Orm.Sync
 {
-  internal class KeyDependency
+  internal sealed class KeyDependency
   {
     public EntityState Target { get; private set; }
 

@@ -11,7 +11,7 @@ namespace Xtensive.Orm.Sync
   /// <summary>
   /// <see cref="IModule"/> implementation for Sync extension
   /// </summary>
-  public class SyncModule : IModule
+  public sealed class SyncModule : IModule
   {
     private Domain domain;
     private readonly BlockingCollection<List<ITrackingItem>> pendingItems;
@@ -77,8 +77,7 @@ namespace Xtensive.Orm.Sync
             using (var t = session.OpenTransaction()) {
               var ms = new Metadata(session, new SyncConfiguration());
               var info = ms.GetMetadata(items.Select(i => i.Key)).ToList();
-              var lookup = info
-                .ToDictionary(i => i.SyncTargetKey);
+              var lookup = info.ToDictionary(i => i.SyncTargetKey);
 
               foreach (var item in items) {
                 if (item.State==TrackingItemState.Created)

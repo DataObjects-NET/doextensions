@@ -10,7 +10,7 @@ namespace Xtensive.Orm.Sync
   /// Set of <see cref="ItemChange"/> items.
   /// </summary>
   [Serializable]
-  public class ChangeSet : IEnumerable<ItemChangeData>
+  public sealed class ChangeSet : IEnumerable<ItemChangeData>
   {
     private readonly Dictionary<Guid, ItemChangeData> index = new Dictionary<Guid,ItemChangeData>();
 

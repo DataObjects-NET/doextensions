@@ -7,7 +7,7 @@ namespace Xtensive.Orm.Sync
   /// <summary>
   /// Configuration for <see cref="OrmSyncProvider"/>
   /// </summary>
-  public class SyncConfiguration
+  public sealed class SyncConfiguration
   {
     /// <summary>
     /// Gets the <see cref="SyncConfigurationEndpoint"/> instance for fluent configuration.

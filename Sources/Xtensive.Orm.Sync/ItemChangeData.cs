@@ -10,8 +10,6 @@ namespace Xtensive.Orm.Sync
   [Serializable]
   public class ItemChangeData
   {
-    private string tupleValue;
-
     /// <summary>
     /// Gets or sets the change.
     /// </summary>
@@ -31,11 +29,7 @@ namespace Xtensive.Orm.Sync
     /// <summary>
     /// Gets or sets the tuple value in canonical representation.
     /// </summary>
-    public string TupleValue
-    {
-      get { return tupleValue; }
-      set { tupleValue = value; }
-    }
+    public string TupleValue { get; set; }
 
     /// <summary>
     /// Gets the references from this entity.

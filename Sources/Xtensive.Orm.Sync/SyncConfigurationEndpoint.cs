@@ -6,7 +6,7 @@ namespace Xtensive.Orm.Sync
   /// <summary>
   /// Endpoint for fluent configuration of <see cref="OrmSyncProvider"/> instance.
   /// </summary>
-  public class SyncConfigurationEndpoint : IFilterable
+  public sealed class SyncConfigurationEndpoint : IFilterable
   {
     private readonly SyncConfiguration configuration;
 
@@ -105,8 +105,7 @@ namespace Xtensive.Orm.Sync
 
     private static void CheckIsHierarchyRoot(Type candidate)
     {
-      var attribute = Attribute.GetCustomAttribute(candidate, typeof(HierarchyRootAttribute));
-      if (attribute == null)
+      if (candidate.IsDefined(typeof (HierarchyRootAttribute), false))
         throw new InvalidOperationException(string.Format("{0} is not a hierarchy root", candidate.Name));
     }
 

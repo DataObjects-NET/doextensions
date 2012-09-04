@@ -12,7 +12,7 @@ namespace Xtensive.Orm.Sync
   /// <see cref="KnowledgeSyncProvider"/> wrapper for <see cref="Xtensive.Orm"/>.
   /// </summary>
   [Service(typeof (OrmSyncProvider))]
-  public class OrmSyncProvider : KnowledgeSyncProvider,
+  public sealed class OrmSyncProvider : KnowledgeSyncProvider,
     INotifyingChangeApplierTarget,
     IDomainService
   {
@@ -61,7 +61,7 @@ namespace Xtensive.Orm.Sync
       batchStopwatch = new Stopwatch();
       sessionStopwatch = new Stopwatch();
       sessionStopwatch.Start();
-      Debug.WriteLine(string.Format("Starting synchronization session @ {0}", DateTime.Now));
+      Debug.WriteLine("Starting synchronization session @ {0}", DateTime.Now);
 #endif
 
       syncContext = syncSessionContext;
@@ -89,7 +89,7 @@ namespace Xtensive.Orm.Sync
         implementation.Replica.UpdateState();
 #if DEBUG
         sessionStopwatch.Stop();
-        Debug.WriteLine(string.Format("Finishing synchronization session. Elapsed time: {0}", sessionStopwatch.Elapsed));
+        Debug.WriteLine("Finishing synchronization session. Elapsed time: {0}", sessionStopwatch.Elapsed);
         sessionStopwatch = null;
         batchStopwatch.Stop();
         batchStopwatch = null;
@@ -128,7 +128,7 @@ namespace Xtensive.Orm.Sync
       changeDataRetriever = (this as INotifyingChangeApplierTarget).GetDataRetriever();
 
 #if DEBUG
-      Debug.WriteLine(string.Format("GetChangeBatch #{0}, {1} ms", batchCounter, batchStopwatch.ElapsedMilliseconds));
+      Debug.WriteLine("GetChangeBatch #{0}, {1} ms", batchCounter, batchStopwatch.ElapsedMilliseconds);
 #endif
       return result;
     }
@@ -165,7 +165,7 @@ namespace Xtensive.Orm.Sync
       implementation.ProcessChangeBatch(resolutionPolicy, sourceChanges, changeDataRetriever, syncCallbacks, sessionStatistics, syncContext, this);
 
 #if DEBUG
-      Debug.WriteLine(string.Format("ProcessChangeBatch #{0}, {1} ms", batchCounter, batchStopwatch.ElapsedMilliseconds));
+      Debug.WriteLine("ProcessChangeBatch #{0}, {1} ms", batchCounter, batchStopwatch.ElapsedMilliseconds);
 #endif
     }
 

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -7,11 +6,10 @@ using Microsoft.Synchronization;
 using Xtensive.Collections.Graphs;
 using Xtensive.Orm.Model;
 using FieldInfo = Xtensive.Orm.Model.FieldInfo;
-using Tuple = Xtensive.Tuples.Tuple;
 
 namespace Xtensive.Orm.Sync
 {
-  internal class Metadata : SessionBound
+  internal sealed class Metadata : SessionBound
   {
     private readonly SyncConfiguration configuration;
     private readonly HashSet<Key> sentKeys;
@@ -235,19 +233,18 @@ namespace Xtensive.Orm.Sync
 
     public SyncInfo GetMetadata(Guid globalId)
     {
-      var result = Session.Query.All<SyncInfo>()
-        .SingleOrDefault(s => s.GlobalId == globalId);
+      var syncInfo = SyncInfo.Fetch(Session, globalId);
 
-      if (result == null)
+      if (syncInfo==null)
         return null;
 
       var store = storeList
-        .SingleOrDefault(s => s.ItemType == result.GetType());
+        .SingleOrDefault(s => s.ItemType==syncInfo.GetType());
 
-      if (store == null)
-        return result;
+      if (store==null)
+        return syncInfo;
 
-      return store.GetMetadata(result);
+      return store.GetMetadata(syncInfo);
     }
 
     public SyncInfo CreateMetadata(Key key)

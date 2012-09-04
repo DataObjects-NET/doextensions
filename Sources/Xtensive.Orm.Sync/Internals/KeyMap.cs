@@ -3,10 +3,10 @@ using System.Collections.Generic;
 
 namespace Xtensive.Orm.Sync
 {
-  internal class KeyMap
+  internal sealed class KeyMap
   {
-    private readonly Dictionary<Key, Key> keyIndex = new Dictionary<Key,Key>();
-    private readonly Dictionary<Guid, Key> globalIdIndex = new Dictionary<Guid,Key>();
+    private readonly Dictionary<Key, Key> keyIndex = new Dictionary<Key, Key>();
+    private readonly Dictionary<Guid, Key> globalIdIndex = new Dictionary<Guid, Key>();
 
     public void Register(Identity mapping, Key newKey)
     {
@@ -28,7 +28,7 @@ namespace Xtensive.Orm.Sync
 
     private Key ResolveByGlobalId(Guid globalId)
     {
-      if (globalId == Guid.Empty)
+      if (globalId==Guid.Empty)
         return null;
 
       Key result;

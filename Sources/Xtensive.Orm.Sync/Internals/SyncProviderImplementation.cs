@@ -10,7 +10,7 @@ using FieldInfo = Xtensive.Orm.Model.FieldInfo;
 
 namespace Xtensive.Orm.Sync
 {
-  internal class SyncProviderImplementation : SessionBound
+  internal sealed class SyncProviderImplementation : SessionBound
   {
     private static readonly MethodInfo CreateKeyMethod;
 
@@ -188,7 +188,7 @@ namespace Xtensive.Orm.Sync
 
     private void HandleUpdateEntity(ItemChangeData data)
     {
-      var syncInfo = FetchSyncInfo(data.Identity.GlobalId);
+      var syncInfo = SyncInfo.Fetch(Session, data.Identity.GlobalId);
       if (syncInfo==null)
         return;
 
@@ -204,7 +204,7 @@ namespace Xtensive.Orm.Sync
 
     private void HandleRemoveEntity(ItemChange change)
     {
-      var syncInfo = FetchSyncInfo(change.ItemId.GetGuidId());
+      var syncInfo = SyncInfo.Fetch(Session, change.ItemId.GetGuidId());
       if (syncInfo==null)
         return;
 
@@ -212,11 +212,6 @@ namespace Xtensive.Orm.Sync
       var entity = syncInfo.SyncTarget;
       var state = accessor.GetEntityState(entity);
       state.PersistenceState = PersistenceState.Removed;
-    }
-
-    private SyncInfo FetchSyncInfo(Guid globalId)
-    {
-      return Session.Query.Execute(q => q.All<SyncInfo>().SingleOrDefault(s => s.GlobalId==globalId));
     }
 
     private void RegisterKeyMapping(ItemChangeData data, Key mappedKey)

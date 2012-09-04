@@ -8,7 +8,7 @@ namespace Xtensive.Orm.Sync
   /// Pair of <see cref="Key"/> and <see cref="Guid"/>.
   /// </summary>
   [Serializable]
-  public class Identity
+  public sealed class Identity
   {
     [NonSerialized]
     private Key key;

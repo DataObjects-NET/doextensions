@@ -7,6 +7,8 @@ namespace Xtensive.Orm.Sync
     public const int SyncBatchSize = 64;
     public const int KeyPreloadBatchSize = 25;
     public const int LocalReplicaKey = 0;
+    public const int SyncInfoCacheSize = 128 * 1024;
+
     public const string TickGeneratorName = "SyncInfo";
     public const string EntityFieldName = "Entity";
     public const string ReplicaIdFieldName = "Xtensive.Orm.Sync.ReplicaId";

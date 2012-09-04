@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Threading;
 using Microsoft.Synchronization;
 using NUnit.Framework;
 using Xtensive.Orm.Sync.Tests.Model;
@@ -14,10 +13,8 @@ namespace Xtensive.Orm.Sync.Tests
     {
       using (var session = LocalDomain.OpenSession()) {
         using (var t = session.OpenTransaction()) {
-          for (int i = 0; i < 32; i++) {
-            new MyEntity(session) {
-              Property = new MyReferenceProperty(session)
-            };
+          for (int i = 0; i < 300; i++) {
+            new MyEntity(session) {Property = new MyReferenceProperty(session)};
             new AnotherEntity(session, Guid.NewGuid());
           }
           t.Complete();

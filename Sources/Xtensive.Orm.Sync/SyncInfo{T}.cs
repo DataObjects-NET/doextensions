@@ -1,20 +1,24 @@
-﻿namespace Xtensive.Orm.Sync
+﻿using Xtensive.Aspects;
+
+namespace Xtensive.Orm.Sync
 {
   /// <summary>
   /// Represents the metadata that is associated with an item in the synchronization scope.
   /// </summary>
-  public class SyncInfo<TEntity> : SyncInfo where TEntity : IEntity
+  public class SyncInfo<TEntity> : SyncInfo
+    where TEntity : IEntity
   {
     /// <summary>
     /// Gets the entity.
     /// </summary>
     [Field]
-    [Association(OnOwnerRemove=OnRemoveAction.None, OnTargetRemove=OnRemoveAction.None)]
+    [Association(OnOwnerRemove = OnRemoveAction.None, OnTargetRemove = OnRemoveAction.None)]
     public TEntity Entity { get; private set; }
 
+    [Infrastructure]
     internal override Entity SyncTarget
     {
-      get { return (Entity)(object)Entity; }
+      get { return (Entity) (object) Entity; }
     }
 
     /// <summary>

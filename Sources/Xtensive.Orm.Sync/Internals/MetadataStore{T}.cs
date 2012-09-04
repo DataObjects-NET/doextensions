@@ -5,16 +5,17 @@ using System.Linq.Expressions;
 
 namespace Xtensive.Orm.Sync
 {
-  internal class MetadataStore<TEntity> : MetadataStore where TEntity : class, IEntity
+  internal sealed class MetadataStore<TEntity> : MetadataStore
+    where TEntity : class, IEntity
   {
     public override Type EntityType
     {
-      get { return typeof(TEntity); }
+      get { return typeof (TEntity); }
     }
 
     public override Type ItemType
     {
-      get { return typeof(SyncInfo<TEntity>); }
+      get { return typeof (SyncInfo<TEntity>); }
     }
 
     public override IEnumerable<SyncInfo> GetMetadata(Expression filter)
@@ -51,12 +52,12 @@ namespace Xtensive.Orm.Sync
 
       for (int i = 0; i < batchCount; i++) {
         var itemCount = Wellknown.KeyPreloadBatchSize;
-        if (batchCount - i == 1 && lastBatchItemCount > 0)
+        if (batchCount - i==1 && lastBatchItemCount > 0)
           itemCount = lastBatchItemCount;
 
         var outer = Session.Query.All<SyncInfo<TEntity>>();
         var inner = Session.Query.All<TEntity>();
-        var filter = FilterByKeys<TEntity>(keys, i*Wellknown.KeyPreloadBatchSize, itemCount);
+        var filter = FilterByKeys<TEntity>(keys, i * Wellknown.KeyPreloadBatchSize, itemCount);
         var pairs = outer
           .Where(filter)
           .LeftJoin(inner, si => si.Entity, t => t, (si, t) => new {SyncInfo = si, Target = t})
@@ -83,13 +84,13 @@ namespace Xtensive.Orm.Sync
 
     private Expression<Func<SyncInfo<TEntity>, bool>> FilterByKeys<T>(List<Key> keys, int start, int count)
     {
-      var p = Expression.Parameter(typeof(SyncInfo<TEntity>), "p");
+      var p = Expression.Parameter(typeof (SyncInfo<TEntity>), "p");
       var ea = Expression.Property(p, Wellknown.EntityFieldName);
       var ka = Expression.Property(ea, WellKnown.KeyFieldName);
 
       var body = Expression.Equal(ka, Expression.Constant(keys[start]));
       for (int i = 1; i < count; i++)
-        body = Expression.OrElse(body, Expression.Equal(ka, Expression.Constant(keys[start+i])));
+        body = Expression.OrElse(body, Expression.Equal(ka, Expression.Constant(keys[start + i])));
 
       return Expression.Lambda<Func<SyncInfo<TEntity>, bool>>(body, p);
     }

@@ -24,9 +24,9 @@ namespace Xtensive.Orm.Sync
     {
       if (lastTick > 0)
         return lastTick;
-      
+
       lastTick = session.Query.All<SyncInfo>()
-        .Where(i => i.ChangeReplicaKey == 0)
+        .Where(i => i.ChangeReplicaKey==0)
         .Max(i => i.ChangeTickCount);
 
       return lastTick;

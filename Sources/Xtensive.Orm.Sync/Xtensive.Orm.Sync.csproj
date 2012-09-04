@@ -67,17 +67,18 @@
     <Compile Include="Interfaces\IFilterable.cs" />
     <Compile Include="Internals\EntityTupleFormatter.cs" />
     <Compile Include="Internals\EntityTupleFormatterRegistry.cs" />
-    <Compile Include="Internals\Identity.cs" />
+    <Compile Include="Identity.cs" />
     <Compile Include="Internals\KeyMap.cs" />
-    <Compile Include="Internals\ChangeSet.cs" />
+    <Compile Include="ChangeSet.cs" />
     <Compile Include="Internals\KeyDependency.cs" />
     <Compile Include="Internals\Replica.cs" />
     <Compile Include="Internals\MetadataStore.cs" />
     <Compile Include="Internals\MetadataStore{T}.cs" />
     <Compile Include="SyncConfiguration.cs" />
     <Compile Include="Internals\SyncProviderImplementation.cs" />
-    <Compile Include="Internals\ItemChangeData.cs" />
+    <Compile Include="ItemChangeData.cs" />
     <Compile Include="SyncInfo.cs" />
+    <Compile Include="Internals\SyncInfoCache.cs" />
     <Compile Include="SyncInfo{T}.cs">
       <SubType>Code</SubType>
     </Compile>

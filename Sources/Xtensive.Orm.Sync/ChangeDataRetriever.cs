@@ -7,7 +7,7 @@ namespace Xtensive.Orm.Sync
   /// Implementation of <see cref="IChangeDataRetriever"/>.
   /// </summary>
   [Serializable]
-  public class ChangeDataRetriever : IChangeDataRetriever
+  public sealed class ChangeDataRetriever : IChangeDataRetriever
   {
     private readonly ChangeSet changeSet;
 
