@@ -74,6 +74,7 @@
     <Compile Include="Internals\Replica.cs" />
     <Compile Include="Internals\MetadataStore.cs" />
     <Compile Include="Internals\MetadataStore{T}.cs" />
+    <Compile Include="Internals\ReplicaManager.cs" />
     <Compile Include="SyncConfiguration.cs" />
     <Compile Include="Internals\SyncProviderImplementation.cs" />
     <Compile Include="ItemChangeData.cs" />
@@ -84,7 +85,7 @@
     </Compile>
     <Compile Include="Internals\Metadata.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SyncModule.cs" />
+    <Compile Include="Services\SyncModule.cs" />
     <Compile Include="OrmSyncProvider.cs">
       <SubType>Code</SubType>
     </Compile>

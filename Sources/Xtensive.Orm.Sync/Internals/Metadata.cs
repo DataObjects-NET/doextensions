@@ -15,16 +15,16 @@ namespace Xtensive.Orm.Sync
     private readonly HashSet<Key> sentKeys;
     private readonly HashSet<Key> requestedKeys;
     private readonly EntityTupleFormatterRegistry tupleFormatters;
+    private readonly SyncTickGenerator tickGenerator;
+    private readonly Replica replica;
 
     private List<MetadataStore> storeList;
     private Dictionary<Type, MetadataStore> storeIndex;
 
-    public Replica Replica { get; private set; }
-
     public IEnumerable<ChangeSet> DetectChanges(uint batchSize, SyncKnowledge destinationKnowledge)
     {
-      var mappedKnowledge = Replica.CurrentKnowledge.MapRemoteKnowledgeToLocal(destinationKnowledge);
-      mappedKnowledge.ReplicaKeyMap.FindOrAddReplicaKey(Replica.Id);
+      var mappedKnowledge = replica.CurrentKnowledge.MapRemoteKnowledgeToLocal(destinationKnowledge);
+      mappedKnowledge.ReplicaKeyMap.FindOrAddReplicaKey(replica.Id);
 
       var stores = storeList.AsEnumerable();
 
@@ -77,12 +77,12 @@ namespace Xtensive.Orm.Sync
           lastChangeVersion = item.TombstoneVersion;
         }
 
-        if (mappedKnowledge.Contains(Replica.Id, item.SyncId, lastChangeVersion)) {
+        if (mappedKnowledge.Contains(replica.Id, item.SyncId, lastChangeVersion)) {
           requestedKeys.Remove(item.SyncTargetKey);
           continue;
         }
 
-        var change = new ItemChange(WellKnown.IdFormats, Replica.Id, item.SyncId, changeKind, createdVersion, lastChangeVersion);
+        var change = new ItemChange(WellKnown.IdFormats, replica.Id, item.SyncId, changeKind, createdVersion, lastChangeVersion);
         var changeData = new ItemChangeData {
           Change = change,
           Identity = new Identity(item.SyncTargetKey, item.GlobalId),
@@ -197,7 +197,7 @@ namespace Xtensive.Orm.Sync
           }
         }
 
-        var localChange = new ItemChange(WellKnown.IdFormats, Replica.Id, change.ItemId, changeKind, createdVersion, lastChangeVersion);
+        var localChange = new ItemChange(WellKnown.IdFormats, replica.Id, change.ItemId, changeKind, createdVersion, lastChangeVersion);
         localChange.SetAllChangeUnitsPresent();
         yield return localChange;
       }
@@ -253,7 +253,7 @@ namespace Xtensive.Orm.Sync
       if (store == null)
         return null;
 
-      long tick = Replica.GetNextTick();
+      long tick = tickGenerator.GetNextTick(Session);
       var result = store.CreateItem(key);
       result.CreatedReplicaKey = WellKnown.LocalReplicaKey;
       result.CreatedTickCount = tick;
@@ -278,7 +278,7 @@ namespace Xtensive.Orm.Sync
 
     public void UpdateMetadata(SyncInfo item, bool markAsTombstone)
     {
-      long tick = Replica.GetNextTick();
+      long tick = tickGenerator.GetNextTick(Session);
       item.ChangeReplicaKey = WellKnown.LocalReplicaKey;
       item.ChangeTickCount = tick;
 
@@ -346,14 +346,14 @@ namespace Xtensive.Orm.Sync
       }
     }
 
-    public Metadata(Session session, SyncConfiguration configuration)
+    public Metadata(Session session, SyncConfiguration configuration, Replica replica)
       : base(session)
     {
-      tupleFormatters = session.Domain.Extensions.Get<EntityTupleFormatterRegistry>();
-
       this.configuration = configuration;
 
-      Replica = new Replica(session);
+      tupleFormatters = session.Domain.Extensions.Get<EntityTupleFormatterRegistry>();
+      tickGenerator = session.Domain.Services.Get<SyncTickGenerator>();
+      this.replica = replica;
 
       sentKeys = new HashSet<Key>();
       requestedKeys = new HashSet<Key>();

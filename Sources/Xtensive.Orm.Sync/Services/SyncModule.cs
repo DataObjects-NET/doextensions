@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Synchronization;
 using Xtensive.Orm.Building;
 using Xtensive.Orm.Building.Definitions;
 using Xtensive.Orm.Tracking;
 
-namespace Xtensive.Orm.Sync
+namespace Xtensive.Orm.Sync.Services
 {
   /// <summary>
   /// <see cref="IModule"/> implementation for Sync extension
@@ -16,6 +17,13 @@ namespace Xtensive.Orm.Sync
     private Domain domain;
     private readonly BlockingCollection<List<ITrackingItem>> pendingItems;
     private volatile bool isExecuting;
+
+    internal bool HasPendingTasks
+    {
+      get { return isExecuting || pendingItems.Count > 0; }
+    }
+
+    internal SyncId SyncId { get; private set; }
 
     /// <summary>
     /// Called when the build of <see cref="T:Xtensive.Orm.Building.Definitions.DomainModelDef"/> is completed.
@@ -38,20 +46,16 @@ namespace Xtensive.Orm.Sync
       domain.Extensions.Set(new EntityTupleFormatterRegistry(domain));
 
       // Initializing global structures
+
       using (var session = domain.OpenSession())
       using (var t = session.OpenTransaction()) {
-        new Replica(session);
+        SyncId = session.Services.Get<ReplicaManager>().GetSyncId();
         t.Complete();
       }
 
-      var m = domain.GetTrackingMonitor();
-      m.TrackingCompleted += OnTrackingCompleted;
+      var trackingMonitor = domain.GetTrackingMonitor();
+      trackingMonitor.TrackingCompleted += OnTrackingCompleted;
       Task.Factory.StartNew(ProcessQueuedItems, TaskCreationOptions.PreferFairness | TaskCreationOptions.LongRunning);
-    }
-
-    internal bool HasPendingTasks
-    {
-      get { return isExecuting || pendingItems.Count > 0; }
     }
 
     private void OnTrackingCompleted(object sender, TrackingCompletedEventArgs e)
@@ -61,7 +65,7 @@ namespace Xtensive.Orm.Sync
         .Where(TrackingItemFilter)
         .ToList();
 
-      if (items.Count == 0)
+      if (items.Count==0)
         return;
 
       pendingItems.Add(items);
@@ -75,19 +79,20 @@ namespace Xtensive.Orm.Sync
           try {
             isExecuting = true;
             using (var t = session.OpenTransaction()) {
-              var ms = new Metadata(session, new SyncConfiguration());
-              var info = ms.GetMetadata(items.Select(i => i.Key)).ToList();
+              var replicaManager = session.Services.Get<ReplicaManager>();
+              var metadata = new Metadata(session, new SyncConfiguration(), replicaManager.LoadReplica());
+              var info = metadata.GetMetadata(items.Select(i => i.Key)).ToList();
               var lookup = info.ToDictionary(i => i.SyncTargetKey);
 
               foreach (var item in items) {
                 if (item.State==TrackingItemState.Created)
-                  ms.CreateMetadata(item.Key);
+                  metadata.CreateMetadata(item.Key);
                 else {
                   SyncInfo syncInfo;
                   if (lookup.TryGetValue(item.Key, out syncInfo))
-                    ms.UpdateMetadata(syncInfo, item.State==TrackingItemState.Deleted);
+                    metadata.UpdateMetadata(syncInfo, item.State==TrackingItemState.Deleted);
                   else
-                    ms.CreateMetadata(item.Key);
+                    metadata.CreateMetadata(item.Key);
                 }
               }
               t.Complete();

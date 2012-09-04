@@ -86,7 +86,7 @@ namespace Xtensive.Orm.Sync
         return;
 
       try {
-        implementation.Replica.UpdateState();
+        implementation.UpdateReplicaState();
 #if DEBUG
         sessionStopwatch.Stop();
         Debug.WriteLine("Finishing synchronization session. Elapsed time: {0}", sessionStopwatch.Elapsed);

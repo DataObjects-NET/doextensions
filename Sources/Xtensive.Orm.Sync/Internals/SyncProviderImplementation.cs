@@ -19,9 +19,11 @@ namespace Xtensive.Orm.Sync
     private readonly DirectEntityAccessor accessor;
     private readonly Dictionary<Key, List<KeyDependency>> keyDependencies;
     private readonly EntityTupleFormatterRegistry tupleFormatters;
+    private readonly ReplicaManager replicaManager;
+    private readonly SyncTickGenerator tickGenerator;
 
     private IEnumerator<ChangeSet> changeSetEnumerator;
-    
+
     public SyncIdFormatGroup IdFormats { get { return WellKnown.IdFormats; } }
     
     public SyncConfiguration Configuration { get; private set; }
@@ -271,7 +273,12 @@ namespace Xtensive.Orm.Sync
 
     public ulong GetNextTickCount()
     {
-      return (ulong) Replica.GetNextTick();
+      return (ulong) tickGenerator.GetNextTick(Session);
+    }
+
+    public void UpdateReplicaState()
+    {
+      replicaManager.SaveReplica(Replica);
     }
 
     public void StoreKnowledgeForScope(SyncKnowledge currentKnowledge, ForgottenKnowledge forgottenKnowledge)
@@ -286,12 +293,16 @@ namespace Xtensive.Orm.Sync
       Configuration = configuration;
 
       accessor = session.Services.Get<DirectEntityAccessor>();
+      replicaManager = session.Services.Get<ReplicaManager>();
+      tickGenerator = session.Domain.Services.Get<SyncTickGenerator>();
       tupleFormatters = session.Domain.Extensions.Get<EntityTupleFormatterRegistry>();
 
-      metadata = new Metadata(session, configuration);
-      Replica = metadata.Replica;
+      Replica = replicaManager.LoadReplica();
+
+      metadata = new Metadata(session, configuration, Replica);
+      
       keyMap = new KeyMap();
-      keyDependencies = new Dictionary<Key,List<KeyDependency>>();
+      keyDependencies = new Dictionary<Key, List<KeyDependency>>();
     }
 
     static SyncProviderImplementation()

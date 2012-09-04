@@ -1,6 +1,7 @@
 ﻿using System.Threading;
 using Microsoft.Synchronization;
 using Xtensive.Orm.Sync;
+using Xtensive.Orm.Sync.Services;
 
 namespace Xtensive.Orm
 {
@@ -10,10 +11,13 @@ namespace Xtensive.Orm
   public static class DomainExtensions
   {
     /// <summary>
-    /// Gets the <see cref="KnowledgeSyncProvider"/> implementation.
+    /// Gets the <see cref="KnowledgeSyncProvider"/> implementation
+    /// for the specified <paramref name="domain"/>.
     /// </summary>
-    /// <param name="domain">The domain.</param>
-    /// <returns></returns>
+    /// <param name="domain">The domain to ge sync provider for.</param>
+    /// <returns>Sync provider for the domain if sync is enabled for specified
+    /// domain, otherwise null.
+    /// </returns>
     public static OrmSyncProvider GetSyncProvider(this Domain domain)
     {
       return domain.Services.Get<OrmSyncProvider>();
