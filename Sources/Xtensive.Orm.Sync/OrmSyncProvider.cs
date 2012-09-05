@@ -1,7 +1,5 @@
 ﻿using System;
-#if DEBUG
 using System.Diagnostics;
-#endif
 using Microsoft.Synchronization;
 using Xtensive.Core;
 using Xtensive.IoC;
@@ -130,21 +128,25 @@ namespace Xtensive.Orm.Sync
     [Conditional("DEBUG")]
     private void BeginSessionTracing()
     {
+#if DEBUG
       batchCounter = 0;
       batchStopwatch = new Stopwatch();
       sessionStopwatch = new Stopwatch();
       sessionStopwatch.Start();
       Debug.WriteLine("Starting synchronization session @ {0}", DateTime.Now);
+#endif
     }
 
     [Conditional("DEBUG")]
     private void EndSessionTracing()
     {
+#if DEBUG
       sessionStopwatch.Stop();
       Debug.WriteLine("Finishing synchronization session. Elapsed time: {0}", sessionStopwatch.Elapsed);
       sessionStopwatch = null;
       batchStopwatch.Stop();
       batchStopwatch = null;
+#endif
     }
 
     /// <summary>
