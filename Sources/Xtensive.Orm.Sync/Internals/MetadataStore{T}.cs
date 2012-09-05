@@ -105,7 +105,9 @@ namespace Xtensive.Orm.Sync
 
     private void UpdateItemState(SyncInfo<TEntity> item)
     {
-      item.SyncTargetKey = EntityAccessor.GetReferenceKey(item, EntityField);
+      item.SyncTargetKey = item.SyncTarget!=null
+        ? item.SyncTarget.Key
+        : EntityAccessor.GetReferenceKey(item, EntityField);
     }
 
     public MetadataStore(Session session)

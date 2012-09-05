@@ -13,6 +13,7 @@ namespace Xtensive.Orm.Sync
   public abstract class SyncInfo : Entity
   {
     private SyncId cachedSyncId;
+
     private SyncVersion cachedCreatedVersion;
     private SyncVersion cachedChangeVersion;
     private SyncVersion cachedTombstoneVersion;
@@ -172,6 +173,12 @@ namespace Xtensive.Orm.Sync
     [Infrastructure]
     internal Key SyncTargetKey { get; set; }
 
+    protected override void OnSettingFieldValue(Model.FieldInfo field, object value)
+    {
+      if (field.Name=="GlobalId" && GlobalId!=Guid.Empty)
+        throw new NotSupportedException("GlobalId is already initialized");
+    }
+
     /// <summary>
     /// Initializes a new instance of the <see cref="SyncInfo"/> class.
     /// </summary>
@@ -179,7 +186,6 @@ namespace Xtensive.Orm.Sync
     protected SyncInfo(Session session)
       : base(session)
     {
-      GlobalId = Guid.NewGuid();
     }
   }
 }

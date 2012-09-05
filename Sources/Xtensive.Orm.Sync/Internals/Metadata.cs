@@ -254,7 +254,7 @@ namespace Xtensive.Orm.Sync
     public SyncInfo CreateMetadata(Key key)
     {
       var store = GetStore(key.TypeInfo);
-      if (store == null)
+      if (store==null)
         return null;
 
       long tick = tickGenerator.GetNextTick(Session);
@@ -270,7 +270,7 @@ namespace Xtensive.Orm.Sync
     public SyncInfo CreateMetadata(Key key, ItemChange change)
     {
       var store = GetStore(key.TypeInfo);
-      if (store == null)
+      if (store==null)
         return null;
 
       var result = store.CreateItem(key);
