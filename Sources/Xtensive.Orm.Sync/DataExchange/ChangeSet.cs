@@ -15,15 +15,6 @@ namespace Xtensive.Orm.Sync.DataExchange
     private readonly Dictionary<Guid, ItemChangeData> index = new Dictionary<Guid,ItemChangeData>();
 
     /// <summary>
-    /// Adds the specified data.
-    /// </summary>
-    /// <param name="data">The data.</param>
-    public void Add(ItemChangeData data)
-    {
-      index[data.Identity.GlobalId] = data;
-    }
-
-    /// <summary>
     /// Gets the <see cref="ItemChangeData"/> with the specified global id.
     /// </summary>
     public ItemChangeData this[Guid globalId]
@@ -34,6 +25,23 @@ namespace Xtensive.Orm.Sync.DataExchange
         index.TryGetValue(globalId, out result);
         return result;
       }
+    }
+
+    /// <summary>
+    /// Gets number of <see cref="ItemChangeData"/> in this instance.
+    /// </summary>
+    public int Count
+    {
+      get { return index.Count; }
+    }
+
+    /// <summary>
+    /// Adds the specified data.
+    /// </summary>
+    /// <param name="data">The data.</param>
+    public void Add(ItemChangeData data)
+    {
+      index[data.Identity.GlobalId] = data;
     }
 
     /// <summary>
@@ -73,6 +81,13 @@ namespace Xtensive.Orm.Sync.DataExchange
     {
       foreach (var value in index.Values)
         value.BindTo(domain);
+    }
+
+    /// <summary>
+    /// Initializes new instance of <see cref="ChangeSet"/> class.
+    /// </summary>
+    public ChangeSet()
+    {
     }
   }
 }

@@ -11,7 +11,7 @@ namespace Xtensive.Orm.Sync
   /// <summary>
   /// <see cref="KnowledgeSyncProvider"/> wrapper for <see cref="Xtensive.Orm"/>.
   /// </summary>
-  [Service(typeof (OrmSyncProvider))]
+  [Service(typeof (OrmSyncProvider), Singleton = false)]
   public sealed class OrmSyncProvider : KnowledgeSyncProvider, IDomainService
   {
     private static readonly SessionConfiguration OrmSessionConfiguration;
@@ -225,7 +225,7 @@ namespace Xtensive.Orm.Sync
     /// <exception cref="System.NotSupportedException">Thrown always</exception>
     public override FullEnumerationChangeBatch GetFullEnumerationChangeBatch(uint batchSize, SyncId lowerEnumerationBound, SyncKnowledge knowledgeForDataRetrieval, out object changeDataRetriever)
     {
-      throw new NotSupportedException();
+      throw new NotSupportedException("GetFullEnumerationChangeBatch");
     }
 
     /// <summary>
@@ -239,7 +239,7 @@ namespace Xtensive.Orm.Sync
     /// <exception cref="System.NotSupportedException">Thrown always</exception>
     public override void ProcessFullEnumerationChangeBatch(ConflictResolutionPolicy resolutionPolicy, FullEnumerationChangeBatch sourceChanges, object changeDataRetriever, SyncCallbacks syncCallbacks, SyncSessionStatistics sessionStatistics)
     {
-      throw new NotSupportedException();
+      throw new NotSupportedException("ProcessFullEnumerationChangeBatch");
     }
 
     #endregion
@@ -258,6 +258,7 @@ namespace Xtensive.Orm.Sync
     public OrmSyncProvider(Domain domain)
     {
       this.domain = domain;
+
       configuration = new SyncConfiguration();
       Sync = new SyncConfigurationEndpoint(configuration);
     }

@@ -9,7 +9,10 @@ namespace Xtensive.Orm.Sync.DataExchange
   [Serializable]
   public sealed class ChangeDataRetriever : IChangeDataRetriever
   {
-    private readonly ChangeSet changeSet;
+    /// <summary>
+    /// Gets change set this instance wraps.
+    /// </summary>
+    public ChangeSet ChangeSet { get; private set; }
 
     #region Implementation of IChangeDataRetriever
 
@@ -30,10 +33,8 @@ namespace Xtensive.Orm.Sync.DataExchange
     /// <param name="loadChangeContext">Metadata that describes the change for which data should be retrieved.</param>
     public object LoadChangeData(LoadChangeContext loadChangeContext)
     {
-      if (changeSet==null)
-        return null;
       var globalId = loadChangeContext.ItemChange.ItemId.GetGuidId();
-      return changeSet[globalId];
+      return ChangeSet[globalId];
     }
 
     #endregion
@@ -44,9 +45,7 @@ namespace Xtensive.Orm.Sync.DataExchange
     /// <param name="domain">The domain.</param>
     public void BindTo(Domain domain)
     {
-      if (changeSet==null)
-        return;
-      changeSet.BindTo(domain);
+      ChangeSet.BindTo(domain);
     }
 
     /// <summary>
@@ -56,8 +55,13 @@ namespace Xtensive.Orm.Sync.DataExchange
     /// <param name="changeSet">The change set.</param>
     public ChangeDataRetriever(SyncIdFormatGroup idFormats, ChangeSet changeSet)
     {
+      if (idFormats==null)
+        throw new ArgumentNullException("idFormats");
+      if (changeSet==null)
+        throw new ArgumentNullException("changeSet");
+
       IdFormats = idFormats;
-      this.changeSet = changeSet;
+      ChangeSet = changeSet;
     }
   }
 }

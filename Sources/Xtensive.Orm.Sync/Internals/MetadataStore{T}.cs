@@ -57,7 +57,7 @@ namespace Xtensive.Orm.Sync
 
         var outer = Session.Query.All<SyncInfo<TEntity>>();
         var inner = Session.Query.All<TEntity>();
-        var filter = FilterByKeys<TEntity>(keys, i * WellKnown.KeyPreloadBatchSize, itemCount);
+        var filter = FilterByKeys(keys, i * WellKnown.KeyPreloadBatchSize, itemCount);
         var pairs = outer
           .Where(filter)
           .LeftJoin(inner, si => si.Entity, t => t, (si, t) => new {SyncInfo = si, Target = t})
@@ -82,7 +82,7 @@ namespace Xtensive.Orm.Sync
       return item;
     }
 
-    private Expression<Func<SyncInfo<TEntity>, bool>> FilterByKeys<T>(List<Key> keys, int start, int count)
+    private Expression<Func<SyncInfo<TEntity>, bool>> FilterByKeys(List<Key> keys, int start, int count)
     {
       var p = Expression.Parameter(typeof (SyncInfo<TEntity>), "p");
       var ea = Expression.Property(p, WellKnown.EntityFieldName);
@@ -105,10 +105,7 @@ namespace Xtensive.Orm.Sync
 
     private void UpdateItemState(SyncInfo<TEntity> item)
     {
-      if (item.Entity!=null)
-        item.SyncTargetKey = item.Entity.Key;
-      else
-        item.SyncTargetKey = EntityAccessor.GetReferenceKey(item, EntityField);
+      item.SyncTargetKey = EntityAccessor.GetReferenceKey(item, EntityField);
     }
 
     public MetadataStore(Session session)

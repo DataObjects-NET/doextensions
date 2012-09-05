@@ -13,7 +13,7 @@ namespace Xtensive.Orm.Sync.Tests
     {
       using (var session = LocalDomain.OpenSession()) {
         using (var t = session.OpenTransaction()) {
-          for (int i = 0; i < 300; i++) {
+          for (int i = 0; i < 3000; i++) {
             new MyEntity(session) {Property = new MyReferenceProperty(session)};
             new AnotherEntity(session, Guid.NewGuid());
           }
@@ -22,15 +22,11 @@ namespace Xtensive.Orm.Sync.Tests
       }
 
       LocalDomain.WaitForPendingSyncTasks();
+      var localProvider = LocalDomain.GetSyncProvider();
+      //ApplyTestFilter(localProvider);
       var remoteProvider = RemoteDomain.GetSyncProvider();
       remoteProvider.SyncConfiguration.BatchSize = 64;
-      var orchestrator = new SyncOrchestrator {
-        LocalProvider = LocalDomain.GetSyncProvider(),
-        RemoteProvider = remoteProvider,
-        Direction = SyncDirectionOrder.Upload
-      };
-
-      orchestrator.Synchronize();
+      SynchronizeLocalToRemote(localProvider, remoteProvider);
     }
 
     [Test]
@@ -70,12 +66,10 @@ namespace Xtensive.Orm.Sync.Tests
       }
 
       LocalDomain.WaitForPendingSyncTasks();
-      var orchestrator = new SyncOrchestrator {
-          LocalProvider = LocalDomain.GetSyncProvider(),
-          RemoteProvider = RemoteDomain.GetSyncProvider(),
-          Direction = SyncDirectionOrder.Upload
-        };
-      orchestrator.Synchronize();
+      var localProvider = LocalDomain.GetSyncProvider();
+      var remoteProvider = RemoteDomain.GetSyncProvider();
+      //ApplyTestFilter(localProvider);
+      SynchronizeLocalToRemote(localProvider, remoteProvider);
 
       int myEntityCount, myReferencePropertyCount, syncInfoCount;
       using (var session = LocalDomain.OpenSession()) {
@@ -111,12 +105,10 @@ namespace Xtensive.Orm.Sync.Tests
       }
 
       LocalDomain.WaitForPendingSyncTasks();
-      var orchestrator = new SyncOrchestrator {
-          LocalProvider = LocalDomain.GetSyncProvider(),
-          RemoteProvider = RemoteDomain.GetSyncProvider(),
-          Direction = SyncDirectionOrder.Upload
-        };
-      orchestrator.Synchronize();
+      var localProvider = LocalDomain.GetSyncProvider();
+      var remoteProvider = RemoteDomain.GetSyncProvider();
+      //ApplyTestFilter(localProvider);
+      SynchronizeLocalToRemote(localProvider, remoteProvider);
 
       int myEntityCount, myReferencePropertyCount, syncInfoCount;
       using (var session = LocalDomain.OpenSession()) {
@@ -136,6 +128,25 @@ namespace Xtensive.Orm.Sync.Tests
           t.Complete();
         }
       }
+    }
+
+    private static void SynchronizeLocalToRemote(OrmSyncProvider localProvider, OrmSyncProvider remoteProvider)
+    {
+      var orchestrator = new SyncOrchestrator {
+        LocalProvider = localProvider,
+        RemoteProvider = remoteProvider,
+        Direction = SyncDirectionOrder.Upload
+      };
+
+      orchestrator.Synchronize();
+    }
+
+    private void ApplyTestFilter(OrmSyncProvider provider)
+    {
+      provider.Sync
+        .All<MyEntity>(e => e.Id > 0)
+        .All<MyReferenceProperty>(e => e.Id > 0)
+        .All<AnotherEntity>(e => e.Text==null);
     }
   }
 }

@@ -283,6 +283,9 @@ namespace Xtensive.Orm.Sync
       this.session = session;
       this.configuration = configuration;
 
+      keyMap = new KeyMap();
+      keyDependencies = new Dictionary<Key, List<KeyDependency>>();
+
       accessor = session.Services.Get<DirectEntityAccessor>();
       replicaManager = session.Services.Get<ReplicaManager>();
       syncInfoFetcher = session.Services.Get<SyncInfoFetcher>();
@@ -293,9 +296,6 @@ namespace Xtensive.Orm.Sync
       Replica = replicaManager.LoadReplica();
 
       metadata = new Metadata(session, configuration, Replica);
-      
-      keyMap = new KeyMap();
-      keyDependencies = new Dictionary<Key, List<KeyDependency>>();
     }
 
     static SyncSession()

@@ -92,16 +92,17 @@ namespace Xtensive.Orm.Sync
 
         if (!item.IsTombstone) {
           RegisterKeySync(item.SyncTargetKey);
-          var entityTuple = store.EntityAccessor.GetEntityState(item.SyncTarget).Tuple;
-          changeData.TupleValue = tupleFormatters.Get(item.SyncTarget.TypeInfo.UnderlyingType).Format(entityTuple);
+          var syncTarget = item.SyncTarget;
+          var entityTuple = store.EntityAccessor.GetEntityState(syncTarget).Tuple;
+          changeData.TupleValue = tupleFormatters.Get(syncTarget.TypeInfo.UnderlyingType).Format(entityTuple);
           var type = item.SyncTargetKey.TypeInfo;
           var fields = type.Fields.Where(f => f.IsEntity);
           foreach (var field in fields) {
-            var key = store.EntityAccessor.GetReferenceKey(item.SyncTarget, field);
+            var key = store.EntityAccessor.GetReferenceKey(syncTarget, field);
             if (key!=null) {
               changeData.References.Add(field.Name, new Identity(key));
               references.Add(key);
-              store.EntityAccessor.SetReferenceKey(item.SyncTarget, field, null);
+              store.EntityAccessor.SetReferenceKey(syncTarget, field, null);
             }
           }
         }
@@ -120,7 +121,8 @@ namespace Xtensive.Orm.Sync
         result = new ChangeSet();
         references = new HashSet<Key>();
       }
-      if (result.Any()) {
+
+      if (result.Count > 0) {
         if (references.Count > 0)
           LoadReferences(result, references);
         yield return result;
