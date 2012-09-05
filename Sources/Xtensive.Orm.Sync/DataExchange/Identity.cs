@@ -36,6 +36,8 @@ namespace Xtensive.Orm.Sync.DataExchange
     [OnSerializing]
     private void OnSerializing(StreamingContext context)
     {
+      if (key==null)
+        return;
       keyValue = key.Format();
     }
 
