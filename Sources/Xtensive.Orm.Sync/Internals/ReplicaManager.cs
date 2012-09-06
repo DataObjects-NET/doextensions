@@ -113,7 +113,7 @@ namespace Xtensive.Orm.Sync
 
     private ulong GetLastTick()
     {
-      return (ulong) tickGenerator.GetLastTick(session);
+      return (ulong) tickGenerator.GetLastTick();
     }
 
     [ServiceConstructor]

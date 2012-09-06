@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Xtensive.IoC;
 using Xtensive.Orm.Model;
 
@@ -7,57 +8,63 @@ namespace Xtensive.Orm.Sync
   /// <summary>
   /// <see cref="IKeyGenerator"/> wrapper
   /// </summary>
-  [Service(typeof(SyncTickGenerator), Singleton = true)]
-  internal sealed class SyncTickGenerator : IDomainService
+  [Service(typeof (SyncTickGenerator), Singleton = true)]
+  internal sealed class SyncTickGenerator : ISessionService
   {
+    private readonly Session session;
     private readonly IKeyGenerator generator;
     private readonly KeyInfo keyInfo;
-    private readonly object lastTickGuard = new object();
+
     private long lastTick = -1;
 
     /// <summary>
     /// Gets the last tick.
     /// </summary>
-    /// <param name="session">The session.</param>
-    /// <returns></returns>
-    public long GetLastTick(Session session)
+    /// <returns>Last tick in current domain.</returns>
+    public long GetLastTick()
     {
-      lock (lastTickGuard) {
-        if (lastTick < 0)
-          lastTick = FetchLastTick(session);
-        return lastTick;
-      }
+      if (lastTick < 0)
+        lastTick = FetchLastTick();
+      return lastTick;
     }
 
     /// <summary>
     /// Gets the next tick.
     /// </summary>
-    /// <param name="session">The session.</param>
-    /// <returns></returns>
-    public long GetNextTick(Session session)
+    /// <returns>Next tick in current domain.</returns>
+    public long GetNextTick()
     {
-      lock (lastTickGuard) {
-        lastTick = generator.GenerateKey(keyInfo, session).GetValue<long>(0);
-        return lastTick;
-      }
+      return lastTick = generator.GenerateKey(keyInfo, session).GetValue<long>(0);
     }
 
-    private static long FetchLastTick(Session session)
+    private long FetchLastTick()
     {
-      return session.Query.All<SyncInfo>()
-        .Where(i => i.ChangeReplicaKey==0)
-        .Max(i => i.ChangeTickCount);
+      return session.Query.Execute(
+        q => q.All<SyncInfo>().Where(i => i.ChangeReplicaKey==0).Max(i => i.ChangeTickCount));
+    }
+
+    private void OnTransactionCompleted(object sender, TransactionEventArgs e)
+    {
+      lastTick = -1;
     }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SyncTickGenerator"/> class.
     /// </summary>
-    /// <param name="domain">The domain.</param>
+    /// <param name="session">The session</param>
     [ServiceConstructor]
-    public SyncTickGenerator(Domain domain)
+    public SyncTickGenerator(Session session)
     {
-      keyInfo = domain.Model.Types[typeof (SyncInfo)].Key;
-      generator = domain.Services.Get<IKeyGenerator>(WellKnown.TickGeneratorName);
+      if (session==null)
+        throw new ArgumentNullException("session");
+
+      this.session = session;
+
+      keyInfo = session.Domain.Model.Types[typeof (SyncInfo)].Key;
+      generator = session.Domain.Services.Get<IKeyGenerator>(WellKnown.TickGeneratorName);
+
+      session.Events.TransactionCommitted += OnTransactionCompleted;
+      session.Events.TransactionRollbacked += OnTransactionCompleted;
     }
   }
 }

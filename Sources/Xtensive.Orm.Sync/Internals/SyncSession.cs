@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Microsoft.Synchronization;
+using Xtensive.Core;
 using Xtensive.Orm.Model;
 using Xtensive.Orm.Services;
 using Xtensive.Orm.Sync.DataExchange;
@@ -246,7 +247,7 @@ namespace Xtensive.Orm.Sync
 
     public ulong GetNextTickCount()
     {
-      return (ulong) tickGenerator.GetNextTick(session);
+      return (ulong) tickGenerator.GetNextTick();
     }
 
     public IChangeDataRetriever GetDataRetriever()
@@ -286,12 +287,11 @@ namespace Xtensive.Orm.Sync
       keyMap = new KeyMap();
       keyDependencies = new Dictionary<Key, List<KeyDependency>>();
 
-      accessor = session.Services.Get<DirectEntityAccessor>();
-      replicaManager = session.Services.Get<ReplicaManager>();
-      syncInfoFetcher = session.Services.Get<SyncInfoFetcher>();
-
-      tickGenerator = session.Domain.Services.Get<SyncTickGenerator>();
-      tupleFormatters = session.Domain.Services.Get<EntityTupleFormatterRegistry>();
+      accessor = session.Services.Demand<DirectEntityAccessor>();
+      replicaManager = session.Services.Demand<ReplicaManager>();
+      syncInfoFetcher = session.Services.Demand<SyncInfoFetcher>();
+      tickGenerator = session.Services.Demand<SyncTickGenerator>();
+      tupleFormatters = session.Services.Demand<EntityTupleFormatterRegistry>();
 
       Replica = replicaManager.LoadReplica();
 

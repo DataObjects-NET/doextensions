@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using Microsoft.Synchronization;
 using Xtensive.Collections.Graphs;
+using Xtensive.Core;
 using Xtensive.Orm.Model;
 using Xtensive.Orm.Sync.DataExchange;
 using FieldInfo = Xtensive.Orm.Model.FieldInfo;
@@ -257,7 +258,7 @@ namespace Xtensive.Orm.Sync
       if (store==null)
         return null;
 
-      long tick = tickGenerator.GetNextTick(Session);
+      long tick = tickGenerator.GetNextTick();
       var result = store.CreateItem(key);
       result.CreatedReplicaKey = WellKnown.LocalReplicaKey;
       result.CreatedTickCount = tick;
@@ -282,7 +283,7 @@ namespace Xtensive.Orm.Sync
 
     public void UpdateMetadata(SyncInfo item, bool markAsTombstone)
     {
-      long tick = tickGenerator.GetNextTick(Session);
+      long tick = tickGenerator.GetNextTick();
       item.ChangeReplicaKey = WellKnown.LocalReplicaKey;
       item.ChangeTickCount = tick;
 
@@ -356,9 +357,9 @@ namespace Xtensive.Orm.Sync
       this.configuration = configuration;
       this.replica = replica;
 
-      tupleFormatters = session.Domain.Services.Get<EntityTupleFormatterRegistry>();
-      tickGenerator = session.Domain.Services.Get<SyncTickGenerator>();
-      syncInfoFetcher = session.Services.Get<SyncInfoFetcher>();
+      tupleFormatters = session.Services.Demand<EntityTupleFormatterRegistry>();
+      tickGenerator = session.Services.Demand<SyncTickGenerator>();
+      syncInfoFetcher = session.Services.Demand<SyncInfoFetcher>();
 
       sentKeys = new HashSet<Key>();
       requestedKeys = new HashSet<Key>();
