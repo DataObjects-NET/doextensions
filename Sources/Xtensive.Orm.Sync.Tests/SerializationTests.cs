@@ -11,7 +11,7 @@ using Xtensive.Tuples;
 namespace Xtensive.Orm.Sync.Tests
 {
   [TestFixture]
-  public class SerializationTests : AutoBuildTest
+  public class SerializationTests : SingleSyncTest
   {
     [Test]
     public void SerializeIdentityTest()

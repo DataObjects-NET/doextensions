@@ -61,7 +61,6 @@
     <Compile Include="..\..\_Build\ProductInfo.cs">
       <Link>Properties\ProductInfo.cs</Link>
     </Compile>
-    <Compile Include="AutoBuildTest.cs" />
     <Compile Include="FullSynchronizationTests.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="Model\AbstractEntity.cs" />
@@ -72,11 +71,14 @@
     <Compile Include="Model\MyReferenceProperty.cs" />
     <Compile Include="Model\MyStructure.cs" />
     <Compile Include="Model\RegularEntity.cs" />
+    <Compile Include="MultisyncTest.cs" />
     <Compile Include="PartialSynchronizationTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SerializationTests.cs" />
+    <Compile Include="SyncDomainManager.cs" />
     <Compile Include="SyncModuleTests.cs" />
     <Compile Include="SyncConfigurationEndpointTests.cs" />
+    <Compile Include="SingleSyncTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">

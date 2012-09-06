@@ -72,17 +72,15 @@ namespace Xtensive.Orm.Sync
 
     private void ProcessQueuedItems()
     {
-      using (var session = domain.OpenSession())
+      using (var session = domain.OpenSession()) {
+        var replicaManager = session.Services.Get<ReplicaManager>();
         while (!pendingItems.IsCompleted) {
           var items = pendingItems.Take();
           try {
             isExecuting = true;
             using (var t = session.OpenTransaction()) {
-              var replicaManager = session.Services.Get<ReplicaManager>();
               var metadata = new Metadata(session, new SyncConfiguration(), replicaManager.LoadReplica());
-              var info = metadata.GetMetadata(items.Select(i => i.Key)).ToList();
-              var lookup = info.ToDictionary(i => i.SyncTargetKey);
-
+              var lookup = metadata.GetMetadata(items.Select(i => i.Key)).ToDictionary(i => i.SyncTargetKey);
               foreach (var item in items) {
                 if (item.State==TrackingItemState.Created)
                   metadata.CreateMetadata(item.Key);
@@ -104,6 +102,7 @@ namespace Xtensive.Orm.Sync
             isExecuting = false;
           }
         }
+      }
     }
 
     private static bool TrackingItemFilter(ITrackingItem item)

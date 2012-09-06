@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Threading;
+﻿using System.Linq;
 using Microsoft.Synchronization;
 using NUnit.Framework;
 using Xtensive.Orm.Sync.Tests.Model;
@@ -8,20 +6,11 @@ using Xtensive.Orm.Sync.Tests.Model;
 namespace Xtensive.Orm.Sync.Tests
 {
   [TestFixture]
-  public class PartialSynchronizationTests : AutoBuildTest
+  public class PartialSynchronizationTests : MultisyncTest
   {
-    public override void TestFixtureSetUp()
-    {
-    }
-
-    public override void TestFixtureTearDown()
-    {
-    }
-
     public override void TestSetUp()
     {
-      base.TestFixtureTearDown();
-      base.TestFixtureSetUp();
+      base.TestSetUp();
 
       using (var session = LocalDomain.OpenSession()) {
         using (var t = session.OpenTransaction()) {

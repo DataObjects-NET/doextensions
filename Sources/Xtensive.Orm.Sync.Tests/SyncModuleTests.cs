@@ -7,7 +7,7 @@ using Xtensive.Orm.Tracking;
 namespace Xtensive.Orm.Sync.Tests
 {
   [TestFixture]
-  public class SyncModuleTests : AutoBuildTest
+  public class SyncModuleTests : SingleSyncTest
   {
     [Test]
     public void InfrastructureTest()

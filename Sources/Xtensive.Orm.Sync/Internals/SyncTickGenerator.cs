@@ -12,7 +12,8 @@ namespace Xtensive.Orm.Sync
   {
     private readonly IKeyGenerator generator;
     private readonly KeyInfo keyInfo;
-    private long lastTick;
+    private readonly object lastTickGuard = new object();
+    private long lastTick = -1;
 
     /// <summary>
     /// Gets the last tick.
@@ -21,14 +22,11 @@ namespace Xtensive.Orm.Sync
     /// <returns></returns>
     public long GetLastTick(Session session)
     {
-      if (lastTick > 0)
+      lock (lastTickGuard) {
+        if (lastTick < 0)
+          lastTick = FetchLastTick(session);
         return lastTick;
-
-      lastTick = session.Query.All<SyncInfo>()
-        .Where(i => i.ChangeReplicaKey==0)
-        .Max(i => i.ChangeTickCount);
-
-      return lastTick;
+      }
     }
 
     /// <summary>
@@ -38,8 +36,17 @@ namespace Xtensive.Orm.Sync
     /// <returns></returns>
     public long GetNextTick(Session session)
     {
-      lastTick = generator.GenerateKey(keyInfo, session).GetValue<long>(0);
-      return lastTick;
+      lock (lastTickGuard) {
+        lastTick = generator.GenerateKey(keyInfo, session).GetValue<long>(0);
+        return lastTick;
+      }
+    }
+
+    private static long FetchLastTick(Session session)
+    {
+      return session.Query.All<SyncInfo>()
+        .Where(i => i.ChangeReplicaKey==0)
+        .Max(i => i.ChangeTickCount);
     }
 
     /// <summary>
