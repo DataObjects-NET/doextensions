@@ -87,14 +87,17 @@ namespace Xtensive.Orm.Sync
     #region Destination provider methods
 
     public void ProcessChangeBatch(
-      ConflictResolutionPolicy resolutionPolicy, ChangeBatch sourceChanges, object changeDataRetriever, SyncCallbacks syncCallbacks)
+      ConflictResolutionPolicy resolutionPolicy, ChangeBatch sourceChanges, IChangeDataRetriever changeDataRetriever, SyncCallbacks syncCallbacks)
     {
-      var localChanges = metadata.GetLocalChanges(sourceChanges).ToList();
-      var knowledge = Replica.CurrentKnowledge.Clone();
+      var localChanges = new List<ItemChange>();
+      metadata.GetLocalChanges(sourceChanges, localChanges);
+
+      var knowledge = Replica.CurrentKnowledge;
       var forgottenKnowledge = Replica.ForgottenKnowledge;
       var changeApplier = new NotifyingChangeApplier(IdFormats);
 
-      changeApplier.ApplyChanges(resolutionPolicy, sourceChanges, changeDataRetriever as IChangeDataRetriever,
+      changeApplier.ApplyChanges(
+        resolutionPolicy, sourceChanges, changeDataRetriever,
         localChanges, knowledge, forgottenKnowledge, this, syncContext, syncCallbacks);
     }
 
@@ -273,13 +276,20 @@ namespace Xtensive.Orm.Sync
 
     #endregion
 
-    public void UpdateReplicaState()
+    public void SaveReplicaState()
     {
       replicaManager.SaveReplica(Replica);
     }
 
     public SyncSession(SyncSessionContext syncContext, Session session, SyncConfiguration configuration)
     {
+      if (syncContext==null)
+        throw new ArgumentNullException("syncContext");
+      if (session==null)
+        throw new ArgumentNullException("session");
+      if (configuration==null)
+        throw new ArgumentNullException("configuration");
+
       this.syncContext = syncContext;
       this.session = session;
       this.configuration = configuration;

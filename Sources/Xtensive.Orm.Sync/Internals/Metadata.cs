@@ -175,36 +175,36 @@ namespace Xtensive.Orm.Sync
       return !configuration.SyncTypes.Contains(type);
     }
 
-    public IEnumerable<ItemChange> GetLocalChanges(IEnumerable<ItemChange> changes)
+    public void GetLocalChanges(ChangeBatch sourceChanges, ICollection<ItemChange> output)
     {
-      // TODO: fix this
-
-      var ids = changes
-        .Select(i => i.ItemId.GetGuidId());
-      var items = Session.Query.All<SyncInfo>()
-        .Where(i => i.GlobalId.In(ids))
+      var ids = sourceChanges.Select(i => i.ItemId.GetGuidId());
+      var items = Session.Query
+        .Execute(q => q.All<SyncInfo>().Where(i => i.GlobalId.In(ids)))
         .ToDictionary(i => i.GlobalId);
 
-      foreach (var change in changes) {
-
+      foreach (var sourceChange in sourceChanges) {
         var changeKind = ChangeKind.UnknownItem;
         var createdVersion = SyncVersion.UnknownVersion;
         var lastChangeVersion = SyncVersion.UnknownVersion;
-        
         SyncInfo info;
-        if (items.TryGetValue(change.ItemId.GetGuidId(), out info)) {
-          changeKind = ChangeKind.Update;
+        if (items.TryGetValue(sourceChange.ItemId.GetGuidId(), out info)) {
           createdVersion = info.CreationVersion;
-          lastChangeVersion = info.ChangeVersion;
           if (info.IsTombstone) {
             changeKind = ChangeKind.Deleted;
             lastChangeVersion = info.TombstoneVersion;
           }
+          else {
+            changeKind = ChangeKind.Update;
+            lastChangeVersion = info.ChangeVersion;
+          }
         }
 
-        var localChange = new ItemChange(WellKnown.IdFormats, replica.Id, change.ItemId, changeKind, createdVersion, lastChangeVersion);
+        var localChange = new ItemChange(
+          WellKnown.IdFormats, replica.Id, sourceChange.ItemId,
+          changeKind, createdVersion, lastChangeVersion);
+
         localChange.SetAllChangeUnitsPresent();
-        yield return localChange;
+        output.Add(localChange);
       }
     }
 
@@ -354,6 +354,13 @@ namespace Xtensive.Orm.Sync
     public Metadata(Session session, SyncConfiguration configuration, Replica replica)
       : base(session)
     {
+      if (session==null)
+        throw new ArgumentNullException("session");
+      if (configuration==null)
+        throw new ArgumentNullException("configuration");
+      if (replica==null)
+        throw new ArgumentNullException("replica");
+
       this.configuration = configuration;
       this.replica = replica;
 

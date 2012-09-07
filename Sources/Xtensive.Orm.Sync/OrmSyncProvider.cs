@@ -113,7 +113,7 @@ namespace Xtensive.Orm.Sync
         return;
 
       try {
-        syncSession.UpdateReplicaState();
+        syncSession.SaveReplicaState();
         transaction.Complete();
         sessionResources.Dispose();
         EndSessionTracing();
@@ -205,7 +205,7 @@ namespace Xtensive.Orm.Sync
 #endif
 
       CheckIsRunning();
-      syncSession.ProcessChangeBatch(resolutionPolicy, sourceChanges, changeDataRetriever, syncCallbacks);
+      syncSession.ProcessChangeBatch(resolutionPolicy, sourceChanges, (IChangeDataRetriever) changeDataRetriever, syncCallbacks);
 
 #if DEBUG
       Debug.WriteLine("ProcessChangeBatch #{0}, {1} ms", batchCounter, batchStopwatch.ElapsedMilliseconds);
