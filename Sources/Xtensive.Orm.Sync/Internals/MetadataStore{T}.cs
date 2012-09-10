@@ -2,33 +2,30 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using Microsoft.Synchronization;
+using Xtensive.Core;
 
 namespace Xtensive.Orm.Sync
 {
   internal sealed class MetadataStore<TEntity> : MetadataStore
     where TEntity : class, IEntity
   {
-    public override Type EntityType
+    public override SyncInfo CreateMetadata(SyncId syncId, Key targetKey)
     {
-      get { return typeof (TEntity); }
-    }
-
-    public override Type InfoType
-    {
-      get { return typeof (SyncInfo<TEntity>); }
+      return new SyncInfo<TEntity>(Session, syncId) {SyncTargetKey = targetKey};
     }
 
     public override IEnumerable<SyncInfo> GetMetadata(Expression filter)
     {
       var outer = Session.Query.All<SyncInfo<TEntity>>();
       var inner = Session.Query.All<TEntity>();
-      var predicate = filter as Expression<Func<TEntity, bool>>;
 
+      var predicate = filter as Expression<Func<TEntity, bool>>;
       if (predicate!=null)
         inner = inner.Where(predicate);
 
       var pairs = outer
-        .LeftJoin(inner, si => si.Entity, t => t, (si, t) => new {SyncInfo = si, Target = t})
+        .LeftJoin(inner, info => info.Entity, target => target, (info, target) => new {SyncInfo = info, Target = target})
         .Where(pair => pair.Target!=null || pair.SyncInfo.IsTombstone)
         .ToList();
       var fetchedKeys = pairs
@@ -39,14 +36,14 @@ namespace Xtensive.Orm.Sync
         .Select(p => p.SyncInfo);
 
       // To fetch entities
-      var entities = Session.Query.Many<TEntity>(fetchedKeys).ToList();
-      return UpdateItemState(items);
+      Session.Query.Many<TEntity>(fetchedKeys).Run();
+      return items;
     }
 
-    public override IEnumerable<SyncInfo> GetMetadata(List<Key> keys)
+    public override IEnumerable<SyncInfo> GetMetadata(List<Key> targetKeys)
     {
-      int batchCount = keys.Count / WellKnown.KeyPreloadBatchSize;
-      int lastBatchItemCount = keys.Count % WellKnown.KeyPreloadBatchSize;
+      int batchCount = targetKeys.Count / WellKnown.KeyPreloadBatchSize;
+      int lastBatchItemCount = targetKeys.Count % WellKnown.KeyPreloadBatchSize;
       if (lastBatchItemCount > 0)
         batchCount++;
 
@@ -57,10 +54,10 @@ namespace Xtensive.Orm.Sync
 
         var outer = Session.Query.All<SyncInfo<TEntity>>();
         var inner = Session.Query.All<TEntity>();
-        var filter = FilterByKeys(keys, i * WellKnown.KeyPreloadBatchSize, itemCount);
+        var filter = FilterByKeys(targetKeys, i * WellKnown.KeyPreloadBatchSize, itemCount);
         var pairs = outer
           .Where(filter)
-          .LeftJoin(inner, si => si.Entity, t => t, (si, t) => new {SyncInfo = si, Target = t})
+          .LeftJoin(inner, info => info.Entity, target => target, (info, target) => new {SyncInfo = info, Target = target})
           .ToList();
         var fetchedKeys = pairs
           .Where(p => !p.SyncInfo.IsTombstone && p.Target!=null)
@@ -70,48 +67,27 @@ namespace Xtensive.Orm.Sync
           .Select(p => p.SyncInfo);
 
         // To fetch entities
-        var entities = Session.Query.Many<TEntity>(fetchedKeys).ToList();
-        foreach (var item in UpdateItemState(items))
+        Session.Query.Many<TEntity>(fetchedKeys).Run();
+        foreach (var item in items)
           yield return item;
       }
     }
 
-    public override SyncInfo GetMetadata(SyncInfo item)
-    {
-      UpdateItemState((SyncInfo<TEntity>) item);
-      return item;
-    }
-
     private Expression<Func<SyncInfo<TEntity>, bool>> FilterByKeys(List<Key> keys, int start, int count)
     {
-      var p = Expression.Parameter(typeof (SyncInfo<TEntity>), "p");
-      var ea = Expression.Property(p, WellKnown.EntityFieldName);
-      var ka = Expression.Property(ea, Orm.WellKnown.KeyFieldName);
+      var info = Expression.Parameter(typeof (SyncInfo<TEntity>), "p");
+      var entity = Expression.Property(info, WellKnown.EntityFieldName);
+      var key = Expression.Property(entity, Orm.WellKnown.KeyFieldName);
 
-      var body = Expression.Equal(ka, Expression.Constant(keys[start]));
+      var body = Expression.Equal(key, Expression.Constant(keys[start]));
       for (int i = 1; i < count; i++)
-        body = Expression.OrElse(body, Expression.Equal(ka, Expression.Constant(keys[start + i])));
+        body = Expression.OrElse(body, Expression.Equal(key, Expression.Constant(keys[start + i])));
 
-      return Expression.Lambda<Func<SyncInfo<TEntity>, bool>>(body, p);
-    }
-
-    private IEnumerable<SyncInfo> UpdateItemState(IEnumerable<SyncInfo<TEntity>> items)
-    {
-      foreach (var item in items) {
-        UpdateItemState(item);
-        yield return item;
-      }
-    }
-
-    private void UpdateItemState(SyncInfo<TEntity> item)
-    {
-      item.SyncTargetKey = item.SyncTarget!=null
-        ? item.SyncTarget.Key
-        : EntityAccessor.GetReferenceKey(item, EntityField);
+      return Expression.Lambda<Func<SyncInfo<TEntity>, bool>>(body, info);
     }
 
     public MetadataStore(Session session)
-      : base(session)
+      : base(session, typeof (TEntity))
     {
     }
   }

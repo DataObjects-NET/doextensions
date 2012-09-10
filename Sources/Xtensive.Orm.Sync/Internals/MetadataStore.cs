@@ -2,40 +2,30 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using Microsoft.Synchronization;
-using Xtensive.Orm.Model;
-using Xtensive.Orm.Services;
 
 namespace Xtensive.Orm.Sync
 {
-  internal abstract class MetadataStore : SessionBound
+  internal abstract class MetadataStore
   {
-    public abstract Type InfoType { get; }
+    public Session Session { get; private set; }
 
-    public abstract Type EntityType { get; }
+    public Type EntityType { get; private set; }
 
-    public FieldInfo EntityField { get; private set; }
+    public abstract SyncInfo CreateMetadata(SyncId syncId, Key targetKey);
 
-    public DirectEntityAccessor EntityAccessor { get; private set; }
-
-    public abstract SyncInfo GetMetadata(SyncInfo item);
-
-    public abstract IEnumerable<SyncInfo> GetMetadata(List<Key> keys);
+    public abstract IEnumerable<SyncInfo> GetMetadata(List<Key> targetKeys);
 
     public abstract IEnumerable<SyncInfo> GetMetadata(Expression filter);
 
-    public SyncInfo CreateMetadata(SyncId syncId, Key targetKey)
+    protected MetadataStore(Session session, Type entityType)
     {
-      var result = (SyncInfo) Activator.CreateInstance(InfoType, Session, syncId);
-      EntityAccessor.SetReferenceKey(result, EntityField, targetKey);
-      return result;
-    }
+      if (session==null)
+        throw new ArgumentNullException("session");
+      if (entityType==null)
+        throw new ArgumentNullException("entityType");
 
-    protected MetadataStore(Session session)
-      : base(session)
-    {
-      var typeInfo = session.Domain.Model.Types[InfoType];
-      EntityField = typeInfo.Fields[WellKnown.EntityFieldName];
-      EntityAccessor = session.Services.Get<DirectEntityAccessor>();
+      Session = session;
+      EntityType = entityType;
     }
   }
 }

@@ -6,6 +6,7 @@ using Microsoft.Synchronization;
 using Xtensive.Collections.Graphs;
 using Xtensive.IoC;
 using Xtensive.Orm.Model;
+using Xtensive.Orm.Services;
 using Xtensive.Orm.Sync.DataExchange;
 using FieldInfo = Xtensive.Orm.Model.FieldInfo;
 
@@ -19,8 +20,8 @@ namespace Xtensive.Orm.Sync
 
     private readonly EntityTupleFormatterRegistry tupleFormatters;
     private readonly SyncTickGenerator tickGenerator;
-    private readonly MetadataFetcher metadataFetcher;
     private readonly ReplicaManager replicaManager;
+    private readonly DirectEntityAccessor entityAccessor;
     private readonly GlobalTypeIdRegistry typeIdRegistry;
 
     private readonly ReplicaState replicaState;
@@ -71,12 +72,12 @@ namespace Xtensive.Orm.Sync
         var keys = requestedKeys.ToList();
         var groups = keys.GroupBy(i => i.TypeReference.Type.Hierarchy.Root);
 
-        foreach (var @group in groups) {
-          var store = GetStore(@group.Key);
+        foreach (var group in groups) {
+          var store = GetStore(group.Key);
           if (store == null)
             continue;
 
-          var items = store.GetMetadata(@group.ToList());
+          var items = store.GetMetadata(group.ToList());
           var batches = DetectChanges(store, items, batchSize, mappedKnowledge);
           foreach (var batch in batches)
             yield return batch;
@@ -115,16 +116,16 @@ namespace Xtensive.Orm.Sync
         if (!item.IsTombstone) {
           RegisterKeySync(item.SyncTargetKey);
           var syncTarget = item.SyncTarget;
-          var entityTuple = store.EntityAccessor.GetEntityState(syncTarget).Tuple;
+          var entityTuple = entityAccessor.GetEntityState(syncTarget).Tuple;
           changeData.TupleValue = tupleFormatters.Get(syncTarget.TypeInfo.UnderlyingType).Format(entityTuple);
           var type = item.SyncTargetKey.TypeInfo;
           var fields = type.Fields.Where(f => f.IsEntity);
           foreach (var field in fields) {
-            var key = store.EntityAccessor.GetReferenceKey(syncTarget, field);
+            var key = entityAccessor.GetReferenceKey(syncTarget, field);
             if (key!=null) {
               changeData.References.Add(field.Name, new Identity(key));
               references.Add(key);
-              store.EntityAccessor.SetReferenceKey(syncTarget, field, null);
+              entityAccessor.SetReferenceKey(syncTarget, field, null);
             }
           }
         }
@@ -257,22 +258,6 @@ namespace Xtensive.Orm.Sync
       }
     }
 
-    public SyncInfo GetMetadata(SyncId globalId)
-    {
-      var syncInfo = metadataFetcher.GetMetadata(globalId);
-
-      if (syncInfo==null)
-        return null;
-
-      var store = storeList
-        .SingleOrDefault(s => s.InfoType==syncInfo.GetType());
-
-      if (store==null)
-        return syncInfo;
-
-      return store.GetMetadata(syncInfo);
-    }
-
     public SyncInfo CreateMetadata(Key key)
     {
       var store = GetStore(key.TypeInfo);
@@ -341,7 +326,7 @@ namespace Xtensive.Orm.Sync
       var nodeIndex = new Dictionary<Type, Node<Type>>();
       var model = session.Domain.Model;
 
-      var types = model.Types[typeof(SyncInfo)].GetDescendants()
+      var types = model.Types[typeof (SyncInfo)].GetDescendants()
         .Select(t => t.UnderlyingType.GetGenericArguments().First());
       foreach (var type in types) {
         var node = new Node<Type>(type);
@@ -363,11 +348,11 @@ namespace Xtensive.Orm.Sync
       var rootTypes = result.SortedNodes.Select(n => n.Value).ToList();
 
       storeList = new List<MetadataStore>(rootTypes.Count);
-      storeIndex = new Dictionary<Type,MetadataStore>(rootTypes.Count);
+      storeIndex = new Dictionary<Type, MetadataStore>(rootTypes.Count);
 
       foreach (var rootType in rootTypes) {
-        var storeType = typeof(MetadataStore<>).MakeGenericType(rootType);
-        var storeInstance = (MetadataStore)Activator.CreateInstance(storeType, session);
+        var storeType = typeof (MetadataStore<>).MakeGenericType(rootType);
+        var storeInstance = (MetadataStore) Activator.CreateInstance(storeType, session);
         storeList.Add(storeInstance);
         storeIndex[rootType] = storeInstance;
       }
@@ -376,8 +361,8 @@ namespace Xtensive.Orm.Sync
     [ServiceConstructor]
     public MetadataManager(
       Session session, GlobalTypeIdRegistry typeIdRegistry,
-      EntityTupleFormatterRegistry tupleFormatters, SyncTickGenerator tickGenerator,
-      MetadataFetcher metadataFetcher, ReplicaManager replicaManager)
+      EntityTupleFormatterRegistry tupleFormatters, SyncTickGenerator tickGenerator, ReplicaManager replicaManager,
+      DirectEntityAccessor entityAccessor)
     {
       if (session==null)
         throw new ArgumentNullException("session");
@@ -387,17 +372,17 @@ namespace Xtensive.Orm.Sync
         throw new ArgumentNullException("tupleFormatters");
       if (tickGenerator==null)
         throw new ArgumentNullException("tickGenerator");
-      if (metadataFetcher==null)
-        throw new ArgumentNullException("metadataFetcher");
       if (replicaManager==null)
         throw new ArgumentNullException("replicaManager");
+      if (entityAccessor==null)
+        throw new ArgumentNullException("entityAccessor");
 
       this.session = session;
       this.typeIdRegistry = typeIdRegistry;
       this.tupleFormatters = tupleFormatters;
       this.tickGenerator = tickGenerator;
-      this.metadataFetcher = metadataFetcher;
       this.replicaManager = replicaManager;
+      this.entityAccessor = entityAccessor;
 
       replicaState = replicaManager.LoadReplicaState();
 

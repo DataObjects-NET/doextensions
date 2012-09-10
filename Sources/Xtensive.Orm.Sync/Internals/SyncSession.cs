@@ -23,7 +23,6 @@ namespace Xtensive.Orm.Sync
     private readonly DirectEntityAccessor accessor;
     private readonly Dictionary<Key, List<KeyDependency>> keyDependencies;
     private readonly EntityTupleFormatterRegistry tupleFormatters;
-    private readonly ReplicaManager replicaManager;
     private readonly MetadataFetcher metadataFetcher;
     private readonly SyncTickGenerator tickGenerator;
     private readonly SyncSessionContext syncContext;
@@ -213,11 +212,12 @@ namespace Xtensive.Orm.Sync
       if (cachedValue!=null)
         return cachedValue;
       
-      var syncInfo = metadataManager.GetMetadata(identity.GlobalId);
+      var syncInfo = metadataFetcher.GetMetadata(identity.GlobalId);
       if (syncInfo!=null) {
         keyMap.Register(identity, syncInfo.SyncTargetKey);
         return syncInfo.SyncTargetKey;
       }
+
       return null;
     }
 
@@ -298,7 +298,6 @@ namespace Xtensive.Orm.Sync
       keyDependencies = new Dictionary<Key, List<KeyDependency>>();
 
       accessor = session.Services.Demand<DirectEntityAccessor>();
-      replicaManager = session.Services.Demand<ReplicaManager>();
       metadataFetcher = session.Services.Demand<MetadataFetcher>();
       tickGenerator = session.Services.Demand<SyncTickGenerator>();
       tupleFormatters = session.Services.Demand<EntityTupleFormatterRegistry>();

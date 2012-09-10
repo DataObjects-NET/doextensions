@@ -16,6 +16,8 @@ namespace Xtensive.Orm.Sync
     private SyncVersion cachedChangeVersion;
     private SyncVersion cachedTombstoneVersion;
 
+    private Key cachedSyncTargetKey;
+
     /// <summary>
     /// Gets the global ID of the item.
     /// </summary>
@@ -30,9 +32,8 @@ namespace Xtensive.Orm.Sync
     {
       get
       {
-        if (cachedSyncId!=null)
-          return cachedSyncId;
-        cachedSyncId = SyncIdBuilder.GetSyncId(Id);
+        if (cachedSyncId==null)
+          cachedSyncId = SyncIdBuilder.GetSyncId(Id);
         return cachedSyncId;
       }
     }
@@ -62,10 +63,9 @@ namespace Xtensive.Orm.Sync
     {
       get
       {
-        if (cachedCreatedVersion!=null)
-          return cachedCreatedVersion;
+        if (cachedCreatedVersion==null)
+          cachedCreatedVersion = new SyncVersion(CreatedReplicaKey, (ulong) CreatedTickCount);
 
-        cachedCreatedVersion = new SyncVersion(CreatedReplicaKey, (ulong) CreatedTickCount);
         return cachedCreatedVersion;
       }
       set
@@ -92,7 +92,6 @@ namespace Xtensive.Orm.Sync
     /// <summary>
     /// Gets or sets the version of the most recent change made to the item.
     /// </summary>
-    /// 
     /// <returns>
     /// The version of the most recent change made to the item. Returns a null when the change version has not been set.
     /// </returns>
@@ -101,10 +100,10 @@ namespace Xtensive.Orm.Sync
     {
       get
       {
-        if (cachedChangeVersion!=null)
-          return cachedChangeVersion;
+        if (cachedChangeVersion==null) {
+          cachedChangeVersion = new SyncVersion(ChangeReplicaKey, (ulong) ChangeTickCount);
+        }
 
-        cachedChangeVersion = new SyncVersion(ChangeReplicaKey, (ulong) ChangeTickCount);
         return cachedChangeVersion;
       }
       set
@@ -137,10 +136,8 @@ namespace Xtensive.Orm.Sync
     {
       get
       {
-        if (cachedTombstoneVersion!=null)
-          return cachedTombstoneVersion;
-
-        cachedTombstoneVersion = new SyncVersion(TombstoneReplicaKey, (ulong) TombstoneTickCount);
+        if (cachedTombstoneVersion==null)
+          cachedTombstoneVersion = new SyncVersion(TombstoneReplicaKey, (ulong) TombstoneTickCount);
         return cachedTombstoneVersion;
       }
       set
@@ -162,7 +159,20 @@ namespace Xtensive.Orm.Sync
     internal abstract Entity SyncTarget { get; }
 
     [Infrastructure]
-    internal Key SyncTargetKey { get; set; }
+    internal Key SyncTargetKey
+    {
+      get
+      {
+        if (cachedSyncTargetKey==null)
+          cachedSyncTargetKey = SyncTarget!=null ? SyncTarget.Key : GetReferenceKey(TypeInfo.Fields[WellKnown.EntityFieldName]);
+        return cachedSyncTargetKey;
+      }
+      set
+      {
+        SetReferenceKey(TypeInfo.Fields[WellKnown.EntityFieldName], value);
+        cachedSyncTargetKey = value;
+      }
+    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SyncInfo"/> class.

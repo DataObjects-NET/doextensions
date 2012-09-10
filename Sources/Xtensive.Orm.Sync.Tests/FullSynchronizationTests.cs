@@ -31,7 +31,7 @@ namespace Xtensive.Orm.Sync.Tests
       using (var session = RemoteDomain.OpenSession())
       using (session.OpenTransaction()) {
         ValidateEntityCount(session);
-        Assert.AreEqual(0, Count<MyEntity>(session, m => m.Property==null));
+        Assert.AreEqual(InitialEntityCount / 2, Count<MyEntity>(session, m => m.Property==null));
       }
     }
 
@@ -150,7 +150,9 @@ namespace Xtensive.Orm.Sync.Tests
       using (var session = LocalDomain.OpenSession()) {
         using (var t = session.OpenTransaction()) {
           for (int i = 0; i < count; i++) {
-            new MyEntity(session) {Property = new MyReferenceProperty(session)};
+            var myEntity = new MyEntity(session);
+            if (i % 2==0)
+              myEntity.Property = new MyReferenceProperty(session);
             new AnotherEntity(session, Guid.NewGuid());
           }
           t.Complete();
