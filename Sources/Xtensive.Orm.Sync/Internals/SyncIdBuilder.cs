@@ -52,10 +52,10 @@ namespace Xtensive.Orm.Sync
         return ch - '0';
 
       if (ch >= 'a' && ch <= 'f')
-        return ch - 'a';
+        return ch - 'a' + 10;
 
       if (ch >= 'A' && ch <= 'F')
-        return ch - 'A';
+        return ch - 'A' + 10;
 
       throw new InvalidOperationException(string.Format("'{0}' is not correct hex digit", ch));
     }
