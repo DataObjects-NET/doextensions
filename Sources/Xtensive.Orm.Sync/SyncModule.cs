@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Synchronization;
+using Xtensive.Core;
 using Xtensive.Orm.Building;
 using Xtensive.Orm.Building.Definitions;
 using Xtensive.Orm.Tracking;
@@ -73,23 +74,22 @@ namespace Xtensive.Orm.Sync
     private void ProcessQueuedItems()
     {
       using (var session = domain.OpenSession()) {
-        var replicaManager = session.Services.Get<ReplicaManager>();
         while (!pendingItems.IsCompleted) {
           var items = pendingItems.Take();
           try {
             isExecuting = true;
             using (var t = session.OpenTransaction()) {
-              var metadata = new Metadata(session, new SyncConfiguration(), replicaManager.LoadReplica());
-              var lookup = metadata.GetMetadata(items.Select(i => i.Key)).ToDictionary(i => i.SyncTargetKey);
+              var metadataManager = session.Services.Demand<MetadataManager>();
+              var lookup = metadataManager.GetMetadata(items.Select(i => i.Key)).ToDictionary(i => i.SyncTargetKey);
               foreach (var item in items) {
                 if (item.State==TrackingItemState.Created)
-                  metadata.CreateMetadata(item.Key);
+                  metadataManager.CreateMetadata(item.Key);
                 else {
                   SyncInfo syncInfo;
                   if (lookup.TryGetValue(item.Key, out syncInfo))
-                    metadata.UpdateMetadata(syncInfo, item.State==TrackingItemState.Deleted);
+                    metadataManager.UpdateMetadata(syncInfo, item.State==TrackingItemState.Deleted);
                   else
-                    metadata.CreateMetadata(item.Key);
+                    metadataManager.CreateMetadata(item.Key);
                 }
               }
               t.Complete();

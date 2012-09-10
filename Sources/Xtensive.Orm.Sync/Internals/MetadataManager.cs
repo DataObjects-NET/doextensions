@@ -4,31 +4,51 @@ using System.Linq;
 using System.Linq.Expressions;
 using Microsoft.Synchronization;
 using Xtensive.Collections.Graphs;
-using Xtensive.Core;
+using Xtensive.IoC;
 using Xtensive.Orm.Model;
 using Xtensive.Orm.Sync.DataExchange;
 using FieldInfo = Xtensive.Orm.Model.FieldInfo;
 
 namespace Xtensive.Orm.Sync
 {
-  internal sealed class Metadata : SessionBound
+  [Service(typeof (MetadataManager), Singleton = false)]
+  internal sealed class MetadataManager : ISessionService
   {
-    private readonly SyncConfiguration configuration;
-    private readonly HashSet<Key> sentKeys;
-    private readonly HashSet<Key> requestedKeys;
+    private readonly HashSet<Key> sentKeys = new HashSet<Key>();
+    private readonly HashSet<Key> requestedKeys = new HashSet<Key>();
+
     private readonly EntityTupleFormatterRegistry tupleFormatters;
     private readonly SyncTickGenerator tickGenerator;
-    private readonly SyncInfoFetcher syncInfoFetcher;
+    private readonly MetadataFetcher metadataFetcher;
+    private readonly ReplicaManager replicaManager;
     private readonly GlobalTypeIdRegistry typeIdRegistry;
-    private readonly Replica replica;
+
+    private readonly ReplicaState replicaState;
+    private readonly Session session;
+
+    private SyncConfiguration configuration = new SyncConfiguration();
 
     private List<MetadataStore> storeList;
     private Dictionary<Type, MetadataStore> storeIndex;
 
+    public ReplicaState ReplicaState { get { return replicaState; } }
+
+    public void Configure(SyncConfiguration newConfiguration)
+    {
+      if (newConfiguration==null)
+        throw new ArgumentNullException("newConfiguration");
+      configuration = newConfiguration;
+    }
+
+    public void SaveReplicaState()
+    {
+      replicaManager.SaveReplicaState(replicaState);
+    }
+
     public IEnumerable<ChangeSet> DetectChanges(uint batchSize, SyncKnowledge destinationKnowledge)
     {
-      var mappedKnowledge = replica.CurrentKnowledge.MapRemoteKnowledgeToLocal(destinationKnowledge);
-      mappedKnowledge.ReplicaKeyMap.FindOrAddReplicaKey(replica.Id);
+      var mappedKnowledge = replicaState.CurrentKnowledge.MapRemoteKnowledgeToLocal(destinationKnowledge);
+      mappedKnowledge.ReplicaKeyMap.FindOrAddReplicaKey(replicaState.Id);
 
       var stores = storeList.AsEnumerable();
 
@@ -81,12 +101,12 @@ namespace Xtensive.Orm.Sync
           lastChangeVersion = item.TombstoneVersion;
         }
 
-        if (mappedKnowledge.Contains(replica.Id, item.SyncId, lastChangeVersion)) {
+        if (mappedKnowledge.Contains(replicaState.Id, item.SyncId, lastChangeVersion)) {
           requestedKeys.Remove(item.SyncTargetKey);
           continue;
         }
 
-        var change = new ItemChange(WellKnown.IdFormats, replica.Id, item.SyncId, changeKind, createdVersion, lastChangeVersion);
+        var change = new ItemChange(WellKnown.IdFormats, replicaState.Id, item.SyncId, changeKind, createdVersion, lastChangeVersion);
         var changeData = new ItemChangeData {
           Change = change,
           Identity = new Identity(item.SyncTargetKey, item.SyncId),
@@ -179,7 +199,7 @@ namespace Xtensive.Orm.Sync
     public void GetLocalChanges(ChangeBatch sourceChanges, ICollection<ItemChange> output)
     {
       var ids = sourceChanges.Select(i => i.ItemId.ToString());
-      var items = Session.Query
+      var items = session.Query
         .Execute(q => q.All<SyncInfo>().Where(i => i.Id.In(ids)))
         .ToDictionary(i => i.SyncId);
 
@@ -201,7 +221,7 @@ namespace Xtensive.Orm.Sync
         }
 
         var localChange = new ItemChange(
-          WellKnown.IdFormats, replica.Id, sourceChange.ItemId,
+          WellKnown.IdFormats, replicaState.Id, sourceChange.ItemId,
           changeKind, createdVersion, lastChangeVersion);
 
         localChange.SetAllChangeUnitsPresent();
@@ -213,9 +233,9 @@ namespace Xtensive.Orm.Sync
     {
       var groups = keys.GroupBy(i => i.TypeReference.Type);
 
-      foreach (var @group in groups) {
+      foreach (var group in groups) {
         MetadataStore store;
-        var originalType = @group.Key;
+        var originalType = group.Key;
 
         if (originalType.IsInterface) {
           var rootTypes = originalType.GetImplementors(false)
@@ -224,14 +244,14 @@ namespace Xtensive.Orm.Sync
             store = GetStore(rootType);
             if (store == null)
               continue;
-            foreach (var item in store.GetMetadata(@group.ToList()))
+            foreach (var item in store.GetMetadata(group.ToList()))
               yield return item;
           }
         }
         else {
           store = GetStore(originalType);
           if (store!=null)
-            foreach (var item in store.GetMetadata(@group.ToList()))
+            foreach (var item in store.GetMetadata(group.ToList()))
               yield return item;
         }
       }
@@ -239,7 +259,7 @@ namespace Xtensive.Orm.Sync
 
     public SyncInfo GetMetadata(SyncId globalId)
     {
-      var syncInfo = syncInfoFetcher.Fetch(globalId);
+      var syncInfo = metadataFetcher.GetMetadata(globalId);
 
       if (syncInfo==null)
         return null;
@@ -261,7 +281,7 @@ namespace Xtensive.Orm.Sync
 
       var globalTypeId = typeIdRegistry.GetGlobalTypeId(key.TypeInfo.UnderlyingType);
       var tick = tickGenerator.GetNextTick();
-      var syncId = SyncIdBuilder.GetSyncId(globalTypeId, replica.Id, tick);
+      var syncId = SyncIdBuilder.GetSyncId(globalTypeId, replicaState.Id, tick);
       var result = store.CreateMetadata(syncId, key);
 
       result.CreatedReplicaKey = WellKnown.LocalReplicaKey;
@@ -319,7 +339,7 @@ namespace Xtensive.Orm.Sync
     {
       var graph = new Graph<Node<Type>, Edge>();
       var nodeIndex = new Dictionary<Type, Node<Type>>();
-      var model = Session.Domain.Model;
+      var model = session.Domain.Model;
 
       var types = model.Types[typeof(SyncInfo)].GetDescendants()
         .Select(t => t.UnderlyingType.GetGenericArguments().First());
@@ -347,32 +367,39 @@ namespace Xtensive.Orm.Sync
 
       foreach (var rootType in rootTypes) {
         var storeType = typeof(MetadataStore<>).MakeGenericType(rootType);
-        var storeInstance = (MetadataStore)Activator.CreateInstance(storeType, Session);
+        var storeInstance = (MetadataStore)Activator.CreateInstance(storeType, session);
         storeList.Add(storeInstance);
         storeIndex[rootType] = storeInstance;
       }
     }
 
-    public Metadata(Session session, SyncConfiguration configuration, Replica replica)
-      : base(session)
+    [ServiceConstructor]
+    public MetadataManager(
+      Session session, GlobalTypeIdRegistry typeIdRegistry,
+      EntityTupleFormatterRegistry tupleFormatters, SyncTickGenerator tickGenerator,
+      MetadataFetcher metadataFetcher, ReplicaManager replicaManager)
     {
       if (session==null)
         throw new ArgumentNullException("session");
-      if (configuration==null)
-        throw new ArgumentNullException("configuration");
-      if (replica==null)
-        throw new ArgumentNullException("replica");
+      if (typeIdRegistry==null)
+        throw new ArgumentNullException("typeIdRegistry");
+      if (tupleFormatters==null)
+        throw new ArgumentNullException("tupleFormatters");
+      if (tickGenerator==null)
+        throw new ArgumentNullException("tickGenerator");
+      if (metadataFetcher==null)
+        throw new ArgumentNullException("metadataFetcher");
+      if (replicaManager==null)
+        throw new ArgumentNullException("replicaManager");
 
-      this.configuration = configuration;
-      this.replica = replica;
+      this.session = session;
+      this.typeIdRegistry = typeIdRegistry;
+      this.tupleFormatters = tupleFormatters;
+      this.tickGenerator = tickGenerator;
+      this.metadataFetcher = metadataFetcher;
+      this.replicaManager = replicaManager;
 
-      typeIdRegistry = session.Services.Demand<GlobalTypeIdRegistry>();
-      tupleFormatters = session.Services.Demand<EntityTupleFormatterRegistry>();
-      tickGenerator = session.Services.Demand<SyncTickGenerator>();
-      syncInfoFetcher = session.Services.Demand<SyncInfoFetcher>();
-
-      sentKeys = new HashSet<Key>();
-      requestedKeys = new HashSet<Key>();
+      replicaState = replicaManager.LoadReplicaState();
 
       InitializeStores();
     }

@@ -16,18 +16,18 @@ namespace Xtensive.Orm.Sync
     private readonly Session session;
     private readonly SyncTickGenerator tickGenerator;
 
-    public Replica LoadReplica()
+    public ReplicaState LoadReplicaState()
     {
-      var result = new Replica {Id = LoadReplicaId()};
+      var result = new ReplicaState {Id = LoadReplicaId()};
       LoadCurrentKnowledge(result);
       LoadForgottenKnowledge(result);
       return result;
     }
 
-    public void SaveReplica(Replica replica)
+    public void SaveReplicaState(ReplicaState state)
     {
-      SaveCurrentKnowledge(replica);
-      SaveForgottenKnowledge(replica);
+      SaveCurrentKnowledge(state);
+      SaveForgottenKnowledge(state);
     }
 
     public SyncId LoadReplicaId()
@@ -40,37 +40,37 @@ namespace Xtensive.Orm.Sync
       return new SyncId(syncId);
     }
 
-    private void LoadCurrentKnowledge(Replica replica)
+    private void LoadCurrentKnowledge(ReplicaState state)
     {
       var container = GetContainer(WellKnown.CurrentKnowledgeExtensionName);
       if (container!=null) {
         var knowledge = (SyncKnowledge) Deserialize(KnowledgeSerializer, container.Text);
-        replica.CurrentKnowledge = knowledge;
+        state.CurrentKnowledge = knowledge;
         knowledge.SetLocalTickCount(GetLastTick());
       }
       else
-        replica.CurrentKnowledge = new SyncKnowledge(WellKnown.IdFormats, replica.Id, GetLastTick());
+        state.CurrentKnowledge = new SyncKnowledge(WellKnown.IdFormats, state.Id, GetLastTick());
     }
 
-    private void LoadForgottenKnowledge(Replica replica)
+    private void LoadForgottenKnowledge(ReplicaState state)
     {
       var container = GetContainer(WellKnown.ForgottenKnowledgeExtensionName);
       if (container!=null)
-        replica.ForgottenKnowledge = (ForgottenKnowledge) Deserialize(ForgottenKnowledgeSerializer, container.Text);
+        state.ForgottenKnowledge = (ForgottenKnowledge) Deserialize(ForgottenKnowledgeSerializer, container.Text);
       else
-        replica.ForgottenKnowledge = new ForgottenKnowledge(WellKnown.IdFormats, replica.CurrentKnowledge);
+        state.ForgottenKnowledge = new ForgottenKnowledge(WellKnown.IdFormats, state.CurrentKnowledge);
     }
 
-    private void SaveCurrentKnowledge(Replica replica)
+    private void SaveCurrentKnowledge(ReplicaState state)
     {
       var container = GetOrCreateContainer(WellKnown.CurrentKnowledgeExtensionName);
-      container.Text = Serialize(KnowledgeSerializer, replica.CurrentKnowledge);
+      container.Text = Serialize(KnowledgeSerializer, state.CurrentKnowledge);
     }
 
-    private void SaveForgottenKnowledge(Replica replica)
+    private void SaveForgottenKnowledge(ReplicaState state)
     {
       var container = GetOrCreateContainer(WellKnown.ForgottenKnowledgeExtensionName);
-      container.Text = Serialize(ForgottenKnowledgeSerializer, replica.ForgottenKnowledge);
+      container.Text = Serialize(ForgottenKnowledgeSerializer, state.ForgottenKnowledge);
     }
 
     private Extension GetContainer(string name)

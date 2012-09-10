@@ -2,7 +2,7 @@
 
 namespace Xtensive.Orm.Sync
 {
-  internal sealed class Replica
+  internal sealed class ReplicaState
   {
     public SyncId Id { get; set; }
 

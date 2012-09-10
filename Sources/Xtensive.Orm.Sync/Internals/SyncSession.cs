@@ -18,13 +18,13 @@ namespace Xtensive.Orm.Sync
 
     private readonly Session session;
     private readonly SyncConfiguration configuration;
-    private readonly Metadata metadata;
+    private readonly MetadataManager metadataManager;
     private readonly KeyMap keyMap;
     private readonly DirectEntityAccessor accessor;
     private readonly Dictionary<Key, List<KeyDependency>> keyDependencies;
     private readonly EntityTupleFormatterRegistry tupleFormatters;
     private readonly ReplicaManager replicaManager;
-    private readonly SyncInfoFetcher syncInfoFetcher;
+    private readonly MetadataFetcher metadataFetcher;
     private readonly SyncTickGenerator tickGenerator;
     private readonly SyncSessionContext syncContext;
 
@@ -33,7 +33,7 @@ namespace Xtensive.Orm.Sync
 
     public SyncIdFormatGroup IdFormats { get { return WellKnown.IdFormats; } }
 
-    public Replica Replica { get; private set; }
+    public ReplicaState ReplicaState { get { return metadataManager.ReplicaState; } }
 
     #region Source provider methods
 
@@ -48,20 +48,20 @@ namespace Xtensive.Orm.Sync
       ChangeBatch result;
       if (FilteredBatchIsRequired()) {
         var filterInfo = new ItemListFilterInfo(IdFormats);
-        result = new ChangeBatch(IdFormats, destinationKnowledge, Replica.ForgottenKnowledge, filterInfo);
+        result = new ChangeBatch(IdFormats, destinationKnowledge, ReplicaState.ForgottenKnowledge, filterInfo);
       }
       else
-        result = new ChangeBatch(IdFormats, destinationKnowledge, Replica.ForgottenKnowledge);
+        result = new ChangeBatch(IdFormats, destinationKnowledge, ReplicaState.ForgottenKnowledge);
 
       bool hasNext;
 
       if (changeSetEnumerator==null) {
-        var changeSets = metadata.DetectChanges(batchSize, destinationKnowledge);
+        var changeSets = metadataManager.DetectChanges(batchSize, destinationKnowledge);
         changeSetEnumerator = changeSets.GetEnumerator();
         hasNext = changeSetEnumerator.MoveNext();
         if (!hasNext) {
           result.BeginUnorderedGroup();
-          result.EndUnorderedGroup(Replica.CurrentKnowledge, true);
+          result.EndUnorderedGroup(ReplicaState.CurrentKnowledge, true);
           result.SetLastBatch();
           return result;
         }
@@ -73,11 +73,11 @@ namespace Xtensive.Orm.Sync
 
       hasNext = changeSetEnumerator.MoveNext();
       if (!hasNext) {
-        result.EndUnorderedGroup(Replica.CurrentKnowledge, true);
+        result.EndUnorderedGroup(ReplicaState.CurrentKnowledge, true);
         result.SetLastBatch();
       }
       else
-        result.EndUnorderedGroup(Replica.CurrentKnowledge, false);
+        result.EndUnorderedGroup(ReplicaState.CurrentKnowledge, false);
 
       return result;
     }
@@ -90,10 +90,10 @@ namespace Xtensive.Orm.Sync
       ConflictResolutionPolicy resolutionPolicy, ChangeBatch sourceChanges, IChangeDataRetriever changeDataRetriever, SyncCallbacks syncCallbacks)
     {
       var localChanges = new List<ItemChange>();
-      metadata.GetLocalChanges(sourceChanges, localChanges);
+      metadataManager.GetLocalChanges(sourceChanges, localChanges);
 
-      var knowledge = Replica.CurrentKnowledge;
-      var forgottenKnowledge = Replica.ForgottenKnowledge;
+      var knowledge = ReplicaState.CurrentKnowledge;
+      var forgottenKnowledge = ReplicaState.ForgottenKnowledge;
       var changeApplier = new NotifyingChangeApplier(IdFormats);
 
       changeApplier.ApplyChanges(
@@ -158,7 +158,7 @@ namespace Xtensive.Orm.Sync
       }
 
       RegisterKeyMapping(data, mappedKey);
-      metadata.CreateMetadata(mappedKey, data.Change);
+      metadataManager.CreateMetadata(mappedKey, data.Change);
       var entity = accessor.CreateEntity(entityType, mappedKey.Value);
       var state = accessor.GetEntityState(entity);
       offset = mappedKey.Value.Count;
@@ -169,11 +169,11 @@ namespace Xtensive.Orm.Sync
 
     private void HandleUpdateEntity(ItemChangeData data)
     {
-      var syncInfo = syncInfoFetcher.Fetch(data.Identity.GlobalId);
+      var syncInfo = metadataFetcher.GetMetadata(data.Identity.GlobalId);
       if (syncInfo==null)
         return;
 
-      metadata.UpdateMetadata(syncInfo, data.Change, false);
+      metadataManager.UpdateMetadata(syncInfo, data.Change, false);
       var entity = syncInfo.SyncTarget;
       var state = accessor.GetEntityState(entity);
       var offset = entity.Key.Value.Count;
@@ -185,11 +185,11 @@ namespace Xtensive.Orm.Sync
 
     private void HandleRemoveEntity(ItemChange change)
     {
-      var syncInfo = syncInfoFetcher.Fetch(change.ItemId);
+      var syncInfo = metadataFetcher.GetMetadata(change.ItemId);
       if (syncInfo==null)
         return;
 
-      metadata.UpdateMetadata(syncInfo, change, true);
+      metadataManager.UpdateMetadata(syncInfo, change, true);
       var entity = syncInfo.SyncTarget;
       var state = accessor.GetEntityState(entity);
       state.PersistenceState = PersistenceState.Removed;
@@ -213,7 +213,7 @@ namespace Xtensive.Orm.Sync
       if (cachedValue!=null)
         return cachedValue;
       
-      var syncInfo = metadata.GetMetadata(identity.GlobalId);
+      var syncInfo = metadataManager.GetMetadata(identity.GlobalId);
       if (syncInfo!=null) {
         keyMap.Register(identity, syncInfo.SyncTargetKey);
         return syncInfo.SyncTargetKey;
@@ -260,8 +260,8 @@ namespace Xtensive.Orm.Sync
 
     public void StoreKnowledgeForScope(SyncKnowledge currentKnowledge, ForgottenKnowledge forgottenKnowledge)
     {
-      Replica.CurrentKnowledge.Combine(currentKnowledge);
-      Replica.ForgottenKnowledge.Combine(forgottenKnowledge);
+      ReplicaState.CurrentKnowledge.Combine(currentKnowledge);
+      ReplicaState.ForgottenKnowledge.Combine(forgottenKnowledge);
     }
 
     public void SaveChangeWithChangeUnits(ItemChange change, SaveChangeWithChangeUnitsContext context)
@@ -278,7 +278,7 @@ namespace Xtensive.Orm.Sync
 
     public void SaveReplicaState()
     {
-      replicaManager.SaveReplica(Replica);
+      metadataManager.SaveReplicaState();
     }
 
     public SyncSession(SyncSessionContext syncContext, Session session, SyncConfiguration configuration)
@@ -299,13 +299,12 @@ namespace Xtensive.Orm.Sync
 
       accessor = session.Services.Demand<DirectEntityAccessor>();
       replicaManager = session.Services.Demand<ReplicaManager>();
-      syncInfoFetcher = session.Services.Demand<SyncInfoFetcher>();
+      metadataFetcher = session.Services.Demand<MetadataFetcher>();
       tickGenerator = session.Services.Demand<SyncTickGenerator>();
       tupleFormatters = session.Services.Demand<EntityTupleFormatterRegistry>();
 
-      Replica = replicaManager.LoadReplica();
-
-      metadata = new Metadata(session, configuration, Replica);
+      metadataManager = session.Services.Demand<MetadataManager>();
+      metadataManager.Configure(configuration);
     }
 
     static SyncSession()

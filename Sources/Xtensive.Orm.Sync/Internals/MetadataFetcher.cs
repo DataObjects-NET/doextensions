@@ -6,13 +6,13 @@ using Xtensive.IoC;
 
 namespace Xtensive.Orm.Sync
 {
-  [Service(typeof (SyncInfoFetcher), Singleton = true)]
-  internal sealed class SyncInfoFetcher : ISessionService
+  [Service(typeof (MetadataFetcher), Singleton = true)]
+  internal sealed class MetadataFetcher : ISessionService
   {
     private readonly Session session;
     private readonly ICache<SyncId, SyncInfo> cache;
 
-    public SyncInfo Fetch(SyncId globalId)
+    public SyncInfo GetMetadata(SyncId globalId)
     {
       SyncInfo result;
 
@@ -28,7 +28,7 @@ namespace Xtensive.Orm.Sync
     }
 
     [ServiceConstructor]
-    public SyncInfoFetcher(Session session)
+    public MetadataFetcher(Session session)
     {
       if (session==null)
         throw new ArgumentNullException("session");
