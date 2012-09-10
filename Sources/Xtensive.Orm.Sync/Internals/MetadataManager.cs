@@ -63,7 +63,7 @@ namespace Xtensive.Orm.Sync
         Expression filter;
         configuration.Filters.TryGetValue(store.EntityType, out filter);
         var items = store.GetMetadata(filter);
-        var batches = DetectChanges(store, items, batchSize, mappedKnowledge);
+        var batches = DetectChanges(items, batchSize, mappedKnowledge);
         foreach (var batch in batches)
           yield return batch;
       }
@@ -78,14 +78,14 @@ namespace Xtensive.Orm.Sync
             continue;
 
           var items = store.GetMetadata(group.ToList());
-          var batches = DetectChanges(store, items, batchSize, mappedKnowledge);
+          var batches = DetectChanges(items, batchSize, mappedKnowledge);
           foreach (var batch in batches)
             yield return batch;
         }
       }
     }
 
-    private IEnumerable<ChangeSet> DetectChanges(MetadataStore store, IEnumerable<SyncInfo> items, uint batchSize, SyncKnowledge mappedKnowledge)
+    private IEnumerable<ChangeSet> DetectChanges(IEnumerable<SyncInfo> items, uint batchSize, SyncKnowledge mappedKnowledge)
     {
       int itemCount = 0;
       var result = new ChangeSet();
@@ -282,6 +282,7 @@ namespace Xtensive.Orm.Sync
       var store = GetStore(key.TypeInfo);
       if (store==null)
         return null;
+
       var result = store.CreateMetadata(change.ItemId, key);
       result.CreationVersion = change.CreationVersion;
       result.ChangeVersion = change.ChangeVersion;
