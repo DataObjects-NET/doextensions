@@ -17,7 +17,7 @@ namespace Xtensive.Orm.Sync.Tests
     public void SerializeIdentityTest()
     {
       var key = Key.Create<MyEntity>(LocalDomain, 1L);
-      var id1 = new Identity(key, Guid.NewGuid());
+      var id1 = new Identity(key, new SyncId(new byte[4] {1, 2, 3, 4}, false));
       Identity id2;
 
       var formatter = new BinaryFormatter();
@@ -34,9 +34,9 @@ namespace Xtensive.Orm.Sync.Tests
     public void SerializeItemChangeDataTest()
     {
       var key1 = Key.Create<MyEntity>(LocalDomain, 1L);
-      var id1 = new Identity(key1, Guid.NewGuid());
+      var id1 = new Identity(key1, new SyncId(new byte[4] {1, 2, 3, 4}, false));
       var key2 = Key.Create<MyEntity>(LocalDomain, 2L);
-      var id2 = new Identity(key2, Guid.NewGuid());
+      var id2 = new Identity(key2, new SyncId(new byte[4] {1, 2, 3, 5}, false));
       var data1 = new ItemChangeData();
       data1.Identity = id1;
       var tuple = Tuples.Tuple.Create(key1.TypeInfo.TupleDescriptor);
@@ -60,9 +60,9 @@ namespace Xtensive.Orm.Sync.Tests
     public void SerializeChangeSetTest()
     {
       var key1 = Key.Create<MyEntity>(LocalDomain, 1L);
-      var id1 = new Identity(key1, Guid.NewGuid());
+      var id1 = new Identity(key1, new SyncId(new byte[4] {1, 2, 3, 4}, false));
       var key2 = Key.Create<MyEntity>(LocalDomain, 2L);
-      var id2 = new Identity(key2, Guid.NewGuid());
+      var id2 = new Identity(key2, new SyncId(new byte[4] {1, 2, 3, 5}, false));
       var data = new ItemChangeData();
       data.Identity = id1;
       var tuple = Tuples.Tuple.Create(key1.TypeInfo.TupleDescriptor);
@@ -86,9 +86,9 @@ namespace Xtensive.Orm.Sync.Tests
     public void SerializeChangeDataRetrieverTest()
     {
       var key1 = Key.Create<MyEntity>(LocalDomain, 1L);
-      var id1 = new Identity(key1, Guid.NewGuid());
+      var id1 = new Identity(key1, new SyncId(new byte[4] {1, 2, 3, 4}, false));
       var key2 = Key.Create<MyEntity>(LocalDomain, 2L);
-      var id2 = new Identity(key2, Guid.NewGuid());
+      var id2 = new Identity(key2, new SyncId(new byte[4] {1, 2, 3, 5}, false));
       var data = new ItemChangeData();
       data.Identity = id1;
       var tuple = Tuples.Tuple.Create(key1.TypeInfo.TupleDescriptor);

@@ -33,7 +33,7 @@ namespace Xtensive.Orm.Sync.DataExchange
     /// <param name="loadChangeContext">Metadata that describes the change for which data should be retrieved.</param>
     public object LoadChangeData(LoadChangeContext loadChangeContext)
     {
-      var globalId = loadChangeContext.ItemChange.ItemId.GetGuidId();
+      var globalId = loadChangeContext.ItemChange.ItemId;
       return ChangeSet[globalId];
     }
 

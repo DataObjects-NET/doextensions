@@ -185,7 +185,7 @@ namespace Xtensive.Orm.Sync
 
     private void HandleRemoveEntity(ItemChange change)
     {
-      var syncInfo = syncInfoFetcher.Fetch(change.ItemId.GetGuidId());
+      var syncInfo = syncInfoFetcher.Fetch(change.ItemId);
       if (syncInfo==null)
         return;
 

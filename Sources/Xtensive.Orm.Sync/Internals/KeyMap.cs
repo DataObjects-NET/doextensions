@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Microsoft.Synchronization;
 using Xtensive.Orm.Sync.DataExchange;
 
 namespace Xtensive.Orm.Sync
@@ -7,7 +7,7 @@ namespace Xtensive.Orm.Sync
   internal sealed class KeyMap
   {
     private readonly Dictionary<Key, Key> keyIndex = new Dictionary<Key, Key>();
-    private readonly Dictionary<Guid, Key> globalIdIndex = new Dictionary<Guid, Key>();
+    private readonly Dictionary<SyncId, Key> globalIdIndex = new Dictionary<SyncId, Key>();
 
     public void Register(Identity mapping, Key newKey)
     {
@@ -27,9 +27,9 @@ namespace Xtensive.Orm.Sync
       return result;
     }
 
-    private Key ResolveByGlobalId(Guid globalId)
+    private Key ResolveByGlobalId(SyncId globalId)
     {
-      if (globalId==Guid.Empty)
+      if (globalId==null)
         return null;
 
       Key result;

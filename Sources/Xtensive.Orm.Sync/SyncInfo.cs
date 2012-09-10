@@ -7,9 +7,7 @@ namespace Xtensive.Orm.Sync
   /// <summary>
   /// <see cref="Entity"/> that contains synchronization-related information.
   /// </summary>
-  [HierarchyRoot]
-  [KeyGenerator(Name = WellKnown.TickGeneratorName)]
-  [Index("GlobalId", Unique = true)]
+  [HierarchyRoot, KeyGenerator(KeyGeneratorKind.None)]
   public abstract class SyncInfo : Entity
   {
     private SyncId cachedSyncId;
@@ -19,16 +17,10 @@ namespace Xtensive.Orm.Sync
     private SyncVersion cachedTombstoneVersion;
 
     /// <summary>
-    /// Gets the id.
-    /// </summary>
-    [Field, Key]
-    public long Id { get; private set; }
-
-    /// <summary>
     /// Gets the global ID of the item.
     /// </summary>
-    [Field]
-    public Guid GlobalId { get; set; }
+    [Key, Field(Length = 32)]
+    internal string Id { get; private set; }
 
     /// <summary>
     /// Gets the global ID of the item.
@@ -40,8 +32,7 @@ namespace Xtensive.Orm.Sync
       {
         if (cachedSyncId!=null)
           return cachedSyncId;
-
-        cachedSyncId = new SyncId(GlobalId);
+        cachedSyncId = SyncIdBuilder.GetSyncId(Id);
         return cachedSyncId;
       }
     }
@@ -173,18 +164,13 @@ namespace Xtensive.Orm.Sync
     [Infrastructure]
     internal Key SyncTargetKey { get; set; }
 
-    protected override void OnSettingFieldValue(Model.FieldInfo field, object value)
-    {
-      if (field.Name=="GlobalId" && GlobalId!=Guid.Empty)
-        throw new NotSupportedException("GlobalId is already initialized");
-    }
-
     /// <summary>
     /// Initializes a new instance of the <see cref="SyncInfo"/> class.
     /// </summary>
     /// <param name="session">The session.</param>
-    protected SyncInfo(Session session)
-      : base(session)
+    /// <param name="id">Identifier.</param>
+    protected SyncInfo(Session session, SyncId id)
+      : base(session, id.ToString())
     {
     }
   }

@@ -13,7 +13,7 @@ namespace Xtensive.Orm.Sync
       get { return typeof (TEntity); }
     }
 
-    public override Type ItemType
+    public override Type InfoType
     {
       get { return typeof (SyncInfo<TEntity>); }
     }

@@ -76,6 +76,8 @@
     <Compile Include="Internals\MetadataStore.cs" />
     <Compile Include="Internals\MetadataStore{T}.cs" />
     <Compile Include="Internals\ReplicaManager.cs" />
+    <Compile Include="Internals\SyncIdBuilder.cs" />
+    <Compile Include="Internals\GlobalTypeIdRegistry.cs" />
     <Compile Include="SyncConfiguration.cs" />
     <Compile Include="Internals\SyncSession.cs" />
     <Compile Include="DataExchange\ItemChangeData.cs" />
@@ -93,6 +95,8 @@
     <Compile Include="Internals\SyncTickGenerator.cs" />
     <Compile Include="Internals\WellKnown.cs" />
     <Compile Include="SyncConfigurationEndpoint.cs" />
+    <Compile Include="SyncTick.cs" />
+    <Compile Include="GlobalTypeIdAttribute.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Xtensive.Orm.Tracking\Xtensive.Orm.Tracking.csproj">

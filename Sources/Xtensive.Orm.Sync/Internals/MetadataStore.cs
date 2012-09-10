@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using Microsoft.Synchronization;
 using Xtensive.Orm.Model;
 using Xtensive.Orm.Services;
 
@@ -8,7 +9,7 @@ namespace Xtensive.Orm.Sync
 {
   internal abstract class MetadataStore : SessionBound
   {
-    public abstract Type ItemType { get; }
+    public abstract Type InfoType { get; }
 
     public abstract Type EntityType { get; }
 
@@ -16,23 +17,23 @@ namespace Xtensive.Orm.Sync
 
     public DirectEntityAccessor EntityAccessor { get; private set; }
 
-    public abstract IEnumerable<SyncInfo> GetMetadata(Expression filter);
+    public abstract SyncInfo GetMetadata(SyncInfo item);
 
     public abstract IEnumerable<SyncInfo> GetMetadata(List<Key> keys);
 
-    public abstract SyncInfo GetMetadata(SyncInfo item);
+    public abstract IEnumerable<SyncInfo> GetMetadata(Expression filter);
 
-    public SyncInfo CreateItem(Key key)
+    public SyncInfo CreateMetadata(SyncId syncId, Key targetKey)
     {
-      var result = (SyncInfo) EntityAccessor.CreateEntity(ItemType);
-      EntityAccessor.SetReferenceKey(result, EntityField, key);
+      var result = (SyncInfo) Activator.CreateInstance(InfoType, Session, syncId);
+      EntityAccessor.SetReferenceKey(result, EntityField, targetKey);
       return result;
     }
 
     protected MetadataStore(Session session)
       : base(session)
     {
-      var typeInfo = session.Domain.Model.Types[ItemType];
+      var typeInfo = session.Domain.Model.Types[InfoType];
       EntityField = typeInfo.Fields[WellKnown.EntityFieldName];
       EntityAccessor = session.Services.Get<DirectEntityAccessor>();
     }

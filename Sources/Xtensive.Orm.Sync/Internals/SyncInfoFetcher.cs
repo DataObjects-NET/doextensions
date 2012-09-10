@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Microsoft.Synchronization;
 using Xtensive.Caching;
 using Xtensive.IoC;
 
@@ -9,14 +10,16 @@ namespace Xtensive.Orm.Sync
   internal sealed class SyncInfoFetcher : ISessionService
   {
     private readonly Session session;
-    private readonly ICache<Guid, SyncInfo> cache;
+    private readonly ICache<SyncId, SyncInfo> cache;
 
-    public SyncInfo Fetch(Guid globalId)
+    public SyncInfo Fetch(SyncId globalId)
     {
       SyncInfo result;
 
+      var globalIdString = globalId.ToString();
+
       if (!cache.TryGetItem(globalId, true, out result)) {
-        result = session.Query.Execute(q => q.All<SyncInfo>().FirstOrDefault(s => s.GlobalId==globalId));
+        result = session.Query.Execute(q => q.All<SyncInfo>().FirstOrDefault(s => s.Id==globalIdString));
         if (result!=null)
           cache.Add(result);
       }
@@ -32,9 +35,9 @@ namespace Xtensive.Orm.Sync
 
       this.session = session;
 
-      cache = new LruCache<Guid, SyncInfo>(
-        WellKnown.SyncInfoCacheSize, s => s.GlobalId,
-        new WeakCache<Guid, SyncInfo>(false, s => s.GlobalId));
+      cache = new LruCache<SyncId, SyncInfo>(
+        WellKnown.SyncInfoCacheSize, s => s.SyncId,
+        new WeakCache<SyncId, SyncInfo>(false, s => s.SyncId));
     }
   }
 }

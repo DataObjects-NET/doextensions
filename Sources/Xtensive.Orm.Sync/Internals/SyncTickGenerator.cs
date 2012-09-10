@@ -13,7 +13,7 @@ namespace Xtensive.Orm.Sync
   {
     private readonly Session session;
     private readonly IKeyGenerator generator;
-    private readonly KeyInfo keyInfo;
+    private readonly KeyInfo syncTickKey;
 
     private long lastTick = -1;
 
@@ -34,7 +34,7 @@ namespace Xtensive.Orm.Sync
     /// <returns>Next tick in current domain.</returns>
     public long GetNextTick()
     {
-      return lastTick = generator.GenerateKey(keyInfo, session).GetValue<long>(0);
+      return lastTick = generator.GenerateKey(syncTickKey, session).GetValue<long>(0);
     }
 
     private long FetchLastTick()
@@ -60,7 +60,7 @@ namespace Xtensive.Orm.Sync
 
       this.session = session;
 
-      keyInfo = session.Domain.Model.Types[typeof (SyncInfo)].Key;
+      syncTickKey = session.Domain.Model.Types[typeof (SyncTick)].Key;
       generator = session.Domain.Services.Get<IKeyGenerator>(WellKnown.TickGeneratorName);
 
       session.Events.TransactionCommitted += OnTransactionCompleted;

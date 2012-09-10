@@ -12,12 +12,12 @@ namespace Xtensive.Orm.Sync.DataExchange
   [Serializable]
   public sealed class ChangeSet : IEnumerable<ItemChangeData>
   {
-    private readonly Dictionary<Guid, ItemChangeData> index = new Dictionary<Guid,ItemChangeData>();
+    private readonly Dictionary<SyncId, ItemChangeData> index = new Dictionary<SyncId, ItemChangeData>();
 
     /// <summary>
     /// Gets the <see cref="ItemChangeData"/> with the specified global id.
     /// </summary>
-    public ItemChangeData this[Guid globalId]
+    public ItemChangeData this[SyncId globalId]
     {
       get
       {

@@ -19,6 +19,7 @@ namespace Xtensive.Orm.Sync
     private readonly EntityTupleFormatterRegistry tupleFormatters;
     private readonly SyncTickGenerator tickGenerator;
     private readonly SyncInfoFetcher syncInfoFetcher;
+    private readonly GlobalTypeIdRegistry typeIdRegistry;
     private readonly Replica replica;
 
     private List<MetadataStore> storeList;
@@ -88,7 +89,7 @@ namespace Xtensive.Orm.Sync
         var change = new ItemChange(WellKnown.IdFormats, replica.Id, item.SyncId, changeKind, createdVersion, lastChangeVersion);
         var changeData = new ItemChangeData {
           Change = change,
-          Identity = new Identity(item.SyncTargetKey, item.GlobalId),
+          Identity = new Identity(item.SyncTargetKey, item.SyncId),
         };
 
         if (!item.IsTombstone) {
@@ -141,7 +142,7 @@ namespace Xtensive.Orm.Sync
           SyncInfo syncInfo;
           if (lookup.TryGetValue(reference.Key, out syncInfo)) {
             reference.Key = syncInfo.SyncTargetKey;
-            reference.GlobalId = syncInfo.GlobalId;
+            reference.GlobalId = syncInfo.SyncId;
             RequestKeySync(syncInfo.SyncTargetKey);
           }
         }
@@ -177,17 +178,17 @@ namespace Xtensive.Orm.Sync
 
     public void GetLocalChanges(ChangeBatch sourceChanges, ICollection<ItemChange> output)
     {
-      var ids = sourceChanges.Select(i => i.ItemId.GetGuidId());
+      var ids = sourceChanges.Select(i => i.ItemId.ToString());
       var items = Session.Query
-        .Execute(q => q.All<SyncInfo>().Where(i => i.GlobalId.In(ids)))
-        .ToDictionary(i => i.GlobalId);
+        .Execute(q => q.All<SyncInfo>().Where(i => i.Id.In(ids)))
+        .ToDictionary(i => i.SyncId);
 
       foreach (var sourceChange in sourceChanges) {
         var changeKind = ChangeKind.UnknownItem;
         var createdVersion = SyncVersion.UnknownVersion;
         var lastChangeVersion = SyncVersion.UnknownVersion;
         SyncInfo info;
-        if (items.TryGetValue(sourceChange.ItemId.GetGuidId(), out info)) {
+        if (items.TryGetValue(sourceChange.ItemId, out info)) {
           createdVersion = info.CreationVersion;
           if (info.IsTombstone) {
             changeKind = ChangeKind.Deleted;
@@ -236,7 +237,7 @@ namespace Xtensive.Orm.Sync
       }
     }
 
-    public SyncInfo GetMetadata(Guid globalId)
+    public SyncInfo GetMetadata(SyncId globalId)
     {
       var syncInfo = syncInfoFetcher.Fetch(globalId);
 
@@ -244,7 +245,7 @@ namespace Xtensive.Orm.Sync
         return null;
 
       var store = storeList
-        .SingleOrDefault(s => s.ItemType==syncInfo.GetType());
+        .SingleOrDefault(s => s.InfoType==syncInfo.GetType());
 
       if (store==null)
         return syncInfo;
@@ -258,13 +259,16 @@ namespace Xtensive.Orm.Sync
       if (store==null)
         return null;
 
-      long tick = tickGenerator.GetNextTick();
-      var result = store.CreateItem(key);
+      var globalTypeId = typeIdRegistry.GetGlobalTypeId(key.TypeInfo.UnderlyingType);
+      var tick = tickGenerator.GetNextTick();
+      var syncId = SyncIdBuilder.GetSyncId(globalTypeId, replica.Id, tick);
+      var result = store.CreateMetadata(syncId, key);
+
       result.CreatedReplicaKey = WellKnown.LocalReplicaKey;
       result.CreatedTickCount = tick;
       result.ChangeReplicaKey = WellKnown.LocalReplicaKey;
       result.ChangeTickCount = tick;
-      result.GlobalId = Guid.NewGuid();
+
       return result;
     }
 
@@ -273,9 +277,7 @@ namespace Xtensive.Orm.Sync
       var store = GetStore(key.TypeInfo);
       if (store==null)
         return null;
-
-      var result = store.CreateItem(key);
-      result.GlobalId = change.ItemId.GetGuidId();
+      var result = store.CreateMetadata(change.ItemId, key);
       result.CreationVersion = change.CreationVersion;
       result.ChangeVersion = change.ChangeVersion;
       return result;
@@ -364,6 +366,7 @@ namespace Xtensive.Orm.Sync
       this.configuration = configuration;
       this.replica = replica;
 
+      typeIdRegistry = session.Services.Demand<GlobalTypeIdRegistry>();
       tupleFormatters = session.Services.Demand<EntityTupleFormatterRegistry>();
       tickGenerator = session.Services.Demand<SyncTickGenerator>();
       syncInfoFetcher = session.Services.Demand<SyncInfoFetcher>();

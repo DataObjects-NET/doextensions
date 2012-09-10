@@ -1,4 +1,6 @@
-﻿using Xtensive.Aspects;
+﻿using System;
+using Microsoft.Synchronization;
+using Xtensive.Aspects;
 
 namespace Xtensive.Orm.Sync
 {
@@ -25,8 +27,9 @@ namespace Xtensive.Orm.Sync
     /// Initializes a new instance of the <see cref="SyncInfo&lt;TEntity&gt;"/> class.
     /// </summary>
     /// <param name="session">The session.</param>
-    public SyncInfo(Session session)
-      : base(session)
+    /// <param name="id">Identifier.</param>
+    public SyncInfo(Session session, SyncId id)
+      : base(session, id)
     {
     }
   }

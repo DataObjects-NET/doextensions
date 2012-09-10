@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.Serialization;
+using Microsoft.Synchronization;
 using Xtensive.Core;
 
 namespace Xtensive.Orm.Sync.DataExchange
@@ -18,7 +19,7 @@ namespace Xtensive.Orm.Sync.DataExchange
     /// <summary>
     /// Gets or sets the global id.
     /// </summary>
-    public Guid GlobalId { get; set;}
+    public SyncId GlobalId { get; set; }
 
     /// <summary>
     /// Gets or sets the key.
@@ -64,7 +65,7 @@ namespace Xtensive.Orm.Sync.DataExchange
     /// </summary>
     /// <param name="key">The key.</param>
     /// <param name="globalId">The global id.</param>
-    public Identity(Key key, Guid globalId)
+    public Identity(Key key, SyncId globalId)
     {
       Key = key;
       GlobalId = globalId;
