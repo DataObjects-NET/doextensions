@@ -19,55 +19,58 @@ namespace Xtensive.Orm.Sync
     private readonly KeyMap keyMap;
     private readonly Dictionary<Key, List<KeyDependency>> keyDependencies;
 
+    private readonly Session session;
     private readonly MetadataFetcher metadataFetcher;
     private readonly DirectEntityAccessor accessor;
+    private readonly ReplicaState replicaState;
     private readonly MetadataManager metadataManager;
     private readonly SyncTickGenerator tickGenerator;
     private readonly EntityTupleFormatterRegistry tupleFormatters;
-    private readonly Session session;
-
-    private SyncKnowledge CurrentKnowledge { get { return metadataManager.ReplicaState.CurrentKnowledge; } }
-    private ForgottenKnowledge ForgottenKnowledge { get { return metadataManager.ReplicaState.ForgottenKnowledge; } }
-
-    SyncIdFormatGroup INotifyingChangeApplierTarget.IdFormats { get { return metadataManager.IdFormats; } }
 
     public void ProcessChangeBatch(
       ConflictResolutionPolicy resolutionPolicy, ChangeBatch sourceChanges,
       IChangeDataRetriever changeDataRetriever, SyncCallbacks syncCallbacks, SyncSessionContext syncContext)
     {
       var localChanges = new List<ItemChange>();
-      metadataManager.GetLocalChanges(sourceChanges, localChanges);
+      GetLocalChanges(sourceChanges, localChanges);
 
       new NotifyingChangeApplier(metadataManager.IdFormats)
         .ApplyChanges(
           resolutionPolicy, sourceChanges, changeDataRetriever,
-          localChanges, CurrentKnowledge, ForgottenKnowledge,
+          localChanges, replicaState.CurrentKnowledge, replicaState.ForgottenKnowledge,
           this, syncContext, syncCallbacks);
     }
 
-    bool INotifyingChangeApplierTarget.TryGetDestinationVersion(ItemChange sourceChange, out ItemChange destinationVersion)
+    private void GetLocalChanges(ChangeBatch sourceChanges, ICollection<ItemChange> output)
     {
-      throw new NotSupportedException("INotifyingChangeApplierTarget.TryGetDestinationVersion");
-    }
+      var ids = sourceChanges.Select(i => i.ItemId.ToString());
+      var items = session.Query
+        .Execute(q => q.All<SyncInfo>().Where(i => i.Id.In(ids)))
+        .ToDictionary(i => i.SyncId);
 
-    void INotifyingChangeApplierTarget.SaveItemChange(SaveChangeAction saveChangeAction, ItemChange change, SaveChangeContext context)
-    {
-      var data = context.ChangeData as ItemChangeData;
-      if (data!=null)
-        data.Change = change;
+      foreach (var sourceChange in sourceChanges) {
+        var changeKind = ChangeKind.UnknownItem;
+        var createdVersion = SyncVersion.UnknownVersion;
+        var lastChangeVersion = SyncVersion.UnknownVersion;
+        SyncInfo info;
+        if (items.TryGetValue(sourceChange.ItemId, out info)) {
+          createdVersion = info.CreationVersion;
+          if (info.IsTombstone) {
+            changeKind = ChangeKind.Deleted;
+            lastChangeVersion = info.TombstoneVersion;
+          }
+          else {
+            changeKind = ChangeKind.Update;
+            lastChangeVersion = info.ChangeVersion;
+          }
+        }
 
-      switch (saveChangeAction) {
-        case SaveChangeAction.Create:
-          HandleCreateEntity(data);
-          break;
-        case SaveChangeAction.DeleteAndStoreTombstone:
-          HandleRemoveEntity(change);
-          break;
-        case SaveChangeAction.UpdateVersionAndData:
-          HandleUpdateEntity(data);
-          break;
-        default:
-          throw new NotSupportedException(string.Format("SaveItemChange({0})", saveChangeAction.ToString()));
+        var localChange = new ItemChange(
+          metadataManager.IdFormats, replicaState.Id, sourceChange.ItemId,
+          changeKind, createdVersion, lastChangeVersion);
+
+        localChange.SetAllChangeUnitsPresent();
+        output.Add(localChange);
       }
     }
 
@@ -198,6 +201,36 @@ namespace Xtensive.Orm.Sync
       container.Add(new KeyDependency(state, field, value));
     }
 
+    #region INotifyingChangeApplierTarget
+
+    SyncIdFormatGroup INotifyingChangeApplierTarget.IdFormats { get { return metadataManager.IdFormats; } }
+
+    void INotifyingChangeApplierTarget.SaveItemChange(SaveChangeAction saveChangeAction, ItemChange change, SaveChangeContext context)
+    {
+      var data = context.ChangeData as ItemChangeData;
+      if (data!=null)
+        data.Change = change;
+
+      switch (saveChangeAction) {
+        case SaveChangeAction.Create:
+          HandleCreateEntity(data);
+          break;
+        case SaveChangeAction.DeleteAndStoreTombstone:
+          HandleRemoveEntity(change);
+          break;
+        case SaveChangeAction.UpdateVersionAndData:
+          HandleUpdateEntity(data);
+          break;
+        default:
+          throw new NotSupportedException(string.Format("SaveItemChange({0})", saveChangeAction.ToString()));
+      }
+    }
+
+    bool INotifyingChangeApplierTarget.TryGetDestinationVersion(ItemChange sourceChange, out ItemChange destinationVersion)
+    {
+      throw new NotSupportedException("INotifyingChangeApplierTarget.TryGetDestinationVersion");
+    }
+
     ulong INotifyingChangeApplierTarget.GetNextTickCount()
     {
       return (ulong) tickGenerator.GetNextTick();
@@ -210,8 +243,8 @@ namespace Xtensive.Orm.Sync
 
     void INotifyingChangeApplierTarget.StoreKnowledgeForScope(SyncKnowledge currentKnowledge, ForgottenKnowledge forgottenKnowledge)
     {
-      CurrentKnowledge.Combine(currentKnowledge);
-      ForgottenKnowledge.Combine(forgottenKnowledge);
+      replicaState.CurrentKnowledge.Combine(currentKnowledge);
+      replicaState.ForgottenKnowledge.Combine(forgottenKnowledge);
     }
 
     void INotifyingChangeApplierTarget.SaveChangeWithChangeUnits(ItemChange change, SaveChangeWithChangeUnitsContext context)
@@ -224,11 +257,16 @@ namespace Xtensive.Orm.Sync
       throw new NotSupportedException("INotifyingChangeApplierTarget.SaveConflict");
     }
 
+    #endregion
+
     public ChangeApplier(
+      ReplicaState replicaState,
       MetadataManager metadataManager, MetadataFetcher metadataFetcher,
       DirectEntityAccessor accessor, SyncTickGenerator tickGenerator,
       EntityTupleFormatterRegistry tupleFormatters)
     {
+      if (replicaState==null)
+        throw new ArgumentNullException("replicaState");
       if (metadataManager==null)
         throw new ArgumentNullException("metadataManager");
       if (metadataFetcher==null)
@@ -240,6 +278,7 @@ namespace Xtensive.Orm.Sync
       if (tupleFormatters==null)
         throw new ArgumentNullException("tupleFormatters");
 
+      this.replicaState = replicaState;
       this.metadataManager = metadataManager;
       this.metadataFetcher = metadataFetcher;
       this.accessor = accessor;

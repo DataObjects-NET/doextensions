@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using Microsoft.Synchronization;
 using Xtensive.Collections.Graphs;
 using Xtensive.IoC;
 using Xtensive.Orm.Model;
-using Xtensive.Orm.Services;
-using Xtensive.Orm.Sync.DataExchange;
 using FieldInfo = Xtensive.Orm.Model.FieldInfo;
 
 namespace Xtensive.Orm.Sync
@@ -15,17 +12,9 @@ namespace Xtensive.Orm.Sync
   [Service(typeof (MetadataManager), Singleton = false)]
   internal sealed class MetadataManager : ISessionService
   {
-    private readonly EntityTupleFormatterRegistry tupleFormatters;
     private readonly SyncTickGenerator tickGenerator;
-    private readonly ReplicaManager replicaManager;
-    private readonly DirectEntityAccessor entityAccessor;
     private readonly GlobalTypeIdRegistry typeIdRegistry;
     private readonly Session session;
-
-    private ReplicaState replicaState;
-    private SyncConfiguration configuration;
-    private KeyTracker keyTracker;
-
     private List<MetadataStore> storeList;
     private Dictionary<Type, MetadataStore> storeIndex;
 
@@ -33,53 +22,15 @@ namespace Xtensive.Orm.Sync
 
     public SyncIdFormatGroup IdFormats { get { return WellKnown.IdFormats; } }
 
-    public ReplicaState ReplicaState { get { return replicaState; } }
-
-    public void Configure(SyncConfiguration newConfiguration)
+    public MetadataStore GetStore(TypeInfo type)
     {
-      if (newConfiguration==null)
-        throw new ArgumentNullException("newConfiguration");
-      configuration = newConfiguration;
-      keyTracker = new KeyTracker(configuration);
+      MetadataStore store;
+      if (storeIndex.TryGetValue(type.Hierarchy.Root.UnderlyingType, out store))
+        return store;
+      throw new InvalidOperationException(string.Format("Store for type '{0}' is not registered", type));
     }
 
-    public void LoadReplicaState()
-    {
-      replicaState = replicaManager.LoadReplicaState();
-    }
-
-    public void SaveReplicaState()
-    {
-      replicaManager.SaveReplicaState(replicaState);
-    }
-
-    public IEnumerable<ChangeSet> DetectChanges(uint batchSize, SyncKnowledge destinationKnowledge)
-    {
-      var mappedKnowledge = replicaState.CurrentKnowledge.MapRemoteKnowledgeToLocal(destinationKnowledge);
-      mappedKnowledge.ReplicaKeyMap.FindOrAddReplicaKey(replicaState.Id);
-
-      foreach (var store in GetFilteredStores()) {
-        Expression filter;
-        configuration.Filters.TryGetValue(store.EntityType, out filter);
-        var items = store.GetOrderedMetadata(filter);
-        var batches = DetectChanges(items, batchSize, mappedKnowledge, true);
-        foreach (var batch in batches)
-          yield return batch;
-      }
-
-      while (keyTracker.HasKeysToSync) {
-        var keys = keyTracker.GetKeysToSync();
-        var groups = keys.GroupBy(i => i.TypeReference.Type.Hierarchy.Root);
-        foreach (var group in groups) {
-          var items = GetStore(group.Key).GetUnorderedMetadata(group.ToList());
-          var batches = DetectChanges(items, batchSize, mappedKnowledge, false);
-          foreach (var batch in batches)
-            yield return batch;
-        }
-      }
-    }
-
-    private IEnumerable<MetadataStore> GetFilteredStores()
+    public IEnumerable<MetadataStore> GetStores(SyncConfiguration configuration)
     {
       var stores = storeList.AsEnumerable();
 
@@ -90,120 +41,6 @@ namespace Xtensive.Orm.Sync
         stores = stores.Where(s => !s.EntityType.In(configuration.SkipTypes));
 
       return stores;
-    }
-
-    private IEnumerable<ChangeSet> DetectChanges(IEnumerable<SyncInfo> items, uint batchSize, SyncKnowledge mappedKnowledge, bool isOrdered)
-    {
-      var result = new ChangeSet(isOrdered);
-      var references = new HashSet<Key>();
-
-      foreach (var item in items) {
-        var createdVersion = item.CreationVersion;
-        var lastChangeVersion = item.ChangeVersion;
-        var changeKind = ChangeKind.Update;
-
-        if (item.IsTombstone) {
-          changeKind = ChangeKind.Deleted;
-          lastChangeVersion = item.TombstoneVersion;
-        }
-
-        if (mappedKnowledge.Contains(replicaState.Id, item.SyncId, lastChangeVersion)) {
-          keyTracker.UnrequestKeySync(item.SyncTargetKey);
-          continue;
-        }
-
-        var change = new ItemChange(IdFormats, replicaState.Id, item.SyncId, changeKind, createdVersion, lastChangeVersion);
-        var changeData = new ItemChangeData {
-          Change = change,
-          Identity = new Identity(item.SyncTargetKey, item.SyncId),
-        };
-
-        if (!item.IsTombstone) {
-          keyTracker.RegisterKeySync(item.SyncTargetKey);
-          var syncTarget = item.SyncTarget;
-          var entityTuple = entityAccessor.GetEntityState(syncTarget).Tuple;
-          changeData.TupleValue = tupleFormatters.Get(syncTarget.TypeInfo.UnderlyingType).Format(entityTuple);
-          var type = item.SyncTargetKey.TypeInfo;
-          var fields = type.Fields.Where(f => f.IsEntity);
-          foreach (var field in fields) {
-            var key = entityAccessor.GetReferenceKey(syncTarget, field);
-            if (key!=null) {
-              changeData.References.Add(field.Name, new Identity(key));
-              references.Add(key);
-              entityAccessor.SetReferenceKey(syncTarget, field, null);
-            }
-          }
-        }
-
-        result.Add(changeData);
-
-        if (result.Count!=batchSize)
-          continue;
-
-        if (references.Count > 0)
-          LoadReferences(result, references);
-
-        yield return result;
-
-        result = new ChangeSet(isOrdered);
-        references = new HashSet<Key>();
-      }
-
-      if (result.Count > 0) {
-        if (references.Count > 0)
-          LoadReferences(result, references);
-        yield return result;
-      }
-    }
-
-    private void LoadReferences(IEnumerable<ItemChangeData> items, IEnumerable<Key> keys)
-    {
-      var lookup = GetMetadata(keys.ToList())
-        .Distinct()
-        .ToDictionary(i => i.SyncTargetKey);
-
-      foreach (var item in items)
-        foreach (var reference in item.References.Values) {
-          SyncInfo syncInfo;
-          if (lookup.TryGetValue(reference.Key, out syncInfo)) {
-            reference.Key = syncInfo.SyncTargetKey;
-            reference.GlobalId = syncInfo.SyncId;
-            keyTracker.RequestKeySync(syncInfo.SyncTargetKey);
-          }
-        }
-    }
-
-    public void GetLocalChanges(ChangeBatch sourceChanges, ICollection<ItemChange> output)
-    {
-      var ids = sourceChanges.Select(i => i.ItemId.ToString());
-      var items = session.Query
-        .Execute(q => q.All<SyncInfo>().Where(i => i.Id.In(ids)))
-        .ToDictionary(i => i.SyncId);
-
-      foreach (var sourceChange in sourceChanges) {
-        var changeKind = ChangeKind.UnknownItem;
-        var createdVersion = SyncVersion.UnknownVersion;
-        var lastChangeVersion = SyncVersion.UnknownVersion;
-        SyncInfo info;
-        if (items.TryGetValue(sourceChange.ItemId, out info)) {
-          createdVersion = info.CreationVersion;
-          if (info.IsTombstone) {
-            changeKind = ChangeKind.Deleted;
-            lastChangeVersion = info.TombstoneVersion;
-          }
-          else {
-            changeKind = ChangeKind.Update;
-            lastChangeVersion = info.ChangeVersion;
-          }
-        }
-
-        var localChange = new ItemChange(
-          IdFormats, replicaState.Id, sourceChange.ItemId,
-          changeKind, createdVersion, lastChangeVersion);
-
-        localChange.SetAllChangeUnitsPresent();
-        output.Add(localChange);
-      }
     }
 
     public IEnumerable<SyncInfo> GetMetadata(IEnumerable<Key> keys)
@@ -231,7 +68,7 @@ namespace Xtensive.Orm.Sync
       }
     }
 
-    public SyncInfo CreateMetadata(Key key)
+    public SyncInfo CreateMetadata(Key key, ReplicaState replicaState)
     {
       var store = GetStore(key.TypeInfo);
       var globalTypeId = typeIdRegistry.GetGlobalTypeId(key.TypeInfo.UnderlyingType);
@@ -281,14 +118,6 @@ namespace Xtensive.Orm.Sync
       item.IsTombstone = true;
     }
 
-    private MetadataStore GetStore(TypeInfo type)
-    {
-      MetadataStore store;
-      if (storeIndex.TryGetValue(type.Hierarchy.Root.UnderlyingType, out store))
-        return store;
-      throw new InvalidOperationException(string.Format("Store for type '{0}' is not registered", type));
-    }
-
     private void InitializeStores()
     {
       var graph = new Graph<Node<Type>, Edge>();
@@ -328,33 +157,20 @@ namespace Xtensive.Orm.Sync
     }
 
     [ServiceConstructor]
-    public MetadataManager(
-      Session session, GlobalTypeIdRegistry typeIdRegistry,
-      EntityTupleFormatterRegistry tupleFormatters, SyncTickGenerator tickGenerator,
-      ReplicaManager replicaManager, DirectEntityAccessor entityAccessor)
+    public MetadataManager(Session session, GlobalTypeIdRegistry typeIdRegistry, SyncTickGenerator tickGenerator)
     {
       if (session==null)
         throw new ArgumentNullException("session");
       if (typeIdRegistry==null)
         throw new ArgumentNullException("typeIdRegistry");
-      if (tupleFormatters==null)
-        throw new ArgumentNullException("tupleFormatters");
       if (tickGenerator==null)
         throw new ArgumentNullException("tickGenerator");
-      if (replicaManager==null)
-        throw new ArgumentNullException("replicaManager");
-      if (entityAccessor==null)
-        throw new ArgumentNullException("entityAccessor");
 
       this.session = session;
       this.typeIdRegistry = typeIdRegistry;
-      this.tupleFormatters = tupleFormatters;
       this.tickGenerator = tickGenerator;
-      this.replicaManager = replicaManager;
-      this.entityAccessor = entityAccessor;
 
       InitializeStores();
-      Configure(new SyncConfiguration());
     }
   }
 }

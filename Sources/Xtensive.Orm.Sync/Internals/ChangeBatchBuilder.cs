@@ -8,25 +8,22 @@ namespace Xtensive.Orm.Sync
   internal sealed class ChangeBatchBuilder
   {
     private readonly SyncConfiguration configuration;
+    private readonly ChangeDetector changeDetector;
+    private readonly ReplicaState replicaState;
     private readonly MetadataManager metadataManager;
 
     private IEnumerator<ChangeSet> changeSetIterator;
-
-    private SyncKnowledge CurrentKnowledge { get { return metadataManager.ReplicaState.CurrentKnowledge; } }
-    private ForgottenKnowledge ForgottenKnowledge { get { return metadataManager.ReplicaState.ForgottenKnowledge; } }
-
-    public bool IsCompleted { get; private set; }
 
     public Tuple<ChangeBatch, ChangeSet> GetNextBatch(uint batchSize, SyncKnowledge destinationKnowledge)
     {
       var batch = CreateChangeBatch(destinationKnowledge);
 
       if (changeSetIterator==null) {
-        var changeSets = metadataManager.DetectChanges(batchSize, destinationKnowledge);
+        var changeSets = changeDetector.DetectChanges(batchSize, destinationKnowledge);
         changeSetIterator = changeSets.GetEnumerator();
         if (!changeSetIterator.MoveNext()) {
           batch.BeginUnorderedGroup();
-          batch.EndUnorderedGroup(CurrentKnowledge, true);
+          batch.EndUnorderedGroup(replicaState.CurrentKnowledge, true);
           CompleteWork(batch);
           return MakeResult(batch, new ChangeSet());
         }
@@ -40,7 +37,6 @@ namespace Xtensive.Orm.Sync
 
     private void CompleteWork(ChangeBatch lastBatch)
     {
-      IsCompleted = true;
       lastBatch.SetLastBatch();
       changeSetIterator.Dispose();
     }
@@ -50,12 +46,12 @@ namespace Xtensive.Orm.Sync
       if (changeSet.IsRange) {
         batch.BeginOrderedGroup(changeSet.MinId);
         batch.AddChanges(changeSet.GetItemChanges());
-        batch.EndOrderedGroup(changeSet.MaxId, CurrentKnowledge);
+        batch.EndOrderedGroup(changeSet.MaxId, replicaState.CurrentKnowledge);
       }
       else {
         batch.BeginUnorderedGroup();
         batch.AddChanges(changeSet.GetItemChanges());
-        batch.EndUnorderedGroup(CurrentKnowledge, isLastBatch);
+        batch.EndUnorderedGroup(replicaState.CurrentKnowledge, isLastBatch);
       }
 
       if (isLastBatch)
@@ -71,9 +67,9 @@ namespace Xtensive.Orm.Sync
     {
       var idFormats = metadataManager.IdFormats;
       if (!FilteredBatchIsRequired())
-        return new ChangeBatch(idFormats, destinationKnowledge, ForgottenKnowledge);
+        return new ChangeBatch(idFormats, destinationKnowledge, replicaState.ForgottenKnowledge);
       var filterInfo = new ItemListFilterInfo(idFormats);
-      return new ChangeBatch(idFormats, destinationKnowledge, ForgottenKnowledge, filterInfo);
+      return new ChangeBatch(idFormats, destinationKnowledge, replicaState.ForgottenKnowledge, filterInfo);
     }
 
     private bool FilteredBatchIsRequired()
@@ -83,15 +79,21 @@ namespace Xtensive.Orm.Sync
         || configuration.SkipTypes.Count > 0;
     }
 
-    public ChangeBatchBuilder(MetadataManager metadataManager, SyncConfiguration configuration)
+    public ChangeBatchBuilder(ReplicaState replicaState, SyncConfiguration configuration, MetadataManager metadataManager, ChangeDetector changeDetector)
     {
+      if (replicaState==null)
+        throw new ArgumentNullException("replicaState");
       if (metadataManager==null)
         throw new ArgumentNullException("metadataManager");
       if (configuration==null)
         throw new ArgumentNullException("configuration");
+      if (changeDetector==null)
+        throw new ArgumentNullException("changeDetector");
 
+      this.replicaState = replicaState;
       this.metadataManager = metadataManager;
       this.configuration = configuration;
+      this.changeDetector = changeDetector;
     }
   }
 }

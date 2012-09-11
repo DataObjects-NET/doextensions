@@ -62,7 +62,7 @@ namespace Xtensive.Orm.Sync
     {
       var changes = e.Changes;
       var items = changes
-        .Where(TrackingItemFilter)
+        .Where(IsValidTrackingItem)
         .ToList();
 
       if (items.Count==0)
@@ -74,30 +74,13 @@ namespace Xtensive.Orm.Sync
     private void ProcessQueuedItems()
     {
       using (var session = domain.OpenSession()) {
+        var updater = session.Services.Demand<MetadataUpdater>();
         while (!pendingItems.IsCompleted) {
           var items = pendingItems.Take();
           try {
             isExecuting = true;
             using (var t = session.OpenTransaction()) {
-              var metadataManager = session.Services.Demand<MetadataManager>();
-              metadataManager.LoadReplicaState();
-              var itemKeys = items
-                .Where(i => !i.Key.TypeInfo.IsAuxiliary)
-                .Select(i => i.Key);
-              var lookup = metadataManager
-                .GetMetadata(itemKeys)
-                .ToDictionary(i => i.SyncTargetKey);
-              foreach (var item in items) {
-                if (item.State==TrackingItemState.Created)
-                  metadataManager.CreateMetadata(item.Key);
-                else {
-                  SyncInfo syncInfo;
-                  if (lookup.TryGetValue(item.Key, out syncInfo))
-                    metadataManager.UpdateMetadata(syncInfo, item.State==TrackingItemState.Deleted);
-                  else
-                    metadataManager.CreateMetadata(item.Key);
-                }
-              }
+              updater.ProcessEntityChanges(items);
               t.Complete();
             }
           }
@@ -111,7 +94,7 @@ namespace Xtensive.Orm.Sync
       }
     }
 
-    private static bool TrackingItemFilter(ITrackingItem item)
+    private static bool IsValidTrackingItem(ITrackingItem item)
     {
       var entityKey = item.Key;
       var entityType = entityKey.TypeInfo.UnderlyingType;
@@ -119,6 +102,8 @@ namespace Xtensive.Orm.Sync
       if (entityType.Assembly==typeof (Persistent).Assembly)
         return false;
       if (entityType.Assembly==typeof (SyncInfo).Assembly)
+        return false;
+      if (entityKey.TypeInfo.IsAuxiliary)
         return false;
 
       return true;

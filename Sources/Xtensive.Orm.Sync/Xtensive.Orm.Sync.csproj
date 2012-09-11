@@ -68,6 +68,7 @@
     <Compile Include="Interfaces\IFilterable.cs" />
     <Compile Include="Internals\ChangeApplier.cs" />
     <Compile Include="Internals\ChangeBatchBuilder.cs" />
+    <Compile Include="Internals\ChangeDetector.cs" />
     <Compile Include="Internals\EntityTupleFormatter.cs" />
     <Compile Include="Internals\EntityTupleFormatterRegistry.cs" />
     <Compile Include="DataExchange\Identity.cs" />
@@ -75,6 +76,7 @@
     <Compile Include="DataExchange\ChangeSet.cs" />
     <Compile Include="Internals\KeyDependency.cs" />
     <Compile Include="Internals\KeyTracker.cs" />
+    <Compile Include="Internals\MetadataUpdater.cs" />
     <Compile Include="Internals\ReplicaState.cs" />
     <Compile Include="Internals\MetadataStore.cs" />
     <Compile Include="Internals\MetadataStore{T}.cs" />
