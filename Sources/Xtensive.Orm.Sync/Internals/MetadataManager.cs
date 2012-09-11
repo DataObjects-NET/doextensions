@@ -20,7 +20,6 @@ namespace Xtensive.Orm.Sync
     private readonly ReplicaManager replicaManager;
     private readonly DirectEntityAccessor entityAccessor;
     private readonly GlobalTypeIdRegistry typeIdRegistry;
-
     private readonly Session session;
 
     private ReplicaState replicaState;
@@ -29,6 +28,10 @@ namespace Xtensive.Orm.Sync
 
     private List<MetadataStore> storeList;
     private Dictionary<Type, MetadataStore> storeIndex;
+
+    public Session Session { get { return session; } }
+
+    public SyncIdFormatGroup IdFormats { get { return WellKnown.IdFormats; } }
 
     public ReplicaState ReplicaState { get { return replicaState; } }
 
@@ -67,10 +70,8 @@ namespace Xtensive.Orm.Sync
       while (keyTracker.HasKeysToSync) {
         var keys = keyTracker.GetKeysToSync();
         var groups = keys.GroupBy(i => i.TypeReference.Type.Hierarchy.Root);
-
         foreach (var group in groups) {
-          var store = GetStore(group.Key);
-          var items = store.GetUnorderedMetadata(group.ToList());
+          var items = GetStore(group.Key).GetUnorderedMetadata(group.ToList());
           var batches = DetectChanges(items, batchSize, mappedKnowledge, false);
           foreach (var batch in batches)
             yield return batch;
@@ -98,7 +99,6 @@ namespace Xtensive.Orm.Sync
       var references = new HashSet<Key>();
 
       foreach (var item in items) {
-
         var createdVersion = item.CreationVersion;
         var lastChangeVersion = item.ChangeVersion;
         var changeKind = ChangeKind.Update;
@@ -113,7 +113,7 @@ namespace Xtensive.Orm.Sync
           continue;
         }
 
-        var change = new ItemChange(WellKnown.IdFormats, replicaState.Id, item.SyncId, changeKind, createdVersion, lastChangeVersion);
+        var change = new ItemChange(IdFormats, replicaState.Id, item.SyncId, changeKind, createdVersion, lastChangeVersion);
         var changeData = new ItemChangeData {
           Change = change,
           Identity = new Identity(item.SyncTargetKey, item.SyncId),
@@ -201,7 +201,7 @@ namespace Xtensive.Orm.Sync
         }
 
         var localChange = new ItemChange(
-          WellKnown.IdFormats, replicaState.Id, sourceChange.ItemId,
+          IdFormats, replicaState.Id, sourceChange.ItemId,
           changeKind, createdVersion, lastChangeVersion);
 
         localChange.SetAllChangeUnitsPresent();

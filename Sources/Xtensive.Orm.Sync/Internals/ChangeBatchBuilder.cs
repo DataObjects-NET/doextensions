@@ -69,7 +69,7 @@ namespace Xtensive.Orm.Sync
 
     private ChangeBatch CreateChangeBatch(SyncKnowledge destinationKnowledge)
     {
-      var idFormats = WellKnown.IdFormats;
+      var idFormats = metadataManager.IdFormats;
       if (!FilteredBatchIsRequired())
         return new ChangeBatch(idFormats, destinationKnowledge, ForgottenKnowledge);
       var filterInfo = new ItemListFilterInfo(idFormats);
