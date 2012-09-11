@@ -94,7 +94,6 @@ namespace Xtensive.Orm.Sync
 
     private IEnumerable<ChangeSet> DetectChanges(IEnumerable<SyncInfo> items, uint batchSize, SyncKnowledge mappedKnowledge, bool isOrdered)
     {
-      int itemCount = 0;
       var result = new ChangeSet(isOrdered);
       var references = new HashSet<Key>();
 
@@ -137,9 +136,8 @@ namespace Xtensive.Orm.Sync
         }
 
         result.Add(changeData);
-        itemCount++;
 
-        if (itemCount!=batchSize)
+        if (result.Count!=batchSize)
           continue;
 
         if (references.Count > 0)
@@ -147,7 +145,6 @@ namespace Xtensive.Orm.Sync
 
         yield return result;
 
-        itemCount = 0;
         result = new ChangeSet(isOrdered);
         references = new HashSet<Key>();
       }
