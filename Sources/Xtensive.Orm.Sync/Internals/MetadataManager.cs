@@ -55,19 +55,11 @@ namespace Xtensive.Orm.Sync
       var mappedKnowledge = replicaState.CurrentKnowledge.MapRemoteKnowledgeToLocal(destinationKnowledge);
       mappedKnowledge.ReplicaKeyMap.FindOrAddReplicaKey(replicaState.Id);
 
-      var stores = storeList.AsEnumerable();
-
-      if (configuration.SyncTypes.Count > 0)
-        stores = stores.Where(s => s.EntityType.In(configuration.SyncTypes));
-
-      if (configuration.SkipTypes.Count > 0)
-        stores = stores.Where(s => !s.EntityType.In(configuration.SkipTypes));
-
-      foreach (var store in stores) {
+      foreach (var store in GetFilteredStores()) {
         Expression filter;
         configuration.Filters.TryGetValue(store.EntityType, out filter);
-        var items = store.GetMetadata(filter);
-        var batches = DetectChanges(items, batchSize, mappedKnowledge);
+        var items = store.GetOrderedMetadata(filter);
+        var batches = DetectChanges(items, batchSize, mappedKnowledge, true);
         foreach (var batch in batches)
           yield return batch;
       }
@@ -78,18 +70,31 @@ namespace Xtensive.Orm.Sync
 
         foreach (var group in groups) {
           var store = GetStore(group.Key);
-          var items = store.GetMetadata(group.ToList());
-          var batches = DetectChanges(items, batchSize, mappedKnowledge);
+          var items = store.GetUnorderedMetadata(group.ToList());
+          var batches = DetectChanges(items, batchSize, mappedKnowledge, false);
           foreach (var batch in batches)
             yield return batch;
         }
       }
     }
 
-    private IEnumerable<ChangeSet> DetectChanges(IEnumerable<SyncInfo> items, uint batchSize, SyncKnowledge mappedKnowledge)
+    private IEnumerable<MetadataStore> GetFilteredStores()
+    {
+      var stores = storeList.AsEnumerable();
+
+      if (configuration.SyncTypes.Count > 0)
+        stores = stores.Where(s => s.EntityType.In(configuration.SyncTypes));
+
+      if (configuration.SkipTypes.Count > 0)
+        stores = stores.Where(s => !s.EntityType.In(configuration.SkipTypes));
+
+      return stores;
+    }
+
+    private IEnumerable<ChangeSet> DetectChanges(IEnumerable<SyncInfo> items, uint batchSize, SyncKnowledge mappedKnowledge, bool isOrdered)
     {
       int itemCount = 0;
-      var result = new ChangeSet();
+      var result = new ChangeSet(isOrdered);
       var references = new HashSet<Key>();
 
       foreach (var item in items) {
@@ -141,8 +146,9 @@ namespace Xtensive.Orm.Sync
           LoadReferences(result, references);
 
         yield return result;
+
         itemCount = 0;
-        result = new ChangeSet();
+        result = new ChangeSet(isOrdered);
         references = new HashSet<Key>();
       }
 
@@ -216,13 +222,13 @@ namespace Xtensive.Orm.Sync
             .Select(i => i.Hierarchy.Root);
           foreach (var rootType in rootTypes) {
             store = GetStore(rootType);
-            foreach (var item in store.GetMetadata(group.ToList()))
+            foreach (var item in store.GetUnorderedMetadata(group.ToList()))
               yield return item;
           }
         }
         else {
           store = GetStore(originalType);
-          foreach (var item in store.GetMetadata(group.ToList()))
+          foreach (var item in store.GetUnorderedMetadata(group.ToList()))
             yield return item;
         }
       }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using Microsoft.Synchronization;
@@ -27,8 +28,7 @@ namespace Xtensive.Orm.Sync
     private readonly SyncTickGenerator tickGenerator;
     private readonly SyncSessionContext syncContext;
 
-    private ChangeSet currentChangeSet;
-    private IEnumerator<ChangeSet> changeSetEnumerator;
+    private ChangeBatchBuilder batchBuilder;
 
     public SyncIdFormatGroup IdFormats { get { return WellKnown.IdFormats; } }
 
@@ -36,51 +36,17 @@ namespace Xtensive.Orm.Sync
 
     #region Source provider methods
 
-    private bool FilteredBatchIsRequired()
+    public Tuple<ChangeBatch, ChangeSet> GetChangeBatch(uint batchSize, SyncKnowledge destinationKnowledge)
     {
-      var c = configuration;
-      return c.SyncTypes.Count > 0 || c.Filters.Count > 0 || c.SkipTypes.Count > 0;
-    }
+      if (batchBuilder==null)
+        batchBuilder = new ChangeBatchBuilder(metadataManager, configuration);
 
-    public ChangeBatch GetChangeBatch(uint batchSize, SyncKnowledge destinationKnowledge)
-    {
-      var result = CreateChangeBatch(destinationKnowledge);
+      var result = batchBuilder.GetNextBatch(batchSize, destinationKnowledge);
 
-      bool hasNext;
-
-      if (changeSetEnumerator==null) {
-        var changeSets = metadataManager.DetectChanges(batchSize, destinationKnowledge);
-        changeSetEnumerator = changeSets.GetEnumerator();
-        hasNext = changeSetEnumerator.MoveNext();
-        if (!hasNext) {
-          result.BeginUnorderedGroup();
-          result.EndUnorderedGroup(ReplicaState.CurrentKnowledge, true);
-          result.SetLastBatch();
-          return result;
-        }
-      }
-
-      result.BeginUnorderedGroup();
-      currentChangeSet = changeSetEnumerator.Current;
-      result.AddChanges(currentChangeSet.GetItemChanges());
-
-      hasNext = changeSetEnumerator.MoveNext();
-      if (!hasNext) {
-        result.EndUnorderedGroup(ReplicaState.CurrentKnowledge, true);
-        result.SetLastBatch();
-      }
-      else
-        result.EndUnorderedGroup(ReplicaState.CurrentKnowledge, false);
+      if (batchBuilder.IsCompleted)
+        batchBuilder = null;
 
       return result;
-    }
-
-    private ChangeBatch CreateChangeBatch(SyncKnowledge destinationKnowledge)
-    {
-      if (!FilteredBatchIsRequired())
-        return new ChangeBatch(IdFormats, destinationKnowledge, ReplicaState.ForgottenKnowledge);
-      var filterInfo = new ItemListFilterInfo(IdFormats);
-      return new ChangeBatch(IdFormats, destinationKnowledge, ReplicaState.ForgottenKnowledge, filterInfo);
     }
 
     #endregion
@@ -257,11 +223,16 @@ namespace Xtensive.Orm.Sync
 
     public IChangeDataRetriever GetDataRetriever()
     {
-      return new ChangeDataRetriever(IdFormats, currentChangeSet);
+      throw new NotSupportedException("INotifyingChangeApplierTarget.GetDataRetriever");
     }
 
     public void StoreKnowledgeForScope(SyncKnowledge currentKnowledge, ForgottenKnowledge forgottenKnowledge)
     {
+#if DEBUG
+//      Debug.WriteLine("StoreKnowledgeForScope:");
+//      Debug.WriteLine(currentKnowledge.ToString());
+#endif
+
       ReplicaState.CurrentKnowledge.Combine(currentKnowledge);
       ReplicaState.ForgottenKnowledge.Combine(forgottenKnowledge);
     }

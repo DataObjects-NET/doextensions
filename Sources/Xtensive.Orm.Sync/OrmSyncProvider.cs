@@ -4,6 +4,7 @@ using Microsoft.Synchronization;
 using Xtensive.Core;
 using Xtensive.IoC;
 using Xtensive.Orm.Configuration;
+using Xtensive.Orm.Sync.DataExchange;
 using Xtensive.Orm.Tracking;
 
 namespace Xtensive.Orm.Sync
@@ -158,8 +159,8 @@ namespace Xtensive.Orm.Sync
     /// <returns>
     /// A change batch that contains item metadata for items that are not contained in the specified knowledge from the destination provider. Cannot be a null.
     /// </returns>
-    public override ChangeBatch GetChangeBatch(uint batchSize, SyncKnowledge destinationKnowledge,
-      out object changeDataRetriever)
+    public override ChangeBatch GetChangeBatch(
+      uint batchSize, SyncKnowledge destinationKnowledge, out object changeDataRetriever)
     {
 #if DEBUG
       ++batchCounter;
@@ -168,12 +169,12 @@ namespace Xtensive.Orm.Sync
 
       CheckIsRunning();
       var result = syncSession.GetChangeBatch(batchSize, destinationKnowledge);
-      changeDataRetriever = syncSession.GetDataRetriever();
+      changeDataRetriever = new ChangeDataRetriever(IdFormats, result.Item2);
 
 #if DEBUG
       Debug.WriteLine("GetChangeBatch #{0}, {1} ms", batchCounter, batchStopwatch.ElapsedMilliseconds);
 #endif
-      return result;
+      return result.Item1;
     }
 
     /// <summary>

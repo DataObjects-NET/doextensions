@@ -15,7 +15,7 @@ namespace Xtensive.Orm.Sync
       return new SyncInfo<TEntity>(Session, syncId) {SyncTargetKey = targetKey};
     }
 
-    public override IEnumerable<SyncInfo> GetMetadata(Expression filter)
+    public override IEnumerable<SyncInfo> GetOrderedMetadata(Expression filter)
     {
       var outer = Session.Query.All<SyncInfo<TEntity>>();
       var inner = Session.Query.All<TEntity>();
@@ -24,23 +24,23 @@ namespace Xtensive.Orm.Sync
       if (predicate!=null)
         inner = inner.Where(predicate);
 
-      var pairs = outer
+      var itemQueryResult = outer
         .LeftJoin(inner, info => info.Entity, target => target, (info, target) => new {SyncInfo = info, Target = target})
         .Where(pair => pair.Target!=null || pair.SyncInfo.IsTombstone)
+        .OrderBy(pair => pair.SyncInfo.Id)
         .ToList();
-      var fetchedKeys = pairs
+      var keysToPrefetch = itemQueryResult
         .Where(p => !p.SyncInfo.IsTombstone)
         .Select(p => p.Target.Key)
         .ToList();
-      var items = pairs
-        .Select(p => p.SyncInfo);
+      var items = itemQueryResult.Select(p => p.SyncInfo);
 
       // To fetch entities
-      Session.Query.Many<TEntity>(fetchedKeys).Run();
+      Session.Query.Many<TEntity>(keysToPrefetch).Run();
       return items;
     }
 
-    public override IEnumerable<SyncInfo> GetMetadata(List<Key> targetKeys)
+    public override IEnumerable<SyncInfo> GetUnorderedMetadata(List<Key> targetKeys)
     {
       int batchCount = targetKeys.Count / WellKnown.KeyPreloadBatchSize;
       int lastBatchItemCount = targetKeys.Count % WellKnown.KeyPreloadBatchSize;
@@ -55,19 +55,18 @@ namespace Xtensive.Orm.Sync
         var outer = Session.Query.All<SyncInfo<TEntity>>();
         var inner = Session.Query.All<TEntity>();
         var filter = FilterByKeys(targetKeys, i * WellKnown.KeyPreloadBatchSize, itemCount);
-        var pairs = outer
+        var itemQueryResult = outer
           .Where(filter)
           .LeftJoin(inner, info => info.Entity, target => target, (info, target) => new {SyncInfo = info, Target = target})
           .ToList();
-        var fetchedKeys = pairs
+        var keysToFetch = itemQueryResult
           .Where(p => !p.SyncInfo.IsTombstone && p.Target!=null)
           .Select(p => p.Target.Key)
           .ToList();
-        var items = pairs
-          .Select(p => p.SyncInfo);
+        var items = itemQueryResult.Select(p => p.SyncInfo);
 
         // To fetch entities
-        Session.Query.Many<TEntity>(fetchedKeys).Run();
+        Session.Query.Many<TEntity>(keysToFetch).Run();
         foreach (var item in items)
           yield return item;
       }

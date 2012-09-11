@@ -13,9 +13,9 @@ namespace Xtensive.Orm.Sync
 
     public abstract SyncInfo CreateMetadata(SyncId syncId, Key targetKey);
 
-    public abstract IEnumerable<SyncInfo> GetMetadata(List<Key> targetKeys);
+    public abstract IEnumerable<SyncInfo> GetOrderedMetadata(Expression filter);
 
-    public abstract IEnumerable<SyncInfo> GetMetadata(Expression filter);
+    public abstract IEnumerable<SyncInfo> GetUnorderedMetadata(List<Key> targetKeys);
 
     protected MetadataStore(Session session, Type entityType)
     {

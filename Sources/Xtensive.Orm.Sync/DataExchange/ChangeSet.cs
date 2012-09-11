@@ -12,7 +12,29 @@ namespace Xtensive.Orm.Sync.DataExchange
   [Serializable]
   public sealed class ChangeSet : IEnumerable<ItemChangeData>
   {
-    private readonly Dictionary<SyncId, ItemChangeData> index = new Dictionary<SyncId, ItemChangeData>();
+    private readonly SortedDictionary<SyncId, ItemChangeData> index = new SortedDictionary<SyncId, ItemChangeData>();
+    private readonly bool isRange;
+
+    private SyncId minId;
+    private SyncId maxId;
+
+    /// <summary>
+    /// Gets minimal <see cref="SyncId"/>
+    /// among the items included in this change set.
+    /// </summary>
+    public SyncId MinId { get { return minId; } }
+
+    /// <summary>
+    /// Gets maximal <see cref="SyncId"/>
+    /// among the items included in this change set.
+    /// </summary>
+    public SyncId MaxId { get { return maxId; } }
+
+    /// <summary>
+    /// Gets value indicating if this change set
+    /// represents full range.
+    /// </summary>
+    public bool IsRange { get { return isRange; } }
 
     /// <summary>
     /// Gets the <see cref="ItemChangeData"/> with the specified global id.
@@ -41,7 +63,12 @@ namespace Xtensive.Orm.Sync.DataExchange
     /// <param name="data">The data.</param>
     public void Add(ItemChangeData data)
     {
-      index[data.Identity.GlobalId] = data;
+      var id = data.Identity.GlobalId;
+      index[id] = data;
+      if (minId==null || minId > id)
+        minId = id;
+      if (maxId==null || maxId < id)
+        maxId = id;
     }
 
     /// <summary>
@@ -86,8 +113,9 @@ namespace Xtensive.Orm.Sync.DataExchange
     /// <summary>
     /// Initializes new instance of <see cref="ChangeSet"/> class.
     /// </summary>
-    public ChangeSet()
+    public ChangeSet(bool isRange = false)
     {
+      this.isRange = isRange;
     }
   }
 }
