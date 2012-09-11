@@ -6,7 +6,7 @@ using Xtensive.IoC;
 
 namespace Xtensive.Orm.Sync
 {
-  [Service(typeof (MetadataFetcher), Singleton = true)]
+  [Service(typeof (MetadataFetcher), Singleton = false)]
   internal sealed class MetadataFetcher : ISessionService
   {
     private readonly Session session;
