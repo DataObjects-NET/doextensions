@@ -78,9 +78,6 @@ namespace Xtensive.Orm.Sync
 
         foreach (var group in groups) {
           var store = GetStore(group.Key);
-          if (store == null)
-            continue;
-
           var items = store.GetMetadata(group.ToList());
           var batches = DetectChanges(items, batchSize, mappedKnowledge);
           foreach (var batch in batches)
@@ -219,17 +216,14 @@ namespace Xtensive.Orm.Sync
             .Select(i => i.Hierarchy.Root);
           foreach (var rootType in rootTypes) {
             store = GetStore(rootType);
-            if (store == null)
-              continue;
             foreach (var item in store.GetMetadata(group.ToList()))
               yield return item;
           }
         }
         else {
           store = GetStore(originalType);
-          if (store!=null)
-            foreach (var item in store.GetMetadata(group.ToList()))
-              yield return item;
+          foreach (var item in store.GetMetadata(group.ToList()))
+            yield return item;
         }
       }
     }
@@ -237,9 +231,6 @@ namespace Xtensive.Orm.Sync
     public SyncInfo CreateMetadata(Key key)
     {
       var store = GetStore(key.TypeInfo);
-      if (store==null)
-        return null;
-
       var globalTypeId = typeIdRegistry.GetGlobalTypeId(key.TypeInfo.UnderlyingType);
       var tick = tickGenerator.GetNextTick();
       var syncId = SyncIdBuilder.GetSyncId(globalTypeId, replicaState.Id, tick);
@@ -256,9 +247,6 @@ namespace Xtensive.Orm.Sync
     public SyncInfo CreateMetadata(Key key, ItemChange change)
     {
       var store = GetStore(key.TypeInfo);
-      if (store==null)
-        return null;
-
       var result = store.CreateMetadata(change.ItemId, key);
       result.CreationVersion = change.CreationVersion;
       result.ChangeVersion = change.ChangeVersion;
@@ -293,8 +281,9 @@ namespace Xtensive.Orm.Sync
     private MetadataStore GetStore(TypeInfo type)
     {
       MetadataStore store;
-      storeIndex.TryGetValue(type.Hierarchy.Root.UnderlyingType, out store);
-      return store;
+      if (storeIndex.TryGetValue(type.Hierarchy.Root.UnderlyingType, out store))
+        return store;
+      throw new InvalidOperationException(string.Format("Store for type '{0}' is not registered", type));
     }
 
     private void InitializeStores()

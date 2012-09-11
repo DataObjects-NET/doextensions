@@ -113,7 +113,7 @@ namespace Xtensive.Orm.Sync
         return;
 
       try {
-        syncSession.SaveReplicaState();
+        syncSession.Complete();
         transaction.Complete();
         sessionResources.Dispose();
         EndSessionTracing();

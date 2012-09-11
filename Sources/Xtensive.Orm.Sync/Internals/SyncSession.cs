@@ -12,7 +12,7 @@ using FieldInfo = Xtensive.Orm.Model.FieldInfo;
 
 namespace Xtensive.Orm.Sync
 {
-  internal sealed class SyncSession : INotifyingChangeApplierTarget 
+  internal sealed class SyncSession : INotifyingChangeApplierTarget
   {
     private static readonly MethodInfo CreateKeyMethod;
 
@@ -276,7 +276,7 @@ namespace Xtensive.Orm.Sync
 
     #endregion
 
-    public void SaveReplicaState()
+    public void Complete()
     {
       metadataManager.SaveReplicaState();
     }
