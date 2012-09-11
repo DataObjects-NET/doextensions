@@ -80,6 +80,7 @@ namespace Xtensive.Orm.Sync
             isExecuting = true;
             using (var t = session.OpenTransaction()) {
               var metadataManager = session.Services.Demand<MetadataManager>();
+              metadataManager.LoadReplicaState();
               var lookup = metadataManager.GetMetadata(items.Select(i => i.Key)).ToDictionary(i => i.SyncTargetKey);
               foreach (var item in items) {
                 if (item.State==TrackingItemState.Created)

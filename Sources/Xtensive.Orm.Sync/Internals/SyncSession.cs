@@ -304,6 +304,7 @@ namespace Xtensive.Orm.Sync
 
       metadataManager = session.Services.Demand<MetadataManager>();
       metadataManager.Configure(configuration);
+      metadataManager.LoadReplicaState();
     }
 
     static SyncSession()

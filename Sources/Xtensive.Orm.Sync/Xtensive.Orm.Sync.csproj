@@ -72,6 +72,7 @@
     <Compile Include="Internals\KeyMap.cs" />
     <Compile Include="DataExchange\ChangeSet.cs" />
     <Compile Include="Internals\KeyDependency.cs" />
+    <Compile Include="Internals\KeyTracker.cs" />
     <Compile Include="Internals\ReplicaState.cs" />
     <Compile Include="Internals\MetadataStore.cs" />
     <Compile Include="Internals\MetadataStore{T}.cs" />

@@ -15,19 +15,17 @@ namespace Xtensive.Orm.Sync
   [Service(typeof (MetadataManager), Singleton = false)]
   internal sealed class MetadataManager : ISessionService
   {
-    private readonly HashSet<Key> sentKeys = new HashSet<Key>();
-    private readonly HashSet<Key> requestedKeys = new HashSet<Key>();
-
     private readonly EntityTupleFormatterRegistry tupleFormatters;
     private readonly SyncTickGenerator tickGenerator;
     private readonly ReplicaManager replicaManager;
     private readonly DirectEntityAccessor entityAccessor;
     private readonly GlobalTypeIdRegistry typeIdRegistry;
 
-    private readonly ReplicaState replicaState;
     private readonly Session session;
 
-    private SyncConfiguration configuration = new SyncConfiguration();
+    private ReplicaState replicaState;
+    private SyncConfiguration configuration;
+    private KeyTracker keyTracker;
 
     private List<MetadataStore> storeList;
     private Dictionary<Type, MetadataStore> storeIndex;
@@ -39,6 +37,12 @@ namespace Xtensive.Orm.Sync
       if (newConfiguration==null)
         throw new ArgumentNullException("newConfiguration");
       configuration = newConfiguration;
+      keyTracker = new KeyTracker(configuration);
+    }
+
+    public void LoadReplicaState()
+    {
+      replicaState = replicaManager.LoadReplicaState();
     }
 
     public void SaveReplicaState()
@@ -68,8 +72,8 @@ namespace Xtensive.Orm.Sync
           yield return batch;
       }
 
-      while (requestedKeys.Count > 0) {
-        var keys = requestedKeys.ToList();
+      while (keyTracker.HasKeysToSync) {
+        var keys = keyTracker.GetKeysToSync();
         var groups = keys.GroupBy(i => i.TypeReference.Type.Hierarchy.Root);
 
         foreach (var group in groups) {
@@ -103,7 +107,7 @@ namespace Xtensive.Orm.Sync
         }
 
         if (mappedKnowledge.Contains(replicaState.Id, item.SyncId, lastChangeVersion)) {
-          requestedKeys.Remove(item.SyncTargetKey);
+          keyTracker.UnrequestKeySync(item.SyncTargetKey);
           continue;
         }
 
@@ -114,7 +118,7 @@ namespace Xtensive.Orm.Sync
         };
 
         if (!item.IsTombstone) {
-          RegisterKeySync(item.SyncTargetKey);
+          keyTracker.RegisterKeySync(item.SyncTargetKey);
           var syncTarget = item.SyncTarget;
           var entityTuple = entityAccessor.GetEntityState(syncTarget).Tuple;
           changeData.TupleValue = tupleFormatters.Get(syncTarget.TypeInfo.UnderlyingType).Format(entityTuple);
@@ -164,37 +168,9 @@ namespace Xtensive.Orm.Sync
           if (lookup.TryGetValue(reference.Key, out syncInfo)) {
             reference.Key = syncInfo.SyncTargetKey;
             reference.GlobalId = syncInfo.SyncId;
-            RequestKeySync(syncInfo.SyncTargetKey);
+            keyTracker.RequestKeySync(syncInfo.SyncTargetKey);
           }
         }
-    }
-
-    private void RegisterKeySync(Key key)
-    {
-      if (!TypeIsFilteredOrSkipped(key.TypeReference.Type.GetRoot().UnderlyingType))
-        return;
-      sentKeys.Add(key);
-      requestedKeys.Remove(key);
-    }
-
-    private void RequestKeySync(Key key)
-    {
-      if (!TypeIsFilteredOrSkipped(key.TypeReference.Type.GetRoot().UnderlyingType))
-        return;
-      if (sentKeys.Contains(key))
-        return;
-      requestedKeys.Add(key);
-    }
-
-    private bool TypeIsFilteredOrSkipped(Type type)
-    {
-      if (configuration.Filters.ContainsKey(type))
-        return true;
-      if (configuration.SkipTypes.Contains(type))
-        return true;
-      if (configuration.SyncAll)
-        return false;
-      return !configuration.SyncTypes.Contains(type);
     }
 
     public void GetLocalChanges(ChangeBatch sourceChanges, ICollection<ItemChange> output)
@@ -362,8 +338,8 @@ namespace Xtensive.Orm.Sync
     [ServiceConstructor]
     public MetadataManager(
       Session session, GlobalTypeIdRegistry typeIdRegistry,
-      EntityTupleFormatterRegistry tupleFormatters, SyncTickGenerator tickGenerator, ReplicaManager replicaManager,
-      DirectEntityAccessor entityAccessor)
+      EntityTupleFormatterRegistry tupleFormatters, SyncTickGenerator tickGenerator,
+      ReplicaManager replicaManager, DirectEntityAccessor entityAccessor)
     {
       if (session==null)
         throw new ArgumentNullException("session");
@@ -385,9 +361,8 @@ namespace Xtensive.Orm.Sync
       this.replicaManager = replicaManager;
       this.entityAccessor = entityAccessor;
 
-      replicaState = replicaManager.LoadReplicaState();
-
       InitializeStores();
+      Configure(new SyncConfiguration());
     }
   }
 }
