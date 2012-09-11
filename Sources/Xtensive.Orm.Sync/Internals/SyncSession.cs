@@ -44,13 +44,7 @@ namespace Xtensive.Orm.Sync
 
     public ChangeBatch GetChangeBatch(uint batchSize, SyncKnowledge destinationKnowledge)
     {
-      ChangeBatch result;
-      if (FilteredBatchIsRequired()) {
-        var filterInfo = new ItemListFilterInfo(IdFormats);
-        result = new ChangeBatch(IdFormats, destinationKnowledge, ReplicaState.ForgottenKnowledge, filterInfo);
-      }
-      else
-        result = new ChangeBatch(IdFormats, destinationKnowledge, ReplicaState.ForgottenKnowledge);
+      var result = CreateChangeBatch(destinationKnowledge);
 
       bool hasNext;
 
@@ -79,6 +73,14 @@ namespace Xtensive.Orm.Sync
         result.EndUnorderedGroup(ReplicaState.CurrentKnowledge, false);
 
       return result;
+    }
+
+    private ChangeBatch CreateChangeBatch(SyncKnowledge destinationKnowledge)
+    {
+      if (!FilteredBatchIsRequired())
+        return new ChangeBatch(IdFormats, destinationKnowledge, ReplicaState.ForgottenKnowledge);
+      var filterInfo = new ItemListFilterInfo(IdFormats);
+      return new ChangeBatch(IdFormats, destinationKnowledge, ReplicaState.ForgottenKnowledge, filterInfo);
     }
 
     #endregion
