@@ -15,11 +15,11 @@ namespace Xtensive.Orm.Sync.Tests
       using (var session = LocalDomain.OpenSession()) {
         using (var t = session.OpenTransaction()) {
 
-          var m = LocalDomain.Services.Get<IDomainTrackingMonitor>();
-          Assert.IsNotNull(m);
+          var trackingMonitor = LocalDomain.Services.Get<IDomainTrackingMonitor>();
+          Assert.IsNotNull(trackingMonitor);
 
-          var sp = LocalDomain.Services.Get<OrmSyncProvider>();
-          Assert.IsNotNull(sp);
+          var syncManager = LocalDomain.Services.Get<ISyncManager>();
+          Assert.IsNotNull(syncManager);
           t.Complete();
         }
       }
@@ -39,7 +39,7 @@ namespace Xtensive.Orm.Sync.Tests
     [Test]
     public void ReplicaIdTest()
     {
-      var syncId = LocalDomain.GetReplicaId();
+      var syncId = LocalDomain.GetSyncManager().ReplicaId;
       Assert.That(syncId, Is.Not.Null);
     }
   }

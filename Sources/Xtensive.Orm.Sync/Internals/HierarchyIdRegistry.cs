@@ -3,26 +3,27 @@ using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using System.Text;
 using Xtensive.IoC;
+using Xtensive.Orm.Model;
 
 namespace Xtensive.Orm.Sync
 {
-  [Service(typeof (GlobalTypeIdRegistry), Singleton = true)]
-  internal sealed class GlobalTypeIdRegistry : IDomainService
+  [Service(typeof (HierarchyIdRegistry), Singleton = true)]
+  internal sealed class HierarchyIdRegistry : IDomainService
   {
     private readonly ConcurrentDictionary<Type, int> cache = new ConcurrentDictionary<Type, int>();
 
-    public int GetGlobalTypeId(Type type)
+    public int GetHierarchyId(TypeInfo typeInfo)
     {
-      if (type==null)
-        throw new ArgumentNullException("type");
-      return cache.GetOrAdd(type, ReadGlobalTypeId);
+      if (typeInfo==null)
+        throw new ArgumentNullException("typeInfo");
+      return cache.GetOrAdd(typeInfo.Hierarchy.Root.UnderlyingType, ReadHierarchyId);
     }
 
-    private int ReadGlobalTypeId(Type type)
+    private int ReadHierarchyId(Type type)
     {
-      var attributes = type.GetCustomAttributes(typeof (GlobalTypeIdAttribute), false);
+      var attributes = type.GetCustomAttributes(typeof (HierarchyIdAttribute), false);
       if (attributes.Length > 0)
-        return ((GlobalTypeIdAttribute) attributes[0]).GlobalTypeId;
+        return ((HierarchyIdAttribute) attributes[0]).HierarchyId;
 
       var nameBytes = Encoding.UTF8.GetBytes(type.Name);
 
@@ -37,7 +38,7 @@ namespace Xtensive.Orm.Sync
     }
 
     [ServiceConstructor]
-    public GlobalTypeIdRegistry(Domain domain)
+    public HierarchyIdRegistry(Domain domain)
     {
     }
   }

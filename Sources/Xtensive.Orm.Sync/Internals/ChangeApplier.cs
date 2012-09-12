@@ -1,21 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Microsoft.Synchronization;
-using Xtensive.Orm.Model;
 using Xtensive.Orm.Services;
 using Xtensive.Orm.Sync.DataExchange;
 using Xtensive.Tuples;
 using FieldInfo = Xtensive.Orm.Model.FieldInfo;
-using Tuple = Xtensive.Tuples.Tuple;
 
 namespace Xtensive.Orm.Sync
 {
   internal sealed class ChangeApplier : INotifyingChangeApplierTarget
   {
-    private static readonly MethodInfo CreateKeyMethod;
-
     private readonly KeyMap keyMap;
     private readonly Dictionary<Key, List<KeyDependency>> keyDependencies;
 
@@ -100,7 +95,7 @@ namespace Xtensive.Orm.Sync
             offset = field.MappingInfo.Offset;
             mappedRefKey.Value.CopyTo(targetTuple, 0, offset, field.MappingInfo.Length);
           }
-          mappedKey = CreateKey(typeInfo, targetTuple);
+          mappedKey = KeyFactory.CreateKey(session.Domain, typeInfo, targetTuple);
           break;
       }
 
@@ -114,10 +109,6 @@ namespace Xtensive.Orm.Sync
       UpdateReferences(state, data.References);
     }
 
-    private Key CreateKey(TypeInfo typeInfo, Tuple targetTuple)
-    {
-      return (Key) CreateKeyMethod.Invoke(null, new object[] {session.Domain, typeInfo, TypeReferenceAccuracy.ExactType, targetTuple});
-    }
 
     private void HandleUpdateEntity(ItemChangeData data)
     {
@@ -289,12 +280,6 @@ namespace Xtensive.Orm.Sync
 
       keyMap = new KeyMap();
       keyDependencies = new Dictionary<Key, List<KeyDependency>>();
-    }
-
-    static ChangeApplier()
-    {
-      CreateKeyMethod = typeof (Key).GetMethod("Create", BindingFlags.NonPublic | BindingFlags.Static, null,
-        new[] {typeof (Domain), typeof (TypeInfo), typeof (TypeReferenceAccuracy), typeof (Tuples.Tuple)}, null);
     }
   }
 }

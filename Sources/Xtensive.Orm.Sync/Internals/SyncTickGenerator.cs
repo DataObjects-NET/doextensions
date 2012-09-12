@@ -40,7 +40,11 @@ namespace Xtensive.Orm.Sync
     private long FetchLastTick()
     {
       return session.Query.Execute(
-        q => q.All<SyncInfo>().Where(i => i.ChangeReplicaKey==0).Max(i => i.ChangeTickCount));
+        q => q.All<SyncInfo>()
+          .Where(i => i.ChangeReplicaKey==WellKnown.LocalReplicaKey)
+          .Select(i => i.ChangeTickCount)
+          .Concat(q.All<SyncLog>().Select(l => l.Tick))
+          .Max());
     }
 
     private void OnTransactionCompleted(object sender, TransactionEventArgs e)
@@ -60,7 +64,7 @@ namespace Xtensive.Orm.Sync
 
       this.session = session;
 
-      syncTickKey = session.Domain.Model.Types[typeof (SyncTick)].Key;
+      syncTickKey = session.Domain.Model.Types[typeof (SyncLog)].Key;
       generator = session.Domain.Services.Get<IKeyGenerator>(WellKnown.TickGeneratorName);
 
       session.Events.TransactionCommitted += OnTransactionCompleted;

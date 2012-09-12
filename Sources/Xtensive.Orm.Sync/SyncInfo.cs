@@ -20,6 +20,7 @@ namespace Xtensive.Orm.Sync
 
     /// <summary>
     /// Gets the global ID of the item.
+    /// This is a primary key.
     /// </summary>
     [Key, Field(Length = 32)]
     internal string Id { get; private set; }

@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using Microsoft.Synchronization;
 using Xtensive.Core;
-using Xtensive.IoC;
 using Xtensive.Orm.Configuration;
 using Xtensive.Orm.Sync.DataExchange;
 using Xtensive.Orm.Tracking;
@@ -10,13 +9,10 @@ using Xtensive.Orm.Tracking;
 namespace Xtensive.Orm.Sync
 {
   /// <summary>
-  /// <see cref="KnowledgeSyncProvider"/> wrapper for <see cref="Xtensive.Orm"/>.
+  /// <see cref="KnowledgeSyncProvider"/> implementation for <see cref="Xtensive.Orm"/>.
   /// </summary>
-  [Service(typeof (OrmSyncProvider), Singleton = false)]
   public sealed class OrmSyncProvider : KnowledgeSyncProvider, IDomainService
   {
-    private static readonly SessionConfiguration OrmSessionConfiguration;
-
     private readonly Domain domain;
     private readonly SyncConfiguration configuration;
 
@@ -70,7 +66,7 @@ namespace Xtensive.Orm.Sync
 
         // Prepare session
         if (configuration.Session==null) {
-          session = domain.OpenSession(OrmSessionConfiguration);
+          session = domain.OpenSession(WellKnown.SyncSessionConfiguration);
           resources.Add(session);
         }
         else {
@@ -255,19 +251,12 @@ namespace Xtensive.Orm.Sync
     /// Initializes a new instance of the <see cref="OrmSyncProvider"/> class.
     /// </summary>
     /// <param name="domain">The domain.</param>
-    [ServiceConstructor]
-    public OrmSyncProvider(Domain domain)
+    internal OrmSyncProvider(Domain domain)
     {
       this.domain = domain;
 
       configuration = new SyncConfiguration();
       Sync = new SyncConfigurationEndpoint(configuration);
-    }
-
-    static OrmSyncProvider()
-    {
-      OrmSessionConfiguration = new SessionConfiguration("Sync", SessionOptions.ServerProfile);
-      OrmSessionConfiguration.Lock();
     }
   }
 }

@@ -66,7 +66,7 @@ namespace Xtensive.Orm.Sync.Tests
           entity.Date = DateTime.MaxValue;
         t.Complete();
       }
-      LocalDomain.WaitForPendingSyncTasks();
+      LocalDomain.GetSyncManager().WaitForPendingSyncTasks();
 
       // Synchronize
       SynchronizeLocalToRemote();
@@ -90,7 +90,7 @@ namespace Xtensive.Orm.Sync.Tests
           entity.Remove();
         t.Complete();
       }
-      LocalDomain.WaitForPendingSyncTasks();
+      LocalDomain.GetSyncManager().WaitForPendingSyncTasks();
 
       // Synchronize
       SynchronizeLocalToRemote();
@@ -132,9 +132,9 @@ namespace Xtensive.Orm.Sync.Tests
     private void SynchronizeLocalToRemote(OrmSyncProvider localProvider = null, OrmSyncProvider remoteProvider = null)
     {
       if (localProvider==null)
-        localProvider = LocalDomain.GetSyncProvider();
+        localProvider = LocalDomain.GetSyncManager().GetSyncProvider();
       if (remoteProvider==null)
-        remoteProvider = RemoteDomain.GetSyncProvider();
+        remoteProvider = RemoteDomain.GetSyncManager().GetSyncProvider();
 
       var orchestrator = new SyncOrchestrator {
         LocalProvider = localProvider,
@@ -159,7 +159,7 @@ namespace Xtensive.Orm.Sync.Tests
         }
       }
 
-      LocalDomain.WaitForPendingSyncTasks();
+      LocalDomain.GetSyncManager().WaitForPendingSyncTasks();
     }
   }
 }

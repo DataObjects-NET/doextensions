@@ -5,16 +5,16 @@ namespace Xtensive.Orm.Sync
 {
   internal static class SyncIdBuilder
   {
-    public static SyncId GetSyncId(int globalTypeId, SyncId replicaId, long tick)
+    public static SyncId GetSyncId(int hierarchyId, SyncId replicaId, long tick)
     {
       var replicaIdBytes = replicaId.RawId;
 
       var buffer = new byte[16];
 
-      buffer[0] = (byte) ((globalTypeId >> 24) & 255);
-      buffer[1] = (byte) ((globalTypeId >> 16) & 255);
-      buffer[2] = (byte) ((globalTypeId >> 8) & 255);
-      buffer[3] = (byte) (globalTypeId & 255);
+      buffer[0] = (byte) ((hierarchyId >> 24) & 255);
+      buffer[1] = (byte) ((hierarchyId >> 16) & 255);
+      buffer[2] = (byte) ((hierarchyId >> 8) & 255);
+      buffer[3] = (byte) (hierarchyId & 255);
 
       buffer[4] = (byte) (replicaIdBytes[0] ^ replicaIdBytes[4] ^ replicaIdBytes[8] ^ replicaIdBytes[12]);
       buffer[5] = (byte) (replicaIdBytes[1] ^ replicaIdBytes[5] ^ replicaIdBytes[9] ^ replicaIdBytes[13]);

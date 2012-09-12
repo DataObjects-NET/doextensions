@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Xtensive.IoC;
@@ -7,51 +6,45 @@ using Xtensive.Orm.Internals;
 
 namespace Xtensive.Orm.Tracking
 {
-  /// <summary>
-  /// Implementation of <see cref="ISessionTrackingMonitor"/> interface.
-  /// </summary>
   [Service(typeof (ISessionTrackingMonitor), Singleton = true)]
-  public class SessionTrackingMonitor : SessionBound, ISessionTrackingMonitor
+  internal sealed class SessionTrackingMonitor : ISessionTrackingMonitor, ISessionService, IDisposable
   {
-    private static readonly PropertyInfo registryAccessor = typeof (Session).GetProperty("EntityChangeRegistry", BindingFlags.Instance | BindingFlags.NonPublic);
+    private static readonly PropertyInfo RegistryAccessor = typeof (Session).GetProperty("EntityChangeRegistry", BindingFlags.Instance | BindingFlags.NonPublic);
 
+    private readonly object gate = new object();
+
+    private readonly Session session;
     private int subscriberNumber;
-    private bool isDisposed;
-    private object gate = new object();
-    private EventHandler<TrackingCompletedEventArgs> trackingCompletedHandler;
+
     private bool isDisabled;
+    private bool isDisposed;
 
-    /// <summary>
-    /// Gets or sets the filter that is applied to include only entities of required types.
-    /// </summary>
-    public Func<Type, bool> Filter { get; set; }
+    private event EventHandler<TrackingCompletedEventArgs> TrackingCompletedHandler;
 
-    /// <summary>
-    /// Occurs when a single tracking operation is completed.
-    /// </summary>
+    private bool HasSubscribers
+    {
+      get { return subscriberNumber > 0; }
+    }
+
     public event EventHandler<TrackingCompletedEventArgs> TrackingCompleted
     {
       add {
         lock (gate) {
-          if (!HasSubscribers && !isDisabled) {
+          if (!HasSubscribers && !isDisabled)
             Attach();
-          }
-          trackingCompletedHandler += value;
+          TrackingCompletedHandler += value;
           subscriberNumber++;
         }
       }
       remove {
         lock (gate)
-          trackingCompletedHandler -= value;
+          TrackingCompletedHandler -= value;
         subscriberNumber--;
         if (!HasSubscribers)
           Detach();
       }
     }
 
-    /// <summary>
-    /// Disables tracking.
-    /// </summary>
     public void Disable()
     {
       if (isDisabled)
@@ -62,9 +55,6 @@ namespace Xtensive.Orm.Tracking
         Detach();
     }
 
-    /// <summary>
-    /// Enables tracking.
-    /// </summary>
     public void Enable()
     {
       if (!isDisabled)
@@ -75,35 +65,29 @@ namespace Xtensive.Orm.Tracking
         Attach();
     }
 
-    private bool HasSubscribers
-    {
-      get { return subscriberNumber > 0; }
-    }
-
     private void Attach()
     {
       var stack = new TrackingStack();
       stack.Push(new TrackingStackFrame());
-      Session.Extensions.Set(stack);
-      Session.Events.Persisting += OnPersisting;
-      Session.Events.TransactionOpened += OnOpenTransaction;
-      Session.Events.TransactionCommitted += OnCommitTransaction;
-      Session.Events.TransactionRollbacked += OnRollBackTransaction;
-      Session.Events.Disposing += OnDisposeSession;
+      session.Extensions.Set(stack);
+      session.Events.Persisting += OnPersisting;
+      session.Events.TransactionOpened += OnOpenTransaction;
+      session.Events.TransactionCommitted += OnCommitTransaction;
+      session.Events.TransactionRollbacked += OnRollBackTransaction;
+      session.Events.Disposing += OnDisposeSession;
     }
 
     private void Detach()
     {
-      Session.Events.Persisting -= OnPersisting;
-      Session.Events.TransactionOpened -= OnOpenTransaction;
-      Session.Events.TransactionCommitted -= OnCommitTransaction;
-      Session.Events.TransactionRollbacked -= OnRollBackTransaction;
-      Session.Extensions.Set<TrackingStack>(null);
+      session.Events.Persisting -= OnPersisting;
+      session.Events.TransactionOpened -= OnOpenTransaction;
+      session.Events.TransactionCommitted -= OnCommitTransaction;
+      session.Events.TransactionRollbacked -= OnRollBackTransaction;
+      session.Extensions.Set<TrackingStack>(null);
     }
 
     private void OnOpenTransaction(object sender, TransactionEventArgs e)
     {
-      var session = e.Transaction.Session;
       var stack = session.Extensions.Get<TrackingStack>();
       if (stack==null)
         return;
@@ -113,7 +97,6 @@ namespace Xtensive.Orm.Tracking
 
     private void OnCommitTransaction(object sender, TransactionEventArgs e)
     {
-      var session = e.Transaction.Session;
       var stack = session.Extensions.Get<TrackingStack>();
       if (stack==null)
         return;
@@ -127,12 +110,11 @@ namespace Xtensive.Orm.Tracking
 
       var items = target.Cast<ITrackingItem>().ToList();
       target.Clear();
-      trackingCompletedHandler.Invoke(this, new TrackingCompletedEventArgs(items));
+      TrackingCompletedHandler.Invoke(this, new TrackingCompletedEventArgs(session, items));
     }
 
     private void OnRollBackTransaction(object sender, TransactionEventArgs e)
     {
-      var session = e.Transaction.Session;
       var stack = session.Extensions.Get<TrackingStack>();
       if (stack==null)
         return;
@@ -142,7 +124,6 @@ namespace Xtensive.Orm.Tracking
     private void OnPersisting(object sender, EventArgs e)
     {
       var accessor = (SessionEventAccessor) sender;
-      var session = accessor.Session;
       var registry = GetEntityChangeRegistry(session);
       if (registry.Count==0)
         return;
@@ -152,22 +133,14 @@ namespace Xtensive.Orm.Tracking
         return;
       var frame = stack.Peek();
 
-      foreach (var state in GetItems(registry, PersistenceState.Removed))
+      foreach (var state in registry.GetItems(PersistenceState.Removed))
         frame.Register(new TrackingItem(state.Key, state.DifferentialTuple, TrackingItemState.Deleted));
 
-      foreach (var state in GetItems(registry, PersistenceState.New))
+      foreach (var state in registry.GetItems(PersistenceState.New))
         frame.Register(new TrackingItem(state.Key, state.DifferentialTuple, TrackingItemState.Created));
 
-      foreach (var state in GetItems(registry, PersistenceState.Modified))
+      foreach (var state in registry.GetItems(PersistenceState.Modified))
         frame.Register(new TrackingItem(state.Key, state.DifferentialTuple, TrackingItemState.Changed));
-    }
-
-    private IEnumerable<EntityState> GetItems(EntityChangeRegistry registry, PersistenceState state)
-    {
-      var result = registry.GetItems(state);
-      if (Filter!=null)
-        result = result.Where(i => Filter(i.Type.UnderlyingType));
-      return result;
     }
 
     private void OnDisposeSession(object sender, EventArgs e)
@@ -177,7 +150,7 @@ namespace Xtensive.Orm.Tracking
 
     private static EntityChangeRegistry GetEntityChangeRegistry(Session session)
     {
-      return (EntityChangeRegistry) registryAccessor.GetValue(session, null);
+      return (EntityChangeRegistry) RegistryAccessor.GetValue(session, null);
     }
 
     void IDisposable.Dispose()
@@ -190,9 +163,9 @@ namespace Xtensive.Orm.Tracking
 
     private void Dispose()
     {
-      if (Session==null)
+      if (session==null)
         return;
-      if (Session.Events==null)
+      if (session.Events==null)
         return;
 
       try {
@@ -211,8 +184,10 @@ namespace Xtensive.Orm.Tracking
     /// <exception cref="T:System.ArgumentNullException"><paramref name="session"/> is <see langword="null"/>.</exception>
     [ServiceConstructor]
     public SessionTrackingMonitor(Session session)
-      : base(session)
     {
+      if (session==null)
+        throw new ArgumentNullException("session");
+      this.session = session;
     }
   }
 }

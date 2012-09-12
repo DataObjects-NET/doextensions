@@ -1,11 +1,13 @@
 ﻿using Microsoft.Synchronization;
+using Xtensive.Orm.Configuration;
 
 namespace Xtensive.Orm.Sync
 {
   internal static class WellKnown
   {
     public const int SyncBatchSize = 64;
-    public const int KeyPreloadBatchSize = 25;
+    public const int EntityFetchBatchSize = 25;
+    public const int SyncLogBatchSize = 512;
     public const int LocalReplicaKey = 0;
     public const int SyncInfoCacheSize = 128 * 1024;
 
@@ -18,6 +20,8 @@ namespace Xtensive.Orm.Sync
 
     public static SyncIdFormatGroup IdFormats { get; private set; }
 
+    public static SessionConfiguration SyncSessionConfiguration { get; private set; }
+
     static WellKnown()
     {
       IdFormats = new SyncIdFormatGroup();
@@ -25,6 +29,9 @@ namespace Xtensive.Orm.Sync
       IdFormats.ItemIdFormat.Length = 16;
       IdFormats.ReplicaIdFormat.IsVariableLength = false;
       IdFormats.ReplicaIdFormat.Length = 16;
+
+      SyncSessionConfiguration = new SessionConfiguration("Sync", SessionOptions.ServerProfile);
+      SyncSessionConfiguration.Lock();
     }
   }
 }

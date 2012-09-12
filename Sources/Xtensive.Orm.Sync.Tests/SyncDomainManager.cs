@@ -30,7 +30,9 @@ namespace Xtensive.Orm.Sync.Tests
 
     private Domain BuildDomain(string configuration)
     {
-      return Domain.Build(DomainConfiguration.Load(configuration));
+      var domain = Domain.Build(DomainConfiguration.Load(configuration));
+      domain.GetSyncManager().StartMetadataProcessor();
+      return domain;
     }
 
     public void Dispose()

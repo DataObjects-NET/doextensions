@@ -9,12 +9,14 @@ using FieldInfo = Xtensive.Orm.Model.FieldInfo;
 
 namespace Xtensive.Orm.Sync
 {
-  [Service(typeof (MetadataManager), Singleton = false)]
+  [Service(typeof (MetadataManager), Singleton = true)]
   internal sealed class MetadataManager : ISessionService
   {
+    private readonly SyncId replicaId;
     private readonly SyncTickGenerator tickGenerator;
-    private readonly GlobalTypeIdRegistry typeIdRegistry;
+    private readonly HierarchyIdRegistry hierarchyIdRegistry;
     private readonly Session session;
+
     private List<MetadataStore> storeList;
     private Dictionary<Type, MetadataStore> storeIndex;
 
@@ -43,7 +45,15 @@ namespace Xtensive.Orm.Sync
       return stores;
     }
 
-    public IEnumerable<SyncInfo> GetMetadata(IEnumerable<Key> keys)
+    public MetadataSet GetMetadata(IEnumerable<Key> keys)
+    {
+      var result = new MetadataSet();
+      foreach (var item in GetMetadataItems(keys))
+        result.Add(item);
+      return result;
+    }
+
+    private IEnumerable<SyncInfo> GetMetadataItems(IEnumerable<Key> keys)
     {
       var groups = keys.GroupBy(i => i.TypeReference.Type);
 
@@ -68,12 +78,15 @@ namespace Xtensive.Orm.Sync
       }
     }
 
-    public SyncInfo CreateMetadata(Key key, ReplicaState replicaState)
+    public SyncInfo CreateMetadata(Key key, long tick = -1)
     {
       var store = GetStore(key.TypeInfo);
-      var globalTypeId = typeIdRegistry.GetGlobalTypeId(key.TypeInfo.UnderlyingType);
-      var tick = tickGenerator.GetNextTick();
-      var syncId = SyncIdBuilder.GetSyncId(globalTypeId, replicaState.Id, tick);
+      var hiearchyId = hierarchyIdRegistry.GetHierarchyId(key.TypeInfo);
+
+      if (tick < 0)
+        tick = tickGenerator.GetNextTick();
+
+      var syncId = SyncIdBuilder.GetSyncId(hiearchyId, replicaId, tick);
       var result = store.CreateMetadata(syncId, key);
 
       result.CreatedReplicaKey = WellKnown.LocalReplicaKey;
@@ -93,9 +106,11 @@ namespace Xtensive.Orm.Sync
       return result;
     }
 
-    public void UpdateMetadata(SyncInfo item, bool markAsTombstone)
+    public void UpdateMetadata(SyncInfo item, bool markAsTombstone, long tick = -1)
     {
-      long tick = tickGenerator.GetNextTick();
+      if (tick < 0)
+        tick = tickGenerator.GetNextTick();
+
       item.ChangeReplicaKey = WellKnown.LocalReplicaKey;
       item.ChangeTickCount = tick;
 
@@ -157,18 +172,22 @@ namespace Xtensive.Orm.Sync
     }
 
     [ServiceConstructor]
-    public MetadataManager(Session session, GlobalTypeIdRegistry typeIdRegistry, SyncTickGenerator tickGenerator)
+    public MetadataManager(Session session, SyncTickGenerator tickGenerator, HierarchyIdRegistry hierarchyIdRegistry, ISyncManager syncManager)
     {
       if (session==null)
         throw new ArgumentNullException("session");
-      if (typeIdRegistry==null)
-        throw new ArgumentNullException("typeIdRegistry");
       if (tickGenerator==null)
         throw new ArgumentNullException("tickGenerator");
+      if (hierarchyIdRegistry==null)
+        throw new ArgumentNullException("hierarchyIdRegistry");
+      if (syncManager==null)
+        throw new ArgumentNullException("syncManager");
 
       this.session = session;
-      this.typeIdRegistry = typeIdRegistry;
       this.tickGenerator = tickGenerator;
+      this.hierarchyIdRegistry = hierarchyIdRegistry;
+
+      replicaId = syncManager.ReplicaId;
 
       InitializeStores();
     }

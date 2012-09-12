@@ -109,19 +109,16 @@ namespace Xtensive.Orm.Sync
 
     private void LoadReferences(IEnumerable<ItemChangeData> items, IEnumerable<Key> keys)
     {
-      var lookup = metadataManager
-        .GetMetadata(keys.ToList())
-        .Distinct()
-        .ToDictionary(i => i.SyncTargetKey);
+      var metadataSet = metadataManager.GetMetadata(keys.ToList());
 
       foreach (var item in items)
         foreach (var reference in item.References.Values) {
-          SyncInfo syncInfo;
-          if (lookup.TryGetValue(reference.Key, out syncInfo)) {
-            reference.Key = syncInfo.SyncTargetKey;
-            reference.GlobalId = syncInfo.SyncId;
-            keyTracker.RequestKeySync(syncInfo.SyncTargetKey);
-          }
+          var metadata = metadataSet[reference.Key];
+          if (metadata==null)
+            continue;
+          reference.Key = metadata.SyncTargetKey;
+          reference.GlobalId = metadata.SyncId;
+          keyTracker.RequestKeySync(metadata.SyncTargetKey);
         }
     }
 
