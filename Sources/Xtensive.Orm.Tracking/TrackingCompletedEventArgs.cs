@@ -6,7 +6,7 @@ namespace Xtensive.Orm.Tracking
   /// <summary>
   /// Event arguments for <see cref="ITrackingMonitor.TrackingCompleted"/> event.
   /// </summary>
-  public class TrackingCompletedEventArgs : EventArgs
+  public sealed class TrackingCompletedEventArgs : EventArgs
   {
     /// <summary>
     /// Gets session this changes occured in.

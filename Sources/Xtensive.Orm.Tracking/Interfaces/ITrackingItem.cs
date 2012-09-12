@@ -11,6 +11,6 @@ namespace Xtensive.Orm.Tracking
 
     TrackingItemState State { get; }
 
-    IEnumerable<ChangedValue> ChangedValues { get; }
+    IList<ChangedValue> ChangedValues { get; }
   }
 }
