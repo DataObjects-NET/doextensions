@@ -3,8 +3,9 @@ using System.Linq;
 using Microsoft.Synchronization;
 using Xtensive.Core;
 using Xtensive.IoC;
+using Xtensive.Orm.Configuration;
 using Xtensive.Orm.Providers;
-using Xtensive.Orm.Tracking;
+using Xtensive.Orm.Services;
 
 namespace Xtensive.Orm.Sync
 {
@@ -38,9 +39,14 @@ namespace Xtensive.Orm.Sync
       processor = new MetadataProcessor(domain);
     }
 
+    public bool IsSyncRunning(Session session)
+    {
+      return SyncSessionMarker.Check(session);
+    }
+
     public void Initialize()
     {
-      SubscribeToTrackingEvents();
+      SubscribeToDomainEvents();
       LoadReplicaId();
     }
 
@@ -52,13 +58,66 @@ namespace Xtensive.Orm.Sync
       processor = null;
     }
 
-    private void SubscribeToTrackingEvents()
+    private void SubscribeToDomainEvents()
     {
-      var trackingMonitor = domain.GetTrackingMonitor();
-      if (trackingMonitor==null)
-        throw new InvalidOperationException(
-          "Tracking monitor is not enabled in this domain, register Xtensive.Orm.Tracking assembly in DomainConfiguration");
-      trackingMonitor.TrackingCompleted += OnTrackingCompleted;
+      domain.SessionOpen += OnSessionOpen;
+    }
+
+    private void OnSessionOpen(object sender, SessionEventArgs e)
+    {
+      var session = e.Session;
+      if (session.Configuration.Type!=SessionType.User)
+        return;
+      session.Events.Persisting += OnPersisting;
+      if (processor!=null)
+        session.Events.TransactionCommitted += OnTransactionCommitted;
+    }
+
+    private void OnTransactionCommitted(object sender, TransactionEventArgs e)
+    {
+      if (e.Transaction.IsNested || SyncSessionMarker.Check(e.Transaction.Session))
+        return;
+      processor.NotifyDataAvailable();
+    }
+
+    private void OnPersisting(object sender, EventArgs e)
+    {
+      var session = ((SessionEventAccessor) sender).Session;
+      if (SyncSessionMarker.Check(session))
+        return;
+      var accessor = session.Services.Demand<DirectSessionAccessor>();
+
+      var items = accessor.GetChangedEntities(PersistenceState.Removed)
+        .Concat(accessor.GetChangedEntities(PersistenceState.Modified))
+        .Concat(accessor.GetChangedEntities(PersistenceState.New))
+        .Where(IsUserEntity)
+        .Select(s => new EntityChangeInfo(s.Key, GetChangeKind(s.PersistenceState)))
+        .ToList();
+
+      if (items.Count==0)
+        return;
+
+      using (session.DisableSaveChanges()) {
+        var updater = session.Services.Demand<MetadataUpdater>();
+        if (useSyncLog)
+          updater.WriteSyncLog(items);
+        else
+          updater.UpdateMetadata(items);
+      }
+    }
+
+    private EntityChangeKind GetChangeKind(PersistenceState persistenceState)
+    {
+      switch (persistenceState) {
+        case PersistenceState.New:
+          return EntityChangeKind.Create;
+        case PersistenceState.Modified:
+          return EntityChangeKind.Update;
+        case PersistenceState.Removed:
+          return EntityChangeKind.Remove;
+        default:
+          throw new ArgumentOutOfRangeException("persistenceState");
+      }
     }
 
     private void LoadReplicaId()
@@ -70,35 +129,15 @@ namespace Xtensive.Orm.Sync
       }
     }
 
-    private void OnTrackingCompleted(object sender, TrackingCompletedEventArgs e)
+    private static bool IsUserEntity(EntityState state)
     {
-      var items = e.Changes.Where(IsValidTrackingItem).ToList();
-      if (items.Count==0)
-        return;
-
-      using (var tx = e.Session.OpenTransaction()) {
-        var updater = e.Session.Services.Demand<MetadataUpdater>();
-        if (useSyncLog)
-          updater.WriteSyncLog(items);
-        else
-          updater.UpdateMetadata(items);
-        tx.Complete();
-      }
-
-      if (processor!=null)
-        processor.NotifyDataAvailable();
-    }
-
-    private static bool IsValidTrackingItem(ITrackingItem item)
-    {
-      var entityKey = item.Key;
-      var entityType = entityKey.TypeInfo.UnderlyingType;
+      var entityType = state.Entity.GetType();
 
       if (entityType.Assembly==typeof (Persistent).Assembly)
         return false;
       if (entityType.Assembly==typeof (SyncInfo).Assembly)
         return false;
-      if (entityKey.TypeInfo.IsAuxiliary)
+      if (state.Type.IsAuxiliary)
         return false;
 
       return true;

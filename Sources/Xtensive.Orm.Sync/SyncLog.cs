@@ -1,6 +1,7 @@
 ﻿using System;
-using Xtensive.Orm.Tracking;
+using Xtensive.Orm.Model;
 using Xtensive.Tuples;
+using Tuple = Xtensive.Tuples.Tuple;
 
 namespace Xtensive.Orm.Sync
 {
@@ -41,25 +42,27 @@ namespace Xtensive.Orm.Sync
         if (cachedEntityKey==null) {
           var domain = Session.Domain;
           var typeInfo = domain.Model.Types[EntityTypeId];
-          cachedEntityKey = KeyFactory.CreateKey(domain, typeInfo, typeInfo.Key.TupleDescriptor.Parse(EntityKeyTuple));
+          cachedEntityKey = Key.Create(domain,
+            typeInfo.UnderlyingType, TypeReferenceAccuracy.ExactType,
+            typeInfo.Key.TupleDescriptor.Parse(EntityKeyTuple));
         }
         return cachedEntityKey;
       }
     }
 
     /// <summary>
-    /// Gets <see cref="TrackingItemState" /> for changed entity.
+    /// Gets <see cref="EntityChangeKind" /> for changed entity.
     /// </summary>
     [Field]
-    public TrackingItemState ChangeKind { get; private set; }
+    internal EntityChangeKind ChangeKind { get; private set; }
 
     /// <summary>
     /// Creates new instance of <see cref="SyncLog"/> class.
     /// </summary>
     /// <param name="session">Session.</param>
     /// <param name="entityKey">Key of changed entity.</param>
-    /// <param name="entityState">Kind change.</param>
-    public SyncLog(Session session, Key entityKey, TrackingItemState entityState)
+    /// <param name="changeKind">Kind change.</param>
+    internal SyncLog(Session session, Key entityKey, EntityChangeKind changeKind)
       : base(session)
     {
       if (entityKey==null)
@@ -67,7 +70,7 @@ namespace Xtensive.Orm.Sync
 
       EntityTypeId = entityKey.TypeInfo.TypeId;
       EntityKeyTuple = entityKey.Value.Format();
-      ChangeKind = entityState;
+      ChangeKind = changeKind;
     }
   }
 }

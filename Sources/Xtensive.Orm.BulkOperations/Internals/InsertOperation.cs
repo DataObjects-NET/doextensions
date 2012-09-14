@@ -58,7 +58,7 @@ namespace Xtensive.Orm.BulkOperations
       var count = descriptors.Count(a => a.Field.IsPrimaryKey);
       int i;
       if (count==0) {
-        var key = Key.Create<T>(Session);
+        var key = Key.Generate<T>(Session);
         i = 0;
         foreach (var fieldInfo in TypeInfo.Key.Fields) {
           descriptors.Add(new SetDescriptor(fieldInfo, Expression.Parameter(typeof(T)), Expression.Constant(key.Value.GetValue(i))));

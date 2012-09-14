@@ -29,5 +29,13 @@ namespace Xtensive.Orm.Sync
     /// to have single metadata processor.
     /// </summary>
     void StartMetadataProcessor();
+
+    /// <summary>
+    /// Checks if sync provider is using specified <paramref name="session"/>.
+    /// </summary>
+    /// <param name="session">Session to check.</param>
+    /// <returns>True if sync is using <paramref name="session"/>,
+    /// otherwise false.</returns>
+    bool IsSyncRunning(Session session);
   }
 }

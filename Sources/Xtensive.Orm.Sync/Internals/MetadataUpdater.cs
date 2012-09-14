@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Xtensive.IoC;
-using Xtensive.Orm.Tracking;
 
 namespace Xtensive.Orm.Sync
 {
@@ -12,21 +11,21 @@ namespace Xtensive.Orm.Sync
     private readonly Session session;
     private readonly MetadataManager metadataManager;
 
-    public void WriteSyncLog(IEnumerable<ITrackingItem> trackingItems)
+    public void WriteSyncLog(IEnumerable<EntityChangeInfo> changes)
     {
-      foreach (var item in trackingItems)
-        new SyncLog(session, item.Key, item.State);
+      foreach (var item in changes)
+        new SyncLog(session, item.Key, item.ChangeKind);
     }
 
-    public void UpdateMetadata(ICollection<ITrackingItem> trackingItems)
+    public void UpdateMetadata(ICollection<EntityChangeInfo> changes)
     {
-      var metadataSet = metadataManager.GetMetadata(trackingItems.Select(i => i.Key));
-      foreach (var item in trackingItems) {
+      var metadataSet = metadataManager.GetMetadata(changes.Select(i => i.Key));
+      foreach (var item in changes) {
         var metadata = metadataSet[item.Key];
         if (metadata==null)
           metadataManager.CreateMetadata(item.Key);
         else
-          metadataManager.UpdateMetadata(metadata, item.State==TrackingItemState.Deleted);
+          metadataManager.UpdateMetadata(metadata, item.ChangeKind==EntityChangeKind.Remove);
       }
     }
 
@@ -42,7 +41,7 @@ namespace Xtensive.Orm.Sync
         if (metadata==null)
           metadataManager.CreateMetadata(item.EntityKey, item.Tick);
         else
-          metadataManager.UpdateMetadata(metadata, item.ChangeKind==TrackingItemState.Deleted, item.Tick);
+          metadataManager.UpdateMetadata(metadata, item.ChangeKind==EntityChangeKind.Remove, item.Tick);
         item.Remove();
       }
 

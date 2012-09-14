@@ -4,7 +4,6 @@ using Microsoft.Synchronization;
 using Xtensive.Core;
 using Xtensive.Orm.Configuration;
 using Xtensive.Orm.Sync.DataExchange;
-using Xtensive.Orm.Tracking;
 
 namespace Xtensive.Orm.Sync
 {
@@ -73,12 +72,17 @@ namespace Xtensive.Orm.Sync
           session = configuration.Session;
           if (session.Configuration.Options.HasFlag(SessionOptions.Disconnected))
             throw new NotSupportedException("Disconnected sessions are not supported for synchronization");
+
+          if (SyncSessionMarker.Check(session))
+            throw new InvalidOperationException("Session is already used by different sync provider");
+
+          // Persist all changes (if any)
+          if (session.Transaction!=null)
+            session.SaveChanges();
         }
 
-        // Prepare tracking monitor
-        var trackingMonitor = session.Services.Get<ISessionTrackingMonitor>();
-        if (trackingMonitor!=null)
-          trackingMonitor.Disable();
+        // Mark session as used by sync
+        resources.Add(SyncSessionMarker.Add(session));
 
         // Prepare transaction
         transaction = session.OpenTransaction();

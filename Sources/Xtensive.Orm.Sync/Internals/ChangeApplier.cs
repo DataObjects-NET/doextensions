@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Synchronization;
+using Xtensive.Orm.Model;
 using Xtensive.Orm.Services;
 using Xtensive.Orm.Sync.DataExchange;
 using Xtensive.Tuples;
 using FieldInfo = Xtensive.Orm.Model.FieldInfo;
+using Tuple = Xtensive.Tuples.Tuple;
 
 namespace Xtensive.Orm.Sync
 {
@@ -80,7 +82,7 @@ namespace Xtensive.Orm.Sync
       switch (hierarchy.Key.GeneratorKind) {
         case KeyGeneratorKind.Custom:
         case KeyGeneratorKind.Default:
-          mappedKey = Key.Create(session, entityType);
+          mappedKey = Key.Generate(session, entityType);
           break;
         case KeyGeneratorKind.None:
           var originalTuple = data.Identity.Key.Value;
@@ -95,7 +97,7 @@ namespace Xtensive.Orm.Sync
             offset = field.MappingInfo.Offset;
             mappedRefKey.Value.CopyTo(targetTuple, 0, offset, field.MappingInfo.Length);
           }
-          mappedKey = KeyFactory.CreateKey(session.Domain, typeInfo, targetTuple);
+          mappedKey = Key.Create(session.Domain, entityType, TypeReferenceAccuracy.ExactType, targetTuple);
           break;
       }
 
