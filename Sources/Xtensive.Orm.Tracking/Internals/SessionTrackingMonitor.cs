@@ -1,18 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Xtensive.IoC;
-using Xtensive.Orm.Internals;
+using Xtensive.Orm.Services;
 
 namespace Xtensive.Orm.Tracking
 {
   [Service(typeof (ISessionTrackingMonitor), Singleton = true)]
   internal sealed class SessionTrackingMonitor : TrackingMonitor, ISessionTrackingMonitor, ISessionService
   {
-    private static readonly PropertyInfo RegistryAccessor = typeof (Session).GetProperty("EntityChangeRegistry", BindingFlags.Instance | BindingFlags.NonPublic);
-
     private readonly Session session;
+    private readonly DirectSessionAccessor accessor;
     private readonly Stack<TrackingStackFrame> stack;
 
     private void Subscribe()
@@ -50,26 +48,16 @@ namespace Xtensive.Orm.Tracking
 
     private void OnPersisting(object sender, EventArgs e)
     {
-      var accessor = (SessionEventAccessor) sender;
-      var registry = GetEntityChangeRegistry(session);
-      if (registry.Count==0)
-        return;
-
       var frame = stack.Peek();
 
-      foreach (var state in registry.GetItems(PersistenceState.Removed))
+      foreach (var state in accessor.GetChangedEntities(PersistenceState.Removed))
         frame.Register(new TrackingItem(state.Key, TrackingItemState.Deleted, state.DifferentialTuple));
 
-      foreach (var state in registry.GetItems(PersistenceState.New))
+      foreach (var state in accessor.GetChangedEntities(PersistenceState.New))
         frame.Register(new TrackingItem(state.Key, TrackingItemState.Created, state.DifferentialTuple));
 
-      foreach (var state in registry.GetItems(PersistenceState.Modified))
+      foreach (var state in accessor.GetChangedEntities(PersistenceState.Modified))
         frame.Register(new TrackingItem(state.Key, TrackingItemState.Changed, state.DifferentialTuple));
-    }
-
-    private static EntityChangeRegistry GetEntityChangeRegistry(Session session)
-    {
-      return (EntityChangeRegistry) RegistryAccessor.GetValue(session, null);
     }
 
     /// <summary>
@@ -79,13 +67,19 @@ namespace Xtensive.Orm.Tracking
     /// is bound.</param>
     /// <exception cref="T:System.ArgumentNullException"><paramref name="session"/> is <see langword="null"/>.</exception>
     [ServiceConstructor]
-    public SessionTrackingMonitor(Session session)
+    public SessionTrackingMonitor(Session session, DirectSessionAccessor accessor)
     {
       if (session==null)
         throw new ArgumentNullException("session");
+      if (accessor==null)
+        throw new ArgumentNullException("accessor");
+
       this.session = session;
+      this.accessor = accessor;
+
       stack = new Stack<TrackingStackFrame>();
       stack.Push(new TrackingStackFrame());
+
       Subscribe();
     }
   }
