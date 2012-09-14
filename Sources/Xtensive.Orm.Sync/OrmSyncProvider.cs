@@ -70,13 +70,13 @@ namespace Xtensive.Orm.Sync
         }
         else {
           session = configuration.Session;
+
           if (session.Configuration.Options.HasFlag(SessionOptions.Disconnected))
             throw new NotSupportedException("Disconnected sessions are not supported for synchronization");
 
           if (SyncSessionMarker.Check(session))
             throw new InvalidOperationException("Session is already used by different sync provider");
 
-          // Persist all changes (if any)
           if (session.Transaction!=null)
             session.SaveChanges();
         }

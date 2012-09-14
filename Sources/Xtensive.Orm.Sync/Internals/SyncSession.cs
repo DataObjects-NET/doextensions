@@ -61,6 +61,7 @@ namespace Xtensive.Orm.Sync
       changeApplier = null;
 
       replicaManager.SaveReplicaState(ReplicaState);
+      session.SaveChanges();
     }
 
     public SyncSession(SyncSessionContext syncContext, Session session, SyncConfiguration configuration)
