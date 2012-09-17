@@ -19,16 +19,33 @@ namespace Xtensive.Orm.Sync
     OrmSyncProvider GetSyncProvider();
 
     /// <summary>
-    /// Waits for pending metadata update tasks in this domain.
+    /// Updates metadata by applying sync log.
+    /// Not all sync log entries are processed at once.
+    /// To update all metadata callers should invoke
+    /// this method multiple times until it returns false.
+    /// <returns>True if more metadata might require updating,
+    /// false if all metadata has been processed.</returns>
     /// </summary>
-    void WaitForPendingSyncTasks();
+    bool UpdateMetadataOnce();
 
     /// <summary>
-    /// Starts metadata processor in this domain.
+    /// Updates metadata by applying sync log.
+    /// Unlike <see cref="UpdateMetadataOnce"/> method
+    /// this method updates all metadata in single call.
+    /// </summary>
+    void UpdateMetadata();
+
+    /// <summary>
+    /// Starts metadata processor in current domain.
     /// If multiple domains use the same database it's recommended
     /// to have single metadata processor.
     /// </summary>
     void StartMetadataProcessor();
+
+    /// <summary>
+    /// Waits for pending metadata update tasks in current domain.
+    /// </summary>
+    void WaitForPendingSyncTasks();
 
     /// <summary>
     /// Checks if sync provider is using specified <paramref name="session"/>.

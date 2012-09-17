@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Xtensive.Core;
 
 namespace Xtensive.Orm.Sync
 {
@@ -43,7 +42,7 @@ namespace Xtensive.Orm.Sync
       while (!done) {
         idle.Reset();
         try {
-          while (!done && MaintainSyncLogOnce())
+          while (!done && MetadataUpdater.MaintainSyncLogOnce(domain))
             done = CheckForAbort();
         }
         catch(Exception exception) {
@@ -62,20 +61,6 @@ namespace Xtensive.Orm.Sync
     private bool WaitForAbortOrDataAvailable()
     {
       return WaitHandle.WaitAny(new WaitHandle[] {aborted, dataAvailable}, TimeSpan.FromSeconds(3))==0;
-    }
-
-    private bool MaintainSyncLogOnce()
-    {
-      bool resume;
-
-      using (var session = domain.OpenSession())
-      using (var tx = session.OpenTransaction()) {
-        var updater = session.Services.Demand<MetadataUpdater>();
-        resume = updater.MaintainSyncLogOnce();
-        tx.Complete();
-      }
-
-      return resume;
     }
 
     public MetadataProcessor(Domain domain)

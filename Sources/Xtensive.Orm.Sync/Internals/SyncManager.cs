@@ -24,6 +24,18 @@ namespace Xtensive.Orm.Sync
       return new OrmSyncProvider(domain);
     }
 
+    public bool UpdateMetadataOnce()
+    {
+      return MetadataUpdater.MaintainSyncLogOnce(domain);
+    }
+
+    public void UpdateMetadata()
+    {
+      while (MetadataUpdater.MaintainSyncLogOnce(domain)) {
+        // do nothing
+      }
+    }
+
     public void WaitForPendingSyncTasks()
     {
       if (processor==null)
@@ -42,12 +54,6 @@ namespace Xtensive.Orm.Sync
     public bool IsSyncRunning(Session session)
     {
       return SyncSessionMarker.Check(session);
-    }
-
-    public void Initialize()
-    {
-      SubscribeToDomainEvents();
-      LoadReplicaId();
     }
 
     public void Dispose()
@@ -69,13 +75,12 @@ namespace Xtensive.Orm.Sync
       if (session.Configuration.Type!=SessionType.User)
         return;
       session.Events.Persisting += OnPersisting;
-      if (processor!=null)
-        session.Events.TransactionCommitted += OnTransactionCommitted;
+      session.Events.TransactionCommitted += OnTransactionCommitted;
     }
 
     private void OnTransactionCommitted(object sender, TransactionEventArgs e)
     {
-      if (e.Transaction.IsNested || SyncSessionMarker.Check(e.Transaction.Session))
+      if (e.Transaction.IsNested || SyncSessionMarker.Check(e.Transaction.Session) || processor==null)
         return;
       processor.NotifyDataAvailable();
     }
@@ -151,6 +156,9 @@ namespace Xtensive.Orm.Sync
 
       this.domain = domain;
       useSyncLog = !domain.StorageProviderInfo.Supports(ProviderFeatures.SingleSessionAccess);
+
+      SubscribeToDomainEvents();
+      LoadReplicaId();
     }
   }
 }

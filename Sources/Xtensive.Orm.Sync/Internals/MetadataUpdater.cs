@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Xtensive.Core;
 using Xtensive.IoC;
 
 namespace Xtensive.Orm.Sync
@@ -46,6 +47,20 @@ namespace Xtensive.Orm.Sync
       }
 
       return true;
+    }
+
+    public static bool MaintainSyncLogOnce(Domain domain)
+    {
+      bool resume;
+
+      using (var session = domain.OpenSession(WellKnown.SyncSessionConfiguration))
+      using (var tx = session.OpenTransaction()) {
+        var updater = session.Services.Demand<MetadataUpdater>();
+        resume = updater.MaintainSyncLogOnce();
+        tx.Complete();
+      }
+
+      return resume;
     }
 
     private List<SyncLog> GetNextSyncLogBatch()

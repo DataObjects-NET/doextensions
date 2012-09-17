@@ -23,8 +23,10 @@ namespace Xtensive.Orm.Sync
     /// <param name="domain">The built domain.</param>
     public void OnBuilt(Domain domain)
     {
-      var syncManager = (SyncManager) domain.GetSyncManager();
-      syncManager.Initialize();
+      // This ensures that sync manager is subscribed to all required events
+      // before executing any user code.
+
+      domain.GetSyncManager();
     }
 
     /// <summary>
