@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Xtensive.Orm.Sync
+namespace Xtensive.Orm.Sync.Model
 {
   /// <summary>
   /// Log entry with information about changed entity.
@@ -25,7 +25,7 @@ namespace Xtensive.Orm.Sync
     /// Gets <see cref="EntityChangeKind" /> for changed entity.
     /// </summary>
     [Field]
-    internal EntityChangeKind ChangeKind { get; private set; }
+    public EntityChangeKind ChangeKind { get; private set; }
 
     /// <summary>
     /// Creates new instance of <see cref="SyncLog"/> class.

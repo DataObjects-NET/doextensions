@@ -2,7 +2,7 @@
 using Microsoft.Synchronization;
 using Xtensive.Aspects;
 
-namespace Xtensive.Orm.Sync
+namespace Xtensive.Orm.Sync.Model
 {
   /// <summary>
   /// Represents the metadata that is associated with an item in the synchronization scope.

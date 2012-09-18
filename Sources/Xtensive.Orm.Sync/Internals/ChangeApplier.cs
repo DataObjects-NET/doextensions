@@ -5,6 +5,7 @@ using Microsoft.Synchronization;
 using Xtensive.Orm.Model;
 using Xtensive.Orm.Services;
 using Xtensive.Orm.Sync.DataExchange;
+using Xtensive.Orm.Sync.Model;
 using Xtensive.Tuples;
 using FieldInfo = Xtensive.Orm.Model.FieldInfo;
 using Tuple = Xtensive.Tuples.Tuple;

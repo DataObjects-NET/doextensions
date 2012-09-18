@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using Microsoft.Synchronization;
 using Xtensive.Orm.Services;
 using Xtensive.Orm.Sync.DataExchange;
+using Xtensive.Orm.Sync.Model;
 
 namespace Xtensive.Orm.Sync
 {

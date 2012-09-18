@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Xtensive.Orm.Sync.Model;
 
 namespace Xtensive.Orm.Sync
 {

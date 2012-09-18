@@ -65,7 +65,7 @@
     <Compile Include="DataExchange\ChangeDataRetriever.cs" />
     <Compile Include="DomainExtensions.cs" />
     <Compile Include="Internals\EntityChangeInfo.cs" />
-    <Compile Include="Internals\EntityChangeKind.cs" />
+    <Compile Include="Model\EntityChangeKind.cs" />
     <Compile Include="Interfaces\ISkippable.cs" />
     <Compile Include="Interfaces\IFilterable.cs" />
     <Compile Include="Interfaces\ISyncManager.cs" />
@@ -92,15 +92,15 @@
     <Compile Include="SyncConfiguration.cs" />
     <Compile Include="Internals\SyncSession.cs" />
     <Compile Include="DataExchange\ItemChangeData.cs" />
-    <Compile Include="SyncInfo.cs" />
+    <Compile Include="Model\SyncInfo.cs" />
     <Compile Include="Internals\MetadataFetcher.cs" />
-    <Compile Include="SyncInfo{T}.cs">
+    <Compile Include="Model\SyncInfo{T}.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Internals\MetadataManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Internals\SyncManager.cs" />
-    <Compile Include="SyncKey.cs" />
+    <Compile Include="Model\SyncKey.cs" />
     <Compile Include="SyncModule.cs" />
     <Compile Include="OrmSyncProvider.cs">
       <SubType>Code</SubType>
@@ -108,9 +108,9 @@
     <Compile Include="Internals\SyncTickGenerator.cs" />
     <Compile Include="Internals\WellKnown.cs" />
     <Compile Include="SyncConfigurationEndpoint.cs" />
-    <Compile Include="SyncLog.cs" />
+    <Compile Include="Model\SyncLog.cs" />
     <Compile Include="HierarchyIdAttribute.cs" />
-    <Compile Include="SyncVersionData.cs" />
+    <Compile Include="Model\SyncVersionData.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

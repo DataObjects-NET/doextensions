@@ -1,7 +1,7 @@
 using Microsoft.Synchronization;
 using Xtensive.Aspects;
 
-namespace Xtensive.Orm.Sync
+namespace Xtensive.Orm.Sync.Model
 {
   /// <summary>
   /// <see cref="Entity"/> that contains synchronization-related information.
@@ -17,7 +17,7 @@ namespace Xtensive.Orm.Sync
     /// This is a primary key.
     /// </summary>
     [Key, Field(Length = 32)]
-    internal string Id { get; private set; }
+    public string Id { get; private set; }
 
     /// <summary>
     /// Gets the global ID of the item.

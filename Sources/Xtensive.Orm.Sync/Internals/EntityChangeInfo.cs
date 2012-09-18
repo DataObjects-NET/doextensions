@@ -1,4 +1,5 @@
 ﻿using System;
+using Xtensive.Orm.Sync.Model;
 
 namespace Xtensive.Orm.Sync
 {

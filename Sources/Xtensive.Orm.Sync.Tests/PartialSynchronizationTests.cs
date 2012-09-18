@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using Microsoft.Synchronization;
 using NUnit.Framework;
+using Xtensive.Orm.Sync.Model;
 using Xtensive.Orm.Sync.Tests.Model;
 
 namespace Xtensive.Orm.Sync.Tests

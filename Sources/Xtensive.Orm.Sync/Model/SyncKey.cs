@@ -1,7 +1,7 @@
 ﻿using System;
 using Xtensive.Tuples;
 
-namespace Xtensive.Orm.Sync
+namespace Xtensive.Orm.Sync.Model
 {
   /// <summary>
   /// Persistent storage for <see cref="Orm.Key"/>.
@@ -14,13 +14,13 @@ namespace Xtensive.Orm.Sync
     /// Gets type of the <see cref="Entity"/>.
     /// </summary>
     [Field]
-    private int Type { get; set; }
+    public int Type { get; private set; }
 
     /// <summary>
     /// Gets key value of the <see cref="Entity"/>.
     /// </summary>
     [Field]
-    private string Value { get; set; }
+    public string Value { get; private set; }
 
     /// <summary>
     /// Gets <see cref="Entity"/> key.

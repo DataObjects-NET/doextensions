@@ -3,6 +3,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using Microsoft.Synchronization;
 using NUnit.Framework;
+using Xtensive.Orm.Sync.Model;
 using Xtensive.Orm.Sync.Tests.Model;
 
 namespace Xtensive.Orm.Sync.Tests

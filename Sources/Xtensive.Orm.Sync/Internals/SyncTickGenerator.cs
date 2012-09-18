@@ -2,6 +2,7 @@
 using System.Linq;
 using Xtensive.IoC;
 using Xtensive.Orm.Model;
+using Xtensive.Orm.Sync.Model;
 
 namespace Xtensive.Orm.Sync
 {

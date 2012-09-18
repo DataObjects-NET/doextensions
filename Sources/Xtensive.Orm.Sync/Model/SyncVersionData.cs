@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.Synchronization;
 
-namespace Xtensive.Orm.Sync
+namespace Xtensive.Orm.Sync.Model
 {
   /// <summary>
   /// Persistent storage for <see cref="SyncVersion"/>.
@@ -10,11 +10,17 @@ namespace Xtensive.Orm.Sync
   {
     private SyncVersion version;
 
+    /// <summary>
+    /// Gets replica for this version.
+    /// </summary>
     [Field]
-    internal uint Replica { get; private set; }
+    public uint Replica { get; private set; }
 
+    /// <summary>
+    /// Gets tick for this version.
+    /// </summary>
     [Field]
-    internal long Tick { get; private set; }
+    public long Tick { get; private set; }
 
     /// <summary>
     /// Gets or sets <see cref="SyncVersion"/>.

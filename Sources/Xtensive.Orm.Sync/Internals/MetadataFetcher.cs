@@ -3,6 +3,7 @@ using System.Linq;
 using Microsoft.Synchronization;
 using Xtensive.Caching;
 using Xtensive.IoC;
+using Xtensive.Orm.Sync.Model;
 
 namespace Xtensive.Orm.Sync
 {
