@@ -115,7 +115,6 @@ namespace Xtensive.Orm.Sync
       if (!markAsTombstone)
         return;
 
-      item.TombstoneVersion = GetLocalVersion(tick);
       item.IsTombstone = true;
     }
 
@@ -126,7 +125,6 @@ namespace Xtensive.Orm.Sync
       if (!markAsTombstone)
         return;
 
-      item.TombstoneVersion = GetVersion(change.ChangeVersion);
       item.IsTombstone = true;
     }
 

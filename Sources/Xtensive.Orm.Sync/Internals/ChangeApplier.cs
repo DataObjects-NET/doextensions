@@ -50,17 +50,12 @@ namespace Xtensive.Orm.Sync
         var changeKind = ChangeKind.UnknownItem;
         var createdVersion = SyncVersion.UnknownVersion;
         var lastChangeVersion = SyncVersion.UnknownVersion;
+
         SyncInfo info;
         if (items.TryGetValue(sourceChange.ItemId, out info)) {
           createdVersion = info.CreationVersion.Version;
-          if (info.IsTombstone) {
-            changeKind = ChangeKind.Deleted;
-            lastChangeVersion = info.TombstoneVersion.Version;
-          }
-          else {
-            changeKind = ChangeKind.Update;
-            lastChangeVersion = info.ChangeVersion.Version;
-          }
+          lastChangeVersion = info.ChangeVersion.Version;
+          changeKind = info.IsTombstone ? ChangeKind.Deleted : ChangeKind.Update;
         }
 
         var localChange = new ItemChange(

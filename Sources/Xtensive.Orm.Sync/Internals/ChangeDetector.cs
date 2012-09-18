@@ -52,12 +52,7 @@ namespace Xtensive.Orm.Sync
       foreach (var item in items) {
         var createdVersion = item.CreationVersion.Version;
         var lastChangeVersion = item.ChangeVersion.Version;
-        var changeKind = ChangeKind.Update;
-
-        if (item.IsTombstone) {
-          changeKind = ChangeKind.Deleted;
-          lastChangeVersion = item.TombstoneVersion.Version;
-        }
+        var changeKind = item.IsTombstone ? ChangeKind.Deleted : ChangeKind.Update;
 
         if (mappedKnowledge.Contains(replicaState.Id, item.SyncId, lastChangeVersion)) {
           keyTracker.UnrequestKeySync(item.SyncTargetKey);

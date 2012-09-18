@@ -52,12 +52,6 @@ namespace Xtensive.Orm.Sync.Model
     [Field]
     public SyncVersionData ChangeVersion { get; set; }
 
-    /// <summary>
-    /// Gets or sets tombstone version.
-    /// </summary>
-    [Field]
-    public SyncVersionData TombstoneVersion { get; set; }
-
     [Infrastructure]
     internal abstract Entity SyncTarget { get; }
 
