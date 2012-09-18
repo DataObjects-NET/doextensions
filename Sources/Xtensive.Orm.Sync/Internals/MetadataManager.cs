@@ -112,20 +112,16 @@ namespace Xtensive.Orm.Sync
 
       item.ChangeVersion = GetLocalVersion(tick);
 
-      if (!markAsTombstone)
-        return;
-
-      item.IsTombstone = true;
+      if (markAsTombstone)
+        item.IsTombstone = true;
     }
 
     public void UpdateMetadata(SyncInfo item, ItemChange change, bool markAsTombstone)
     {
       item.ChangeVersion = GetVersion(change.ChangeVersion);
 
-      if (!markAsTombstone)
-        return;
-
-      item.IsTombstone = true;
+      if (markAsTombstone)
+        item.IsTombstone = true;
     }
 
     private SyncVersionData GetVersion(SyncVersion version)
