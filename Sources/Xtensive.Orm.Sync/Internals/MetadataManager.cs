@@ -89,10 +89,8 @@ namespace Xtensive.Orm.Sync
       var syncId = SyncIdBuilder.GetSyncId(hiearchyId, replicaId, tick);
       var result = store.CreateMetadata(syncId, key);
 
-      result.CreatedReplicaKey = WellKnown.LocalReplicaKey;
-      result.CreatedTickCount = tick;
-      result.ChangeReplicaKey = WellKnown.LocalReplicaKey;
-      result.ChangeTickCount = tick;
+      result.CreationVersion = GetLocalVersion(tick);
+      result.ChangeVersion = GetLocalVersion(tick);
 
       return result;
     }
@@ -101,8 +99,8 @@ namespace Xtensive.Orm.Sync
     {
       var store = GetStore(key.TypeInfo);
       var result = store.CreateMetadata(change.ItemId, key);
-      result.CreationVersion = change.CreationVersion;
-      result.ChangeVersion = change.ChangeVersion;
+      result.CreationVersion = GetVersion(change.CreationVersion);
+      result.ChangeVersion = GetVersion(change.ChangeVersion);
       return result;
     }
 
@@ -111,26 +109,34 @@ namespace Xtensive.Orm.Sync
       if (tick < 0)
         tick = tickGenerator.GetNextTick();
 
-      item.ChangeReplicaKey = WellKnown.LocalReplicaKey;
-      item.ChangeTickCount = tick;
+      item.ChangeVersion = GetLocalVersion(tick);
 
       if (!markAsTombstone)
         return;
 
-      item.TombstoneReplicaKey = WellKnown.LocalReplicaKey;
-      item.TombstoneTickCount = tick;
+      item.TombstoneVersion = GetLocalVersion(tick);
       item.IsTombstone = true;
     }
 
     public void UpdateMetadata(SyncInfo item, ItemChange change, bool markAsTombstone)
     {
-      item.ChangeVersion = change.ChangeVersion;
+      item.ChangeVersion = GetVersion(change.ChangeVersion);
 
       if (!markAsTombstone)
         return;
 
-      item.TombstoneVersion = change.ChangeVersion;
+      item.TombstoneVersion = GetVersion(change.ChangeVersion);
       item.IsTombstone = true;
+    }
+
+    private SyncVersionData GetVersion(SyncVersion version)
+    {
+      return new SyncVersionData(session, version);
+    }
+
+    private SyncVersionData GetLocalVersion(long tick)
+    {
+      return new SyncVersionData(session, WellKnown.LocalReplicaKey, tick);
     }
 
     private void InitializeStores()

@@ -51,14 +51,14 @@ namespace Xtensive.Orm.Sync
         var lastChangeVersion = SyncVersion.UnknownVersion;
         SyncInfo info;
         if (items.TryGetValue(sourceChange.ItemId, out info)) {
-          createdVersion = info.CreationVersion;
+          createdVersion = info.CreationVersion.Version;
           if (info.IsTombstone) {
             changeKind = ChangeKind.Deleted;
-            lastChangeVersion = info.TombstoneVersion;
+            lastChangeVersion = info.TombstoneVersion.Version;
           }
           else {
             changeKind = ChangeKind.Update;
-            lastChangeVersion = info.ChangeVersion;
+            lastChangeVersion = info.ChangeVersion.Version;
           }
         }
 

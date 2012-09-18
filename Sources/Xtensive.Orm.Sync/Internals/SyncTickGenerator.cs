@@ -41,8 +41,8 @@ namespace Xtensive.Orm.Sync
     {
       return session.Query.Execute(
         q => q.All<SyncInfo>()
-          .Where(i => i.ChangeReplicaKey==WellKnown.LocalReplicaKey)
-          .Select(i => i.ChangeTickCount)
+          .Where(i => i.ChangeVersion.Replica==WellKnown.LocalReplicaKey)
+          .Select(i => i.ChangeVersion.Tick)
           .Concat(q.All<SyncLog>().Select(l => l.Tick))
           .Max());
     }

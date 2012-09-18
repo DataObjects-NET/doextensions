@@ -1,4 +1,3 @@
-using System;
 using Microsoft.Synchronization;
 using Xtensive.Aspects;
 
@@ -11,11 +10,6 @@ namespace Xtensive.Orm.Sync
   public abstract class SyncInfo : Entity
   {
     private SyncId cachedSyncId;
-
-    private SyncVersion cachedCreatedVersion;
-    private SyncVersion cachedChangeVersion;
-    private SyncVersion cachedTombstoneVersion;
-
     private Key cachedSyncTargetKey;
 
     /// <summary>
@@ -42,119 +36,27 @@ namespace Xtensive.Orm.Sync
     /// <summary>
     /// Gets or sets a value that indicates whether the item has been deleted from the item store.
     /// </summary>
-    /// 
-    /// <returns>
-    /// true if the item has been deleted; otherwise, false.
-    /// </returns>
+    /// <returns>True if the item has been deleted; otherwise, false.</returns>
     [Field]
     public bool IsTombstone { get; set; }
 
+    /// <summary>
+    /// Gets or sets creation version.
+    /// </summary>
     [Field]
-    internal uint CreatedReplicaKey { get; set; }
-
-    [Field]
-    internal long CreatedTickCount { get; set; }
+    public SyncVersionData CreationVersion { get; set; }
 
     /// <summary>
-    /// Gets or sets the creation version for the item.
+    /// Gets or sets change version.
     /// </summary>
-    /// <value> The creation version for the item. </value>
-    /// <exception cref="T:System.ArgumentNullException">An attempt was made to set the value to a null.</exception>
-    public SyncVersion CreationVersion
-    {
-      get
-      {
-        if (cachedCreatedVersion==null)
-          cachedCreatedVersion = new SyncVersion(CreatedReplicaKey, (ulong) CreatedTickCount);
-
-        return cachedCreatedVersion;
-      }
-      set
-      {
-        if (value==null)
-          throw new ArgumentNullException("value");
-
-        if (cachedCreatedVersion==value)
-          return;
-
-        CreatedReplicaKey = value.ReplicaKey;
-        CreatedTickCount = (long) value.TickCount;
-
-        cachedCreatedVersion = value;
-      }
-    }
-
     [Field]
-    internal uint ChangeReplicaKey { get; set; }
-
-    [Field]
-    internal long ChangeTickCount { get; set; }
+    public SyncVersionData ChangeVersion { get; set; }
 
     /// <summary>
-    /// Gets or sets the version of the most recent change made to the item.
+    /// Gets or sets tombstone version.
     /// </summary>
-    /// <returns>
-    /// The version of the most recent change made to the item. Returns a null when the change version has not been set.
-    /// </returns>
-    /// <exception cref="T:System.ArgumentNullException">An attempt was made to set the value to a null.</exception>
-    public SyncVersion ChangeVersion
-    {
-      get
-      {
-        if (cachedChangeVersion==null) {
-          cachedChangeVersion = new SyncVersion(ChangeReplicaKey, (ulong) ChangeTickCount);
-        }
-
-        return cachedChangeVersion;
-      }
-      set
-      {
-        if (value==null)
-          throw new ArgumentNullException("value");
-
-        if (cachedChangeVersion==value)
-          return;
-
-        ChangeReplicaKey = value.ReplicaKey;
-        ChangeTickCount = (long) value.TickCount;
-
-        cachedChangeVersion = value;
-      }
-    }
-
     [Field]
-    internal uint TombstoneReplicaKey { get; set; }
-
-    [Field]
-    internal long TombstoneTickCount { get; set; }
-
-    /// <summary>
-    /// Gets or sets the version when the item was deleted.
-    /// </summary>
-    /// <value> The version when the item was deleted. </value>
-    /// <exception cref="T:System.ArgumentNullException">An attempt was made to set the value to a null.</exception>
-    public SyncVersion TombstoneVersion
-    {
-      get
-      {
-        if (cachedTombstoneVersion==null)
-          cachedTombstoneVersion = new SyncVersion(TombstoneReplicaKey, (ulong) TombstoneTickCount);
-        return cachedTombstoneVersion;
-      }
-      set
-      {
-        if (value==null)
-          throw new ArgumentNullException("value");
-
-        if (cachedTombstoneVersion==value)
-          return;
-
-        TombstoneReplicaKey = value.ReplicaKey;
-        TombstoneTickCount = (long) value.TickCount;
-
-        cachedTombstoneVersion = value;
-      }
-    }
+    public SyncVersionData TombstoneVersion { get; set; }
 
     [Infrastructure]
     internal abstract Entity SyncTarget { get; }

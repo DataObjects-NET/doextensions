@@ -49,13 +49,13 @@ namespace Xtensive.Orm.Sync
       var references = new HashSet<Key>();
 
       foreach (var item in items) {
-        var createdVersion = item.CreationVersion;
-        var lastChangeVersion = item.ChangeVersion;
+        var createdVersion = item.CreationVersion.Version;
+        var lastChangeVersion = item.ChangeVersion.Version;
         var changeKind = ChangeKind.Update;
 
         if (item.IsTombstone) {
           changeKind = ChangeKind.Deleted;
-          lastChangeVersion = item.TombstoneVersion;
+          lastChangeVersion = item.TombstoneVersion.Version;
         }
 
         if (mappedKnowledge.Contains(replicaState.Id, item.SyncId, lastChangeVersion)) {

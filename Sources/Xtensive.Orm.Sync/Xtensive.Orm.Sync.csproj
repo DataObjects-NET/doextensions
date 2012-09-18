@@ -110,6 +110,7 @@
     <Compile Include="SyncConfigurationEndpoint.cs" />
     <Compile Include="SyncLog.cs" />
     <Compile Include="HierarchyIdAttribute.cs" />
+    <Compile Include="SyncVersionData.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

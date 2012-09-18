@@ -4,7 +4,7 @@ using Xtensive.Tuples;
 namespace Xtensive.Orm.Sync
 {
   /// <summary>
-  /// Persistent <see cref="Orm.Key"/> storage.
+  /// Persistent storage for <see cref="Orm.Key"/>.
   /// </summary>
   public sealed class SyncKey : Structure
   {
