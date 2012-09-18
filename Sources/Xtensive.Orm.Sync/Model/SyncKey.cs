@@ -55,7 +55,7 @@ namespace Xtensive.Orm.Sync.Model
     {
       if (key==null)
         throw new ArgumentNullException("key");
-      if (key.TypeInfo==null)
+      if (key.TypeReference.Accuracy!=TypeReferenceAccuracy.ExactType)
         throw new ArgumentException("Key does not have exact type", "key");
 
       this.key = key;

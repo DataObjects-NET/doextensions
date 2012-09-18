@@ -33,7 +33,7 @@ namespace Xtensive.Orm.Sync.Model
     /// <param name="session">Session.</param>
     /// <param name="entityKey">Key of changed entity.</param>
     /// <param name="changeKind">Kind change.</param>
-    internal SyncLog(Session session, Key entityKey, EntityChangeKind changeKind)
+    public SyncLog(Session session, Key entityKey, EntityChangeKind changeKind)
       : base(session)
     {
       if (entityKey==null)
