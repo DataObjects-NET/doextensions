@@ -115,7 +115,7 @@ namespace Xtensive.Orm.Sync
         return;
 
       metadataManager.UpdateMetadata(syncInfo, data.Change, false);
-      var entity = syncInfo.SyncTarget;
+      var entity = syncInfo.Target;
       var state = accessor.GetEntityState(entity);
       var offset = entity.Key.Value.Count;
       var changeDataTuple = tupleFormatters.Get(entity.TypeInfo.UnderlyingType).Parse(data.TupleValue);
@@ -131,7 +131,7 @@ namespace Xtensive.Orm.Sync
         return;
 
       metadataManager.UpdateMetadata(syncInfo, change, true);
-      var entity = syncInfo.SyncTarget;
+      var entity = syncInfo.Target;
       var state = accessor.GetEntityState(entity);
       state.PersistenceState = PersistenceState.Removed;
     }
@@ -156,8 +156,8 @@ namespace Xtensive.Orm.Sync
       
       var syncInfo = metadataFetcher.GetMetadata(identity.GlobalId);
       if (syncInfo!=null) {
-        keyMap.Register(identity, syncInfo.SyncTargetKey);
-        return syncInfo.SyncTargetKey;
+        keyMap.Register(identity, syncInfo.TargetKey);
+        return syncInfo.TargetKey;
       }
 
       return null;

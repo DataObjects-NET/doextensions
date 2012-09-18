@@ -18,7 +18,7 @@ namespace Xtensive.Orm.Sync.Model
     public TEntity Entity { get; private set; }
 
     [Infrastructure]
-    internal override Entity SyncTarget
+    internal override Entity Target
     {
       get { return (Entity) (object) Entity; }
     }

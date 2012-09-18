@@ -10,7 +10,7 @@ namespace Xtensive.Orm.Sync.Model
   public abstract class SyncInfo : Entity
   {
     private SyncId cachedSyncId;
-    private Key cachedSyncTargetKey;
+    private Key cachedTargetKey;
 
     /// <summary>
     /// Gets the global ID of the item.
@@ -53,21 +53,21 @@ namespace Xtensive.Orm.Sync.Model
     public SyncVersionData ChangeVersion { get; set; }
 
     [Infrastructure]
-    internal abstract Entity SyncTarget { get; }
+    internal abstract Entity Target { get; }
 
     [Infrastructure]
-    internal Key SyncTargetKey
+    internal Key TargetKey
     {
       get
       {
-        if (cachedSyncTargetKey==null)
-          cachedSyncTargetKey = SyncTarget!=null ? SyncTarget.Key : GetReferenceKey(TypeInfo.Fields[WellKnown.EntityFieldName]);
-        return cachedSyncTargetKey;
+        if (cachedTargetKey==null)
+          cachedTargetKey = Target!=null ? Target.Key : GetReferenceKey(TypeInfo.Fields[WellKnown.EntityFieldName]);
+        return cachedTargetKey;
       }
       set
       {
         SetReferenceKey(TypeInfo.Fields[WellKnown.EntityFieldName], value);
-        cachedSyncTargetKey = value;
+        cachedTargetKey = value;
       }
     }
 

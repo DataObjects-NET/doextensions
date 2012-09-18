@@ -13,7 +13,7 @@ namespace Xtensive.Orm.Sync
   {
     public override SyncInfo CreateMetadata(SyncId syncId, Key targetKey)
     {
-      return new SyncInfo<TEntity>(Session, syncId) {SyncTargetKey = targetKey};
+      return new SyncInfo<TEntity>(Session, syncId) {TargetKey = targetKey};
     }
 
     public override IEnumerable<SyncInfo> GetOrderedMetadata(Expression filter)

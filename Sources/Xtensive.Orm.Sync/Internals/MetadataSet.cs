@@ -24,7 +24,7 @@ namespace Xtensive.Orm.Sync
     {
       if (metadata==null)
         throw new ArgumentNullException("metadata");
-      index[metadata.SyncTargetKey] = metadata;
+      index[metadata.TargetKey] = metadata;
     }
   }
 }

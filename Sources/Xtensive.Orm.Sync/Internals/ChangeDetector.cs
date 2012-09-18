@@ -55,22 +55,22 @@ namespace Xtensive.Orm.Sync
         var changeKind = item.IsTombstone ? ChangeKind.Deleted : ChangeKind.Update;
 
         if (mappedKnowledge.Contains(replicaState.Id, item.SyncId, lastChangeVersion)) {
-          keyTracker.UnrequestKeySync(item.SyncTargetKey);
+          keyTracker.UnrequestKeySync(item.TargetKey);
           continue;
         }
 
         var change = new ItemChange(metadataManager.IdFormats, replicaState.Id, item.SyncId, changeKind, createdVersion, lastChangeVersion);
         var changeData = new ItemChangeData {
           Change = change,
-          Identity = new Identity(item.SyncTargetKey, item.SyncId),
+          Identity = new Identity(item.TargetKey, item.SyncId),
         };
 
         if (!item.IsTombstone) {
-          keyTracker.RegisterKeySync(item.SyncTargetKey);
-          var syncTarget = item.SyncTarget;
+          keyTracker.RegisterKeySync(item.TargetKey);
+          var syncTarget = item.Target;
           var entityTuple = entityAccessor.GetEntityState(syncTarget).Tuple;
           changeData.TupleValue = tupleFormatters.Get(syncTarget.TypeInfo.UnderlyingType).Format(entityTuple);
-          var type = item.SyncTargetKey.TypeInfo;
+          var type = item.TargetKey.TypeInfo;
           var fields = type.Fields.Where(f => f.IsEntity);
           foreach (var field in fields) {
             var key = entityAccessor.GetReferenceKey(syncTarget, field);
@@ -112,9 +112,9 @@ namespace Xtensive.Orm.Sync
           var metadata = metadataSet[reference.Key];
           if (metadata==null)
             continue;
-          reference.Key = metadata.SyncTargetKey;
+          reference.Key = metadata.TargetKey;
           reference.GlobalId = metadata.SyncId;
-          keyTracker.RequestKeySync(metadata.SyncTargetKey);
+          keyTracker.RequestKeySync(metadata.TargetKey);
         }
     }
 
