@@ -1,7 +1,4 @@
 ﻿using System;
-using Xtensive.Orm.Model;
-using Xtensive.Tuples;
-using Tuple = Xtensive.Tuples.Tuple;
 
 namespace Xtensive.Orm.Sync
 {
@@ -11,8 +8,6 @@ namespace Xtensive.Orm.Sync
   [HierarchyRoot(Clustered = false), KeyGenerator(Name = WellKnown.TickGeneratorName)]
   public sealed class SyncLog : Entity
   {
-    private Key cachedEntityKey;
-
     /// <summary>
     /// Gets tick when change occured.
     /// This field is a primary key.
@@ -21,34 +16,10 @@ namespace Xtensive.Orm.Sync
     public long Tick { get; private set; }
 
     /// <summary>
-    /// Gets type id of entity that was changed.
-    /// </summary>
-    [Field]
-    public int EntityTypeId { get; private set; }
-
-    /// <summary>
-    /// Gets key tuple of entity that was changed.
-    /// </summary>
-    [Field]
-    public string EntityKeyTuple { get; private set; }
-
-    /// <summary>
     /// Gets key of entity that was changed.
     /// </summary>
-    public Key EntityKey
-    {
-      get
-      {
-        if (cachedEntityKey==null) {
-          var domain = Session.Domain;
-          var typeInfo = domain.Model.Types[EntityTypeId];
-          cachedEntityKey = Key.Create(domain,
-            typeInfo.UnderlyingType, TypeReferenceAccuracy.ExactType,
-            typeInfo.Key.TupleDescriptor.Parse(EntityKeyTuple));
-        }
-        return cachedEntityKey;
-      }
-    }
+    [Field]
+    public SyncKey TargetKey { get; private set; }
 
     /// <summary>
     /// Gets <see cref="EntityChangeKind" /> for changed entity.
@@ -68,8 +39,7 @@ namespace Xtensive.Orm.Sync
       if (entityKey==null)
         throw new ArgumentNullException("entityKey");
 
-      EntityTypeId = entityKey.TypeInfo.TypeId;
-      EntityKeyTuple = entityKey.Value.Format();
+      TargetKey = new SyncKey(session, entityKey);
       ChangeKind = changeKind;
     }
   }

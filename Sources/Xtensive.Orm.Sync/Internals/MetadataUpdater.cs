@@ -36,11 +36,11 @@ namespace Xtensive.Orm.Sync
       if (logItems.Count==0)
         return false;
 
-      var metadataSet = metadataManager.GetMetadata(logItems.Select(log => log.EntityKey));
+      var metadataSet = metadataManager.GetMetadata(logItems.Select(log => log.TargetKey.Key));
       foreach (var item in logItems) {
-        var metadata = metadataSet[item.EntityKey];
+        var metadata = metadataSet[item.TargetKey.Key];
         if (metadata==null)
-          metadataManager.CreateMetadata(item.EntityKey, item.Tick);
+          metadataManager.CreateMetadata(item.TargetKey.Key, item.Tick);
         else
           metadataManager.UpdateMetadata(metadata, item.ChangeKind==EntityChangeKind.Remove, item.Tick);
         item.Remove();
