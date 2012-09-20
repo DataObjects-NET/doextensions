@@ -1,8 +1,4 @@
-﻿using System.Linq;
-using Microsoft.Synchronization;
-using NUnit.Framework;
-using Xtensive.Orm.Sync.Tests.Model;
-using Xtensive.Orm.Tracking;
+﻿using NUnit.Framework;
 
 namespace Xtensive.Orm.Sync.Tests
 {
@@ -12,28 +8,13 @@ namespace Xtensive.Orm.Sync.Tests
     [Test]
     public void InfrastructureTest()
     {
-      using (var session = LocalDomain.OpenSession()) {
-        using (var t = session.OpenTransaction()) {
+      var syncManager1 = LocalDomain.Services.Get<ISyncManager>();
+      Assert.IsNotNull(syncManager1);
 
-          var trackingMonitor = LocalDomain.Services.Get<IDomainTrackingMonitor>();
-          Assert.IsNotNull(trackingMonitor);
-
-          var syncManager = LocalDomain.Services.Get<ISyncManager>();
-          Assert.IsNotNull(syncManager);
-          t.Complete();
-        }
-      }
-    }
-
-    [Test]
-    public void TrackingTest()
-    {
-      using (var session = LocalDomain.OpenSession()) {
-        using (var t = session.OpenTransaction()) {
-          new MyEntity(session);
-          t.Complete();
-        }
-      }
+      var syncManager2 = LocalDomain.GetSyncManager();
+      Assert.IsNotNull(syncManager1);
+      
+      Assert.AreSame(syncManager1, syncManager2);
     }
 
     [Test]

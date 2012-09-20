@@ -1,4 +1,6 @@
-﻿namespace Xtensive.Orm.Reprocessing.Tests.Model
+﻿using Xtensive.Orm;
+
+namespace TestCommon.Model
 {
   public class Rectangle : Structure
   {

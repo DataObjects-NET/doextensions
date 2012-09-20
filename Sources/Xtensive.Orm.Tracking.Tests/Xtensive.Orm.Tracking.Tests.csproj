@@ -76,6 +76,10 @@
     <Compile Include="TrackingStackFrameTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\TestCommon\TestCommon.csproj">
+      <Project>{08F33A56-AFE1-45AF-BB6B-B0AC4EF1180C}</Project>
+      <Name>TestCommon</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Xtensive.Orm.Tracking\Xtensive.Orm.Tracking.csproj">
       <Project>{DAF8834B-E9A4-49E2-9ECE-ABD748607554}</Project>
       <Name>Xtensive.Orm.Tracking</Name>

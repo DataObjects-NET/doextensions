@@ -60,6 +60,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AutoBuildTest.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Other.cs" />
@@ -76,13 +77,13 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\TestCommon\TestCommon.csproj">
+      <Project>{08F33A56-AFE1-45AF-BB6B-B0AC4EF1180C}</Project>
+      <Name>TestCommon</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Xtensive.Orm.BulkOperations\Xtensive.Orm.BulkOperations.csproj">
       <Project>{85405F40-3B18-4F3F-B0AB-AFEC4E63607B}</Project>
       <Name>Xtensive.Orm.BulkOperations</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Xtensive.Orm.Reprocessing.Tests\Xtensive.Orm.Reprocessing.Tests.csproj">
-      <Project>{7C8B4B5B-C942-4955-9FB5-F84947CEF089}</Project>
-      <Name>Xtensive.Orm.Reprocessing.Tests</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

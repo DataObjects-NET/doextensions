@@ -87,13 +87,13 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\TestCommon\TestCommon.csproj">
+      <Project>{08F33A56-AFE1-45AF-BB6B-B0AC4EF1180C}</Project>
+      <Name>TestCommon</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Xtensive.Orm.Sync\Xtensive.Orm.Sync.csproj">
       <Project>{8BF10D44-85DD-4F38-8815-6906FA8C9D3A}</Project>
       <Name>Xtensive.Orm.Sync</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Xtensive.Orm.Tracking\Xtensive.Orm.Tracking.csproj">
-      <Project>{DAF8834B-E9A4-49E2-9ECE-ABD748607554}</Project>
-      <Name>Xtensive.Orm.Tracking</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

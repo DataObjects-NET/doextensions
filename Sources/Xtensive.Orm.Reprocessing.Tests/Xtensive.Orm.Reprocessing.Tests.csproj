@@ -61,13 +61,6 @@
   <ItemGroup>
     <Compile Include="AutoBuildTest.cs" />
     <Compile Include="Extensions.cs" />
-    <Compile Include="Model\Bar.cs" />
-    <Compile Include="Model\Bar2.cs" />
-    <Compile Include="Model\Foo.cs" />
-    <Compile Include="Model\Foo2.cs" />
-    <Compile Include="Model\LinqCompilerContainer.cs" />
-    <Compile Include="Model\Point.cs" />
-    <Compile Include="Model\Rectangle.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Tests\Other.cs" />
     <Compile Include="Tests\Reprocessing.cs" />
@@ -82,6 +75,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\TestCommon\TestCommon.csproj">
+      <Project>{08F33A56-AFE1-45AF-BB6B-B0AC4EF1180C}</Project>
+      <Name>TestCommon</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Xtensive.Orm.Reprocessing\Xtensive.Orm.Reprocessing.csproj">
       <Project>{09420377-7CA6-47B5-AC62-7B3331B45FC3}</Project>
       <Name>Xtensive.Orm.Reprocessing</Name>

@@ -2,8 +2,9 @@
 using System.Linq.Expressions;
 using Xtensive.Core;
 using Xtensive.Linq;
+using Xtensive.Orm;
 
-namespace Xtensive.Orm.Reprocessing.Tests.Model
+namespace TestCommon.Model
 {
   [CompilerContainer(typeof (Expression))]
   public static class LinqCompilerContainer

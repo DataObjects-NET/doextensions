@@ -1,6 +1,7 @@
 ﻿using System;
+using Xtensive.Orm;
 
-namespace Xtensive.Orm.Reprocessing.Tests.Model
+namespace TestCommon.Model
 {
   [HierarchyRoot]
   [KeyGenerator(KeyGeneratorKind.None)]

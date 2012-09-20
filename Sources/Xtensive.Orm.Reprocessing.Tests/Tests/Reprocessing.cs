@@ -8,10 +8,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
 using NUnit.Framework;
-using Xtensive.Orm.Reprocessing.Tests.Model;
+using Xtensive.Orm;
+using Xtensive.Orm.Reprocessing;
+using TestCommon.Model;
+using Xtensive.Orm.Reprocessing.Tests;
 using Xtensive.Orm.Rse;
+using TransactionScope = System.Transactions.TransactionScope;
 
-namespace Xtensive.Orm.Reprocessing.Tests
+namespace TestCommon.Model
 {
   public class Reprocessing : AutoBuildTest
   {
@@ -61,7 +65,7 @@ namespace Xtensive.Orm.Reprocessing.Tests
         Action<bool, IsolationLevel?, TransactionOpenMode?> action)
       {
         using (Session session = domain.OpenSession())
-        using (TransactionScope tran = isolationLevel==null ? null : session.OpenTransaction())
+        using (Xtensive.Orm.TransactionScope tran = isolationLevel==null ? null : session.OpenTransaction())
         using (session.Activate()) {
           if (tran!=null) {
             session.EnsureTransactionIsStarted();

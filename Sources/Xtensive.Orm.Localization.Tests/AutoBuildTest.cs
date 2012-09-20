@@ -1,8 +1,6 @@
 using System.Globalization;
 using NUnit.Framework;
-using Xtensive.Orm;
-using Xtensive.Orm.Configuration;
-using Xtensive.Reflection;
+using TestCommon;
 
 namespace Xtensive.Orm.Localization.Tests
 {
@@ -22,7 +20,10 @@ namespace Xtensive.Orm.Localization.Tests
     [TestFixtureSetUp]
     public void TestFixtureSetUp()
     {
-      Domain = Domain.Build(DomainConfiguration.Load("Default"));
+      var configuration = DomainConfigurationFactory.Create();
+      configuration.Types.Register(typeof (ILocalizable<>).Assembly);
+      configuration.Types.Register(typeof (AutoBuildTest).Assembly);
+      Domain = Domain.Build(configuration);
       PopulateDatabase();
     }
 

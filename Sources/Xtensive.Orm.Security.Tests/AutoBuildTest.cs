@@ -1,6 +1,7 @@
 using System.Configuration;
 using NUnit.Framework;
 using System;
+using TestCommon;
 using Xtensive.Core;
 using Xtensive.Orm;
 using Xtensive.Orm.Configuration;
@@ -31,17 +32,18 @@ namespace Xtensive.Orm.Security.Tests
 
     protected virtual DomainConfiguration BuildConfiguration()
     {
-      return DomainConfiguration.Load("Default");
+      var configuration = DomainConfigurationFactory.Create();
+      configuration.Types.Register(typeof (Permission).Assembly);
+      configuration.Types.Register(typeof (AutoBuildTest).Assembly);
+      return configuration;
     }
 
     protected virtual Domain BuildDomain(DomainConfiguration configuration)
     {
-      try
-      {
+      try {
         return Domain.Build(configuration);
       }
-      catch (Exception e)
-      {
+      catch (Exception e) {
         Log.Error(GetType().GetFullName());
         Log.Error(e);
         throw;

@@ -1,4 +1,6 @@
-﻿namespace Xtensive.Orm.Reprocessing.Tests.Model
+﻿using Xtensive.Orm;
+
+namespace TestCommon.Model
 {
   [HierarchyRoot]
   [Index("Name", Unique = true)]

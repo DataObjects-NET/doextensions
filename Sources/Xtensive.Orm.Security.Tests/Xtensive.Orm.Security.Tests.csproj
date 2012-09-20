@@ -87,6 +87,10 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <ProjectReference Include="..\TestCommon\TestCommon.csproj">
+      <Project>{08F33A56-AFE1-45AF-BB6B-B0AC4EF1180C}</Project>
+      <Name>TestCommon</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Xtensive.Orm.Security\Xtensive.Orm.Security.csproj">
       <Project>{5664B4E1-39FD-464B-833C-4FDF1CD95759}</Project>
       <Name>Xtensive.Orm.Security</Name>

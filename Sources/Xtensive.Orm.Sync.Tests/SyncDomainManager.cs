@@ -1,4 +1,5 @@
 ﻿using System;
+using TestCommon;
 using Xtensive.Orm.Configuration;
 
 namespace Xtensive.Orm.Sync.Tests
@@ -13,7 +14,7 @@ namespace Xtensive.Orm.Sync.Tests
       get
       {
         if (localDomain==null)
-          localDomain = BuildDomain("local");
+          localDomain = BuildDomain();
         return localDomain;
       }
     }
@@ -28,9 +29,12 @@ namespace Xtensive.Orm.Sync.Tests
       }
     }
 
-    private Domain BuildDomain(string configuration)
+    private Domain BuildDomain(string name = null)
     {
-      var domain = Domain.Build(DomainConfiguration.Load(configuration));
+      var configuration = DomainConfigurationFactory.Create(name);
+      configuration.Types.Register(typeof (SyncModule).Assembly);
+      configuration.Types.Register(typeof (SyncDomainManager).Assembly);
+      var domain = Domain.Build(configuration);
       domain.GetSyncManager().StartMetadataProcessor();
       return domain;
     }

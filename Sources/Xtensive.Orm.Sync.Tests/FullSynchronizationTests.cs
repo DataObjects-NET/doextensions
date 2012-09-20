@@ -11,8 +11,8 @@ namespace Xtensive.Orm.Sync.Tests
   [TestFixture]
   public class FullSynchronizationTests : MultisyncTest
   {
-    private const int InitialEntityCount = 300;
-    private const int AdditionalEntityCount = 300;
+    private const int InitialEntityCount = 100;
+    private const int AdditionalEntityCount = 50;
 
     private int myEntityCount, myReferencePropertyCount, syncInfoCount;
 
