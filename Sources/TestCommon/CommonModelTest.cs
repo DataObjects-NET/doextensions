@@ -34,7 +34,8 @@ namespace TestCommon
     [TearDown]
     public virtual void TearDown()
     {
-      Assert.That(notDisposed, Is.Empty);
+      if (notDisposed!=null)
+        Assert.That(notDisposed, Is.Empty);
       Assert.That(SessionScope.CurrentSession, Is.Null);
       Domain.DisposeSafely();
     }

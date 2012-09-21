@@ -2,6 +2,7 @@
 using TestCommon;
 using TestCommon.Model;
 using Xtensive.Orm.Configuration;
+using Xtensive.Orm.Providers;
 
 namespace Xtensive.Orm.Reprocessing.Tests
 {
@@ -14,6 +15,14 @@ namespace Xtensive.Orm.Reprocessing.Tests
       configuration.Types.Register(typeof (ReprocessAttribute).Assembly);
       configuration.Types.Register(typeof (AutoBuildTest).Assembly);
       return configuration;
+    }
+
+    protected override Domain BuildDomain(DomainConfiguration configuration)
+    {
+      var domain = base.BuildDomain(configuration);
+      if (domain.StorageProviderInfo.Supports(ProviderFeatures.SingleSessionAccess))
+        Assert.Ignore("This storage does not support multiple sessions writing to the same database, ignoring");
+      return domain;
     }
   }
 }
