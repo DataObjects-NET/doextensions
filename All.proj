@@ -3,10 +3,7 @@
          ToolsVersion="4.0" DefaultTargets="Build">
 
 <Import Project="MSBuild\Tasks.targets" />
-
-<PropertyGroup>
-  <Version>4.5.3</Version>
-</PropertyGroup>
+<Import Project="All.props" />
 
 <PropertyGroup>
   <Configuration Condition="'$(Configuration)'==''">Release</Configuration>
@@ -22,7 +19,6 @@
 
 <ItemGroup>
   <SpecFiles Include="$(SourcesDir)*\*.nuspec" />
-  <PackageLists Include="$(SourcesDir)*\packages.config" />
 </ItemGroup>
 
 <ItemGroup>
@@ -80,12 +76,8 @@
     DestinationFiles="$(BuildDir)ProductInfo.cs" />
 </Target>
 
-<Target Name="RestorePackages" Inputs="@(PackageLists)" Outputs="%(Identity).Fake">
-  <PropertyGroup>
-    <ConfigFile>%(PackageLists.RootDir)%(PackageLists.Directory)%(PackageLists.Filename)%(PackageLists.Extension)</ConfigFile>
-    <RestoreCommand>nuget install "$(ConfigFile)" -source "" -o "$(SourcesDir)packages"</RestoreCommand>
-  </PropertyGroup>
-  <Exec Command="$(RestoreCommand)" />
+<Target Name="GetDO">
+  <MSBuild Projects="MSBuild\GetDO.proj" Properties="DOVersion=$(DOVersion)" />
 </Target>
 
 <!-- NuGet packaging -->
@@ -138,7 +130,7 @@
 
 <!-- Binaries -->
 
-<Target Name="BuildBinaries" DependsOnTargets="RestorePackages;UpdateProductInfo">
+<Target Name="BuildBinaries" DependsOnTargets="GetDO;UpdateProductInfo">
   <MSBuild Projects="@(Projects)" Targets="Build" />
 </Target>
 
