@@ -15,7 +15,6 @@
     <DocumentationFile>..\..\_Build\Binaries\$(Configuration)\$(AssemblyName).xml</DocumentationFile>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\Extensions.snk</AssemblyOriginatorKeyFile>
-    <XtensiveOrmIntegratedPostSharp>false</XtensiveOrmIntegratedPostSharp>
     <DontImportPostSharp>True</DontImportPostSharp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -38,7 +37,7 @@
   <ItemGroup>
     <Reference Include="Microsoft.Synchronization, Version=2.1.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL" />
     <Reference Include="PostSharp, Version=2.1.0.0, Culture=neutral, PublicKeyToken=b13fd38b8f9c99d7, processorArchitecture=MSIL">
-      <HintPath>..\packages\PostSharp.2.1.7.3\lib\net20\PostSharp.dll</HintPath>
+      <HintPath>..\..\Lib\DataObjects.Net\Lib\Net40\PostSharp.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -49,13 +48,13 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="Xtensive.Aspects, Version=4.6.0.0, Culture=neutral, PublicKeyToken=93a6c53d77a5296c, processorArchitecture=MSIL">
-      <HintPath>..\packages\Xtensive.Orm.4.6.0-Beta-3\Lib\Net40\Xtensive.Aspects.dll</HintPath>
+      <HintPath>..\..\Lib\DataObjects.Net\Lib\Net40\Xtensive.Aspects.dll</HintPath>
     </Reference>
     <Reference Include="Xtensive.Core, Version=4.6.0.0, Culture=neutral, PublicKeyToken=93a6c53d77a5296c, processorArchitecture=MSIL">
-      <HintPath>..\packages\Xtensive.Orm.4.6.0-Beta-3\Lib\Net40\Xtensive.Core.dll</HintPath>
+      <HintPath>..\..\Lib\DataObjects.Net\Lib\Net40\Xtensive.Core.dll</HintPath>
     </Reference>
     <Reference Include="Xtensive.Orm, Version=4.6.0.0, Culture=neutral, PublicKeyToken=93a6c53d77a5296c, processorArchitecture=MSIL">
-      <HintPath>..\packages\Xtensive.Orm.4.6.0-Beta-3\Lib\Net40\Xtensive.Orm.dll</HintPath>
+      <HintPath>..\..\Lib\DataObjects.Net\Lib\Net40\Xtensive.Orm.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -114,8 +113,7 @@
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="..\packages\Xtensive.Orm.4.6.0-Beta-3\DataObjects.Net.targets" />
-  <Import Project="..\packages\PostSharp.2.1.7.3\tools\PostSharp.targets" />
+  <Import Project="..\..\Lib\DataObjects.Net\DataObjects.Net.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

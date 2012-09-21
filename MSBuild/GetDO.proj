@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003"
+         ToolsVersion="4.0" DefaultTargets="Unpack" InitialTargets="CheckConfiguration">
+
+<Import Project="Tasks.targets" />
+
+<PropertyGroup>
+  <LibRoot>..\Lib\</LibRoot>
+  <LibPath>$(LibRoot)DataObjects.Net\</LibPath>
+  <CachePath>$(LibRoot)DataObjects.Net-Cache\</CachePath>
+</PropertyGroup>
+
+<PropertyGroup>
+  <DistFile>DataObjects.Net-$(DOVersion).zip</DistFile>
+  <DistUrl>http://get.dataobjects.net/Download/$(DistFile)</DistUrl>
+  <DistFilePath>$(CachePath)$(DistFile)</DistFilePath>
+  <Marker>$(DistFilePath).unpacked</Marker>
+</PropertyGroup>
+
+<ItemGroup>
+  <MarkersToClean Include="$(CachePath)*.unpacked" />
+</ItemGroup>
+
+<Target Name="CheckConfiguration">
+  <Error Condition="'$(DOVersion)'==''" Text="DOVersion is not set" />
+</Target>
+
+<Target Name="Fetch" Outputs="$(DistFilePath)">
+  <WebDownload FileUri="$(DistUrl)" FileName="$(DistFilePath)" Condition="!Exists('$(DistFilePath)')" />
+</Target>
+
+<Target Name="Unpack" DependsOnTargets="Fetch" Inputs="$(DistFilePath)" Outputs="$(Marker)">
+  <RemoveDir Directories="$(LibPath)" />
+  <Delete Files="@(MarkersToClean)" />
+  <Unzip ZipFileName="$(DistFilePath)" TargetDirectory="$(LibPath)" />
+  <Touch Files="$(Marker)" AlwaysCreate="true" />
+</Target>
+
+</Project>
