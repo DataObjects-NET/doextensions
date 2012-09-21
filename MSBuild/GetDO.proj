@@ -26,6 +26,7 @@
 </Target>
 
 <Target Name="Fetch" Outputs="$(DistFilePath)">
+  <MakeDir Directories="$(CachePath)" />
   <WebDownload FileUri="$(DistUrl)" FileName="$(DistFilePath)" Condition="!Exists('$(DistFilePath)')" />
 </Target>
 
