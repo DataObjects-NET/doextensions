@@ -10,6 +10,14 @@
 </PropertyGroup>
 
 <PropertyGroup>
+  <VersionModifier Condition="'$(VersionModifier)'=='Final'"></VersionModifier>
+  <VersionName>$(Version)</VersionName>
+  <VersionName Condition="'$(VersionModifier)'!=''">$(Version) $(VersionModifier)</VersionName>
+  <VersionNameZip>$(VersionName.Replace(' ', '_'))</VersionNameZip>
+  <VersionNameNuGet>$(VersionName.Replace(' ', '-'))</VersionNameNuGet>
+</PropertyGroup>
+
+<PropertyGroup>
   <BuildDir>$(MSBuildProjectDirectory)\_Build\</BuildDir>
   <SourcesDir>$(MSBuildProjectDirectory)\Sources\</SourcesDir>
   <BinariesDir>$(BuildDir)Binaries\$(Configuration)\</BinariesDir>
@@ -30,6 +38,9 @@
 <ItemGroup>
   <ProductVariables Include="Version">
     <ReplacementValue>$(Version)</ReplacementValue>
+  </ProductVariables>
+  <ProductVariables Include="VersionName">
+    <ReplacementValue>$(VersionName)</ReplacementValue>
   </ProductVariables>
 </ItemGroup>
 
@@ -61,18 +72,19 @@
 
 <Target Name="UpdateProductInfo" DependsOnTargets="InitBuildDir">
   <PropertyGroup>
-    <CompareCommand>fc "$(BuildDir)ProductInfo.cs" "$(BuildDir)ProductInfo.cs.tmp" >nul 2>nul</CompareCommand>
+    <ProductInfoWorkFile>$(BuildDir)ProductInfo.cs.generated</ProductInfoWorkFile>
+    <CompareCommand>fc "$(BuildDir)ProductInfo.cs" "$(ProductInfoWorkFile)" >nul 2>nul</CompareCommand>
   </PropertyGroup>
   <TemplateFile
     Template="$(SourcesDir)ProductInfo.cs"
-    OutputFilename="$(BuildDir)ProductInfo.cs.tmp"
+    OutputFilename="$(ProductInfoWorkFile)"
     Tokens="@(ProductVariables)" />
   <Exec Command="$(CompareCommand)" IgnoreExitCode="true">
     <Output TaskParameter="ExitCode" PropertyName="CompareResult" />
   </Exec>
   <Copy
     Condition="'$(CompareResult)'!='0'"
-    SourceFiles="$(BuildDir)ProductInfo.cs.tmp"
+    SourceFiles="$(ProductInfoWorkFile)"
     DestinationFiles="$(BuildDir)ProductInfo.cs" />
 </Target>
 
@@ -92,7 +104,7 @@
         Inputs="@(SpecFiles)" Outputs="%(Identity).Fake">
   <PropertyGroup>
     <ProjectFile>%(SpecFiles.RootDir)%(SpecFiles.Directory)%(SpecFiles.Filename).csproj</ProjectFile>
-    <BuildCommand>nuget pack "$(ProjectFile)" -version $(Version) -p Configuration=Release -o "$(PackagesDir)." -symbols</BuildCommand>
+    <BuildCommand>nuget pack "$(ProjectFile)" -version $(VersionNameNuGet) -p Configuration=Release -o "$(PackagesDir)." -symbols</BuildCommand>
   </PropertyGroup>
   <Exec Command="$(BuildCommand)" />
 </Target>
@@ -119,7 +131,7 @@
         Condition="'$(Configuration)'=='Release'"
         DependsOnTargets="InitZipDir;BuildBinaries;CopyDocumentation">
   <PropertyGroup>
-    <ZipFile>$(ZipDir)DataObjects.Net.Extensions-$(Version).zip</ZipFile>
+    <ZipFile>$(ZipDir)DataObjects.Net.Extensions-$(VersionNameZip).zip</ZipFile>
   </PropertyGroup>
   <Zip Files="@(Libraries)" ZipFileName="$(ZipFile)" WorkingDirectory="$(BinariesDir)" />
 </Target>
