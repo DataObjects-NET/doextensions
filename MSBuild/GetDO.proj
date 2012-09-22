@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003"
-         ToolsVersion="4.0" DefaultTargets="Unpack" InitialTargets="CheckConfiguration">
+         ToolsVersion="4.0" DefaultTargets="Unpack" InitialTargets="Check">
 
 <Import Project="Tasks.targets" />
 
@@ -21,13 +21,13 @@
   <MarkersToClean Include="$(CachePath)*.unpacked" />
 </ItemGroup>
 
-<Target Name="CheckConfiguration">
+<Target Name="Check">
   <Error Condition="'$(DOVersion)'==''" Text="DOVersion is not set" />
 </Target>
 
-<Target Name="Fetch" Outputs="$(DistFilePath)">
+<Target Name="Fetch" Outputs="$(DistFilePath)" Condition="!Exists('$(DistFilePath)')">
   <MakeDir Directories="$(CachePath)" />
-  <WebDownload FileUri="$(DistUrl)" FileName="$(DistFilePath)" Condition="!Exists('$(DistFilePath)')" />
+  <WebDownload FileUri="$(DistUrl)" FileName="$(DistFilePath)" />
 </Target>
 
 <Target Name="Unpack" DependsOnTargets="Fetch" Inputs="$(DistFilePath)" Outputs="$(Marker)">
