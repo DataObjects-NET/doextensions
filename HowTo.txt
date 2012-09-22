@@ -82,6 +82,7 @@ It should look like the following:
 
     <PropertyGroup>
       <Version>4.5.1</Version>
+      <VersionModifier>RC</VersionModifier>
       <DOVersion>4.5.3</DOVersion>
     </PropertyGroup>
 

@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 
 [assembly: AssemblyVersion("${Version}.0")]
 [assembly: AssemblyFileVersion("${Version}.0")]
+[assembly: AssemblyInformationalVersion("${VersionName}")]
 
 #if DEBUG
 [assembly: AssemblyConfiguration("Debug")]
