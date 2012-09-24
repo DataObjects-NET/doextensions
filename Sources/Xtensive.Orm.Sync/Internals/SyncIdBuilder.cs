@@ -5,7 +5,7 @@ namespace Xtensive.Orm.Sync
 {
   internal static class SyncIdBuilder
   {
-    public static SyncId GetSyncId(int hierarchyId, SyncId replicaId, long tick)
+    public static SyncId GetSyncId(SyncId replicaId, int hierarchyId, long tick)
     {
       var replicaIdBytes = replicaId.RawId;
 
