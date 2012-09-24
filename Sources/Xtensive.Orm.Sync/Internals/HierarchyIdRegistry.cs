@@ -10,17 +10,17 @@ namespace Xtensive.Orm.Sync
   [Service(typeof (HierarchyIdRegistry), Singleton = true)]
   internal sealed class HierarchyIdRegistry : IDomainService
   {
-    private readonly Dictionary<TypeInfo, int> typeToIdMap = new Dictionary<TypeInfo, int>();
-    private readonly Dictionary<int, TypeInfo> idToTypeMap = new Dictionary<int, TypeInfo>();
+    private readonly Dictionary<TypeInfo, int> rootToIdMap = new Dictionary<TypeInfo, int>();
+    private readonly Dictionary<int, TypeInfo> idToRootMap = new Dictionary<int, TypeInfo>();
 
     public int GetHierarchyId(TypeInfo typeInfo)
     {
-      return typeToIdMap[typeInfo];
+      return rootToIdMap[typeInfo.Hierarchy.Root];
     }
 
     public TypeInfo GetHierarchyRoot(int id)
     {
-      return idToTypeMap[id];
+      return idToRootMap[id];
     }
 
     private static int BuildHierarchyId(Type type)
@@ -47,8 +47,8 @@ namespace Xtensive.Orm.Sync
       foreach (var hierarchy in domain.Model.Hierarchies) {
         var root = hierarchy.Root;
         var id = BuildHierarchyId(root.UnderlyingType);
-        typeToIdMap.Add(root, id);
-        idToTypeMap.Add(id, root);
+        rootToIdMap.Add(root, id);
+        idToRootMap.Add(id, root);
       }
     }
   }
