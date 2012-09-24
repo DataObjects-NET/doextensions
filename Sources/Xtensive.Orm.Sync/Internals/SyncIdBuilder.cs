@@ -11,15 +11,15 @@ namespace Xtensive.Orm.Sync
 
       var buffer = new byte[16];
 
-      buffer[0] = (byte) ((hierarchyId >> 24) & 255);
-      buffer[1] = (byte) ((hierarchyId >> 16) & 255);
-      buffer[2] = (byte) ((hierarchyId >> 8) & 255);
-      buffer[3] = (byte) (hierarchyId & 255);
+      buffer[0] = (byte) (replicaIdBytes[0] ^ replicaIdBytes[4] ^ replicaIdBytes[8] ^ replicaIdBytes[12]);
+      buffer[1] = (byte) (replicaIdBytes[1] ^ replicaIdBytes[5] ^ replicaIdBytes[9] ^ replicaIdBytes[13]);
+      buffer[2] = (byte) (replicaIdBytes[2] ^ replicaIdBytes[6] ^ replicaIdBytes[10] ^ replicaIdBytes[14]);
+      buffer[3] = (byte) (replicaIdBytes[3] ^ replicaIdBytes[7] ^ replicaIdBytes[11] ^ replicaIdBytes[15]);
 
-      buffer[4] = (byte) (replicaIdBytes[0] ^ replicaIdBytes[4] ^ replicaIdBytes[8] ^ replicaIdBytes[12]);
-      buffer[5] = (byte) (replicaIdBytes[1] ^ replicaIdBytes[5] ^ replicaIdBytes[9] ^ replicaIdBytes[13]);
-      buffer[6] = (byte) (replicaIdBytes[2] ^ replicaIdBytes[6] ^ replicaIdBytes[10] ^ replicaIdBytes[14]);
-      buffer[7] = (byte) (replicaIdBytes[3] ^ replicaIdBytes[7] ^ replicaIdBytes[11] ^ replicaIdBytes[15]);
+      buffer[4] = (byte) ((hierarchyId >> 24) & 255);
+      buffer[5] = (byte) ((hierarchyId >> 16) & 255);
+      buffer[6] = (byte) ((hierarchyId >> 8) & 255);
+      buffer[7] = (byte) (hierarchyId & 255);
 
       buffer[8] = (byte) ((tick >> 56) & 255);
       buffer[9] = (byte) ((tick >> 48) & 255);
