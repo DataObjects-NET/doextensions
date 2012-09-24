@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using Microsoft.Synchronization;
 using Xtensive.Orm.Sync.Model;
 
@@ -14,7 +13,7 @@ namespace Xtensive.Orm.Sync
 
     public abstract SyncInfo CreateMetadata(SyncId syncId, Key targetKey);
 
-    public abstract IEnumerable<SyncInfo> GetOrderedMetadata(Expression filter);
+    public abstract IEnumerable<SyncInfo> GetOrderedMetadata(IMetadataQuery query);
 
     public abstract IEnumerable<SyncInfo> GetUnorderedMetadata(List<Key> targetKeys);
 

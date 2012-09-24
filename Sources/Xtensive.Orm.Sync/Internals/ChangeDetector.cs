@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using Microsoft.Synchronization;
 using Xtensive.Orm.Services;
 using Xtensive.Orm.Sync.DataExchange;
@@ -13,24 +12,18 @@ namespace Xtensive.Orm.Sync
   {
     private readonly ReplicaState replicaState;
     private readonly MetadataManager metadataManager;
-    private readonly SyncConfiguration configuration;
     private readonly DirectEntityAccessor entityAccessor;
     private readonly EntityTupleFormatterRegistry tupleFormatters;
     private readonly KeyTracker keyTracker;
+    private readonly MetadataQueryTaskBuilder taskBuilder;
 
     public IEnumerable<ChangeSet> DetectChanges(uint batchSize, SyncKnowledge destinationKnowledge)
     {
       var mappedKnowledge = replicaState.CurrentKnowledge.MapRemoteKnowledgeToLocal(destinationKnowledge);
       mappedKnowledge.ReplicaKeyMap.FindOrAddReplicaKey(replicaState.Id);
 
-      Console.WriteLine("DestinationKnowledge state:");
-      foreach (var item in new KnowledgeFragmentInspector(mappedKnowledge).ScopeRangeSet)
-        Console.WriteLine("{0} # {1}", item.ItemId, item.ClockVector);
-
-      foreach (var store in metadataManager.GetStores(configuration)) {
-        Expression filter;
-        configuration.Filters.TryGetValue(store.EntityType, out filter);
-        var items = store.GetOrderedMetadata(filter);
+      foreach (var task in taskBuilder.GetTasks(mappedKnowledge)) {
+        var items = task.Execute();
         var batches = DetectChanges(items, batchSize, mappedKnowledge, true);
         foreach (var batch in batches)
           yield return batch;
@@ -140,11 +133,11 @@ namespace Xtensive.Orm.Sync
 
       this.replicaState = replicaState;
       this.metadataManager = metadataManager;
-      this.configuration = configuration;
       this.entityAccessor = entityAccessor;
       this.tupleFormatters = tupleFormatters;
 
       keyTracker = new KeyTracker(configuration);
+      taskBuilder = new MetadataQueryTaskBuilder(metadataManager, configuration);
     }
   }
 }

@@ -65,6 +65,9 @@
     <Compile Include="DomainExtensions.cs" />
     <Compile Include="Internals\ByteFormatter.cs" />
     <Compile Include="Internals\EntityChangeInfo.cs" />
+    <Compile Include="Internals\IMetadataQuery.cs" />
+    <Compile Include="Internals\MetadataQueryTask.cs" />
+    <Compile Include="Internals\MetadataQueryTaskBuilder.cs" />
     <Compile Include="Internals\SyncIdInfo.cs" />
     <Compile Include="Model\EntityChangeKind.cs" />
     <Compile Include="Interfaces\ISkippable.cs" />

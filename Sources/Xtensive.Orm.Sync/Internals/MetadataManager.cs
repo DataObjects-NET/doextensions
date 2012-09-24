@@ -33,6 +33,14 @@ namespace Xtensive.Orm.Sync
       throw new InvalidOperationException(string.Format("Store for type '{0}' is not registered", type));
     }
 
+    public MetadataStore GetStore(int hierarchyId)
+    {
+      var type = hierarchyIdRegistry.GetHierarchyRoot(hierarchyId);
+      if (type==null)
+        throw new InvalidOperationException(string.Format("Store for hierarchy id '{0}' is not registered", hierarchyId));
+      return GetStore(type);
+    }
+
     public IEnumerable<MetadataStore> GetStores(SyncConfiguration configuration)
     {
       var stores = storeList.AsEnumerable();
