@@ -87,7 +87,7 @@ namespace Xtensive.Orm.Sync
       if (tick < 0)
         tick = tickGenerator.GetNextTick();
 
-      var syncId = SyncIdBuilder.GetSyncId(replicaId, hiearchyId, tick);
+      var syncId = SyncIdFormatter.GetSyncId(replicaId, hiearchyId, tick);
       var result = store.CreateMetadata(syncId, key);
 
       result.CreationVersion = GetLocalVersion(tick);

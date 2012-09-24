@@ -23,6 +23,10 @@ namespace Xtensive.Orm.Sync
       var mappedKnowledge = replicaState.CurrentKnowledge.MapRemoteKnowledgeToLocal(destinationKnowledge);
       mappedKnowledge.ReplicaKeyMap.FindOrAddReplicaKey(replicaState.Id);
 
+      Console.WriteLine("DestinationKnowledge state:");
+      foreach (var item in new KnowledgeFragmentInspector(mappedKnowledge).ScopeRangeSet)
+        Console.WriteLine("{0} # {1}", item.ItemId, item.ClockVector);
+
       foreach (var store in metadataManager.GetStores(configuration)) {
         Expression filter;
         configuration.Filters.TryGetValue(store.EntityType, out filter);

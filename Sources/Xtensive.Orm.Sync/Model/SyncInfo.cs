@@ -28,7 +28,7 @@ namespace Xtensive.Orm.Sync.Model
       get
       {
         if (cachedSyncId==null)
-          cachedSyncId = SyncIdBuilder.GetSyncId(Id);
+          cachedSyncId = SyncIdFormatter.GetSyncId(Id);
         return cachedSyncId;
       }
     }

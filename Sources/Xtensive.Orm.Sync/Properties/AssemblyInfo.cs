@@ -1,3 +1,3 @@
 ﻿using System.Reflection;
 
-[assembly: AssemblyTitle("MS Sync provider for DataObjects.Net")]
+[assembly: AssemblyTitle("Sync extension for DataObjects.Net")]

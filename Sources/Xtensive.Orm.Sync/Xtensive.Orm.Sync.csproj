@@ -63,7 +63,9 @@
     </Compile>
     <Compile Include="DataExchange\ChangeDataRetriever.cs" />
     <Compile Include="DomainExtensions.cs" />
+    <Compile Include="Internals\ByteFormatter.cs" />
     <Compile Include="Internals\EntityChangeInfo.cs" />
+    <Compile Include="Internals\SyncIdInfo.cs" />
     <Compile Include="Model\EntityChangeKind.cs" />
     <Compile Include="Interfaces\ISkippable.cs" />
     <Compile Include="Interfaces\IFilterable.cs" />
@@ -85,7 +87,7 @@
     <Compile Include="Internals\MetadataStore.cs" />
     <Compile Include="Internals\MetadataStore{T}.cs" />
     <Compile Include="Internals\ReplicaManager.cs" />
-    <Compile Include="Internals\SyncIdBuilder.cs" />
+    <Compile Include="Internals\SyncIdFormatter.cs" />
     <Compile Include="Internals\HierarchyIdRegistry.cs" />
     <Compile Include="Internals\SyncSessionMarker.cs" />
     <Compile Include="SyncConfiguration.cs" />

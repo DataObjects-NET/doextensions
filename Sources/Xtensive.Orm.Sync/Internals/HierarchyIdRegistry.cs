@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 using Xtensive.IoC;
@@ -10,16 +10,20 @@ namespace Xtensive.Orm.Sync
   [Service(typeof (HierarchyIdRegistry), Singleton = true)]
   internal sealed class HierarchyIdRegistry : IDomainService
   {
-    private readonly ConcurrentDictionary<Type, int> cache = new ConcurrentDictionary<Type, int>();
+    private readonly Dictionary<TypeInfo, int> typeToIdMap = new Dictionary<TypeInfo, int>();
+    private readonly Dictionary<int, TypeInfo> idToTypeMap = new Dictionary<int, TypeInfo>();
 
     public int GetHierarchyId(TypeInfo typeInfo)
     {
-      if (typeInfo==null)
-        throw new ArgumentNullException("typeInfo");
-      return cache.GetOrAdd(typeInfo.Hierarchy.Root.UnderlyingType, ReadHierarchyId);
+      return typeToIdMap[typeInfo];
     }
 
-    private int ReadHierarchyId(Type type)
+    public TypeInfo GetHierarchyRoot(int id)
+    {
+      return idToTypeMap[id];
+    }
+
+    private static int BuildHierarchyId(Type type)
     {
       var attributes = type.GetCustomAttributes(typeof (HierarchyIdAttribute), false);
       if (attributes.Length > 0)
@@ -40,6 +44,12 @@ namespace Xtensive.Orm.Sync
     [ServiceConstructor]
     public HierarchyIdRegistry(Domain domain)
     {
+      foreach (var hierarchy in domain.Model.Hierarchies) {
+        var root = hierarchy.Root;
+        var id = BuildHierarchyId(root.UnderlyingType);
+        typeToIdMap.Add(root, id);
+        idToTypeMap.Add(id, root);
+      }
     }
   }
 }
