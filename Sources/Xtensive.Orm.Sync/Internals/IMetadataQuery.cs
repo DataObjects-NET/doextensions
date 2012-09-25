@@ -12,6 +12,8 @@ namespace Xtensive.Orm.Sync
 
     Expression UserFilter { get; }
 
-    IList<SyncVersion> LastKnownVersions { get; }
+    SyncVersion LastKnownVersion { get; }
+
+    IList<uint> ReplicasToExclude { get; }
   }
 }

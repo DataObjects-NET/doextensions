@@ -12,10 +12,6 @@ namespace Xtensive.Orm.Sync
   internal sealed class MetadataStore<TEntity> : MetadataStore
     where TEntity : class, IEntity
   {
-    private static MethodInfo EnumerableContains = typeof (Enumerable).GetMethods()
-      .Single(m => m.Name=="Contains" && m.GetParameters().Length==2)
-      .MakeGenericMethod(typeof (uint));
-
     public override SyncInfo CreateMetadata(SyncId syncId, Key targetKey)
     {
       return new SyncInfo<TEntity>(Session, syncId) {TargetKey = targetKey};
@@ -26,11 +22,21 @@ namespace Xtensive.Orm.Sync
       var outer = Session.Query.All<SyncInfo<TEntity>>();
       var inner = Session.Query.All<TEntity>();
 
+      // Range filter
       if (query.MinId!=null && query.MaxId!=null)
         outer = outer.Where(info => info.Id.GreaterThanOrEqual(query.MinId) && info.Id.LessThan(query.MaxId));
-      if (query.LastKnownVersions!=null && query.LastKnownVersions.Count > 0)
-        outer = outer.Where(GetVersionFilter(query.LastKnownVersions));
 
+      // Known versions filter
+      if (query.LastKnownVersion!=null)
+        outer = outer.Where(info =>
+          info.ChangeVersion.Replica==query.LastKnownVersion.ReplicaKey
+          && info.ChangeVersion.Tick > (long) query.LastKnownVersion.TickCount);
+
+      // Unknown relicas filter
+      if (query.ReplicasToExclude!=null && query.ReplicasToExclude.Count > 0)
+        outer = outer.Where(info => !query.ReplicasToExclude.Contains(info.ChangeVersion.Replica));
+
+      // User filter
       var predicate = query.UserFilter as Expression<Func<TEntity, bool>>;
       if (predicate!=null)
         inner = inner.Where(predicate);
@@ -94,35 +100,6 @@ namespace Xtensive.Orm.Sync
         body = Expression.OrElse(body, Expression.Equal(key, Expression.Constant(keys[start + i])));
 
       return Expression.Lambda<Func<SyncInfo<TEntity>, bool>>(body, info);
-    }
-
-    private Expression<Func<SyncInfo<TEntity>, bool>> GetVersionFilter(IList<SyncVersion> lastKnownVersions)
-    {
-      var info = Expression.Parameter(typeof (SyncInfo<TEntity>), "p");
-      var changeVersion = Expression.Property(info, "ChangeVersion");
-      var replica = Expression.Property(changeVersion, "Replica");
-      var tick = Expression.Property(changeVersion, "Tick");
-
-      var body = GetVersionFilter(tick, replica, lastKnownVersions[0]);
-      for (int i = 1; i < lastKnownVersions.Count; i++)
-        body = Expression.OrElse(body, GetVersionFilter(tick, replica, lastKnownVersions[i]));
-
-      var replicaKeys = Expression.Constant(lastKnownVersions.Select(i => i.ReplicaKey).ToArray());
-
-      body = Expression.OrElse(body,
-        Expression.Not(Expression.Call(EnumerableContains, replicaKeys, replica)));
-
-      return Expression.Lambda<Func<SyncInfo<TEntity>, bool>>(body, info);
-    }
-
-    private static Expression GetVersionFilter(Expression tick, Expression replica, SyncVersion version)
-    {
-      var replicaValue = Expression.Constant(version.ReplicaKey);
-      var tickValue = Expression.Constant((long) version.TickCount);
-
-      return Expression.And(
-        Expression.Equal(replica, replicaValue),
-        Expression.GreaterThan(tick, tickValue));
     }
 
     public MetadataStore(Session session)

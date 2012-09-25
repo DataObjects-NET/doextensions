@@ -17,47 +17,32 @@ namespace Xtensive.Orm.Sync
 
     public Expression UserFilter { get; private set; }
 
-    public IList<SyncVersion> LastKnownVersions { get; private set; }
+    public SyncVersion LastKnownVersion { get; private set; }
+
+    public IList<uint> ReplicasToExclude { get; private set; }
 
     public IEnumerable<SyncInfo> Execute()
     {
       return store.GetOrderedMetadata(this);
     }
 
-    public override string ToString()
-    {
-      if (string.IsNullOrEmpty(MinId))
-        return string.Format("{0} [all]", store.EntityType);
-      return string.Format("{0} [{1}, {2})", store.EntityType.Name, MinId, MaxId);
-    }
-
-    public MetadataQueryTask(MetadataStore store, Expression filter)
-    {
-      if (store==null)
-        throw new ArgumentNullException("store");
-
-      this.store = store;
-      UserFilter = filter;
-    }
-
     public MetadataQueryTask(
-      MetadataStore store, string minId, string maxId,
-      IEnumerable<SyncVersion> lastKnownVersions, Expression userFilter)
+      MetadataStore store, Expression userFilter,
+      string minId = null, string maxId = null,
+      SyncVersion lastKnownVersion = null, IEnumerable<uint> replicasToExclude = null)
     {
       if (store==null)
         throw new ArgumentNullException("store");
-      if (minId==null)
-        throw new ArgumentNullException("minId");
-      if (maxId==null)
-        throw new ArgumentNullException("maxId");
-      if (lastKnownVersions==null)
-        throw new ArgumentNullException("lastKnownVersions");
 
       this.store = store;
+
+      UserFilter = userFilter;
       MinId = minId;
       MaxId = maxId;
-      LastKnownVersions = lastKnownVersions.ToList().AsReadOnly();
-      UserFilter = userFilter;
+      LastKnownVersion = lastKnownVersion;
+
+      if (replicasToExclude!=null)
+        ReplicasToExclude = replicasToExclude.ToList().AsReadOnly();
     }
   }
 }

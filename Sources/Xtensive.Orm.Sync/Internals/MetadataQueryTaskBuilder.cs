@@ -17,7 +17,7 @@ namespace Xtensive.Orm.Sync
 
       foreach (var store in manager.GetStores(configuration)) {
         List<MetadataQueryTask> tasks;
-        if (rangeQueries.TryGetValue(store, out tasks))
+        if (rangeQueries.TryGetValue(store, out tasks) && tasks.Count > 0)
           foreach (var task in tasks)
             yield return task;
         else
@@ -53,15 +53,26 @@ namespace Xtensive.Orm.Sync
       var minId = currentRange.ItemId.ToString();
       var upperBound = nextRange!=null ? nextRange.ItemId : SyncIdFormatter.GetUpperBound(info);
       var maxId = upperBound.ToString();
-      var lastKnownVersions = currentRange.ClockVector.Select(item => new SyncVersion(item.ReplicaKey, item.TickCount));
-      var task = new MetadataQueryTask(store, minId, maxId, lastKnownVersions, GetFilter(store.EntityType));
+      var userFilter = GetFilter(store.EntityType);
 
       List<MetadataQueryTask> taskList;
       if (!output.TryGetValue(store, out taskList)) {
         taskList = new List<MetadataQueryTask>();
         output.Add(store, taskList);
       }
-      taskList.Add(task);
+
+      if (currentRange.ClockVector.Count==0) {
+        taskList.Add(new MetadataQueryTask(store, userFilter, minId, maxId));
+        return;
+      }
+
+      foreach (var item in currentRange.ClockVector) {
+        var lastKnownVersion = new SyncVersion(item.ReplicaKey, item.TickCount);
+        taskList.Add(new MetadataQueryTask(store, userFilter, minId, maxId, lastKnownVersion));
+      }
+
+      var knownReplicas = currentRange.ClockVector.Select(item => item.ReplicaKey);
+      taskList.Add(new MetadataQueryTask(store, userFilter, minId, maxId, replicasToExclude: knownReplicas));
     }
 
     private Expression GetFilter(Type type)
