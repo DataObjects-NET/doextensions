@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using Microsoft.Synchronization;
 
@@ -7,34 +5,32 @@ namespace Xtensive.Orm.Sync
 {
   internal sealed class MetadataQuery
   {
-    public string MinId { get; private set; }
+    public SyncId MinId { get; private set; }
 
-    public string MaxId { get; private set; }
+    public SyncId MaxId { get; private set; }
 
-    public SyncVersion LastKnownVersion { get; private set; }
+    public uint? ReplicaKey { get; private set; }
 
-    public IList<uint> ReplicasToExclude { get; private set; }
+    public long? LastKnownTick { get; private set; }
 
     public override string ToString()
     {
       var result = new StringBuilder();
-      if (!string.IsNullOrEmpty(MinId) && !string.IsNullOrEmpty(MaxId))
-        result.AppendFormat(" [{0}, {1})", MinId, MaxId);
-      if (LastKnownVersion!=null)
-        result.AppendFormat(" replica = {0} and tick > {1}", LastKnownVersion.ReplicaKey, LastKnownVersion.TickCount);
-      if (ReplicasToExclude!=null && ReplicasToExclude.Count > 0)
-        result.AppendFormat(" replica not in ({0})", string.Join(", ", ReplicasToExclude.Select(r => r.ToString())));
+      if (MinId!=null && MaxId!=null)
+        result.AppendFormat("[{0}, {1}) ", MinId, MaxId);
+      if (ReplicaKey!=null)
+        result.AppendFormat("replica = {0} ", ReplicaKey.Value);
+      if (LastKnownTick!=null)
+        result.AppendFormat("tick > {0}", LastKnownTick.Value);
       return result.ToString();
     }
 
-    public MetadataQuery(string minId = null, string maxId = null, SyncVersion lastKnownVersion = null, IEnumerable<uint> replicasToExclude = null)
+    public MetadataQuery(SyncId minId = null, SyncId maxId = null, uint? replicaKey = null, long? lastKnownTick = null)
     {
       MinId = minId;
       MaxId = maxId;
-      LastKnownVersion = lastKnownVersion;
-
-      if (replicasToExclude!=null)
-        ReplicasToExclude = replicasToExclude.ToList().AsReadOnly();
+      ReplicaKey = replicaKey;
+      LastKnownTick = lastKnownTick;
     }
   }
 }

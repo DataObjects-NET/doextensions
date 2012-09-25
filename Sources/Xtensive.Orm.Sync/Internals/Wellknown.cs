@@ -8,8 +8,9 @@ namespace Xtensive.Orm.Sync
     public const int SyncBatchSize = 64;
     public const int EntityFetchBatchSize = 25;
     public const int SyncLogBatchSize = 512;
-    public const int LocalReplicaKey = 0;
     public const int SyncInfoCacheSize = 128 * 1024;
+
+    public const uint LocalReplicaKey = 0;
 
     public const string TickGeneratorName = "SyncInfo";
     public const string EntityFieldName = "Entity";

@@ -160,7 +160,7 @@ namespace Xtensive.Orm.Sync
       this.tupleFormatters = tupleFormatters;
 
       keyTracker = new KeyTracker(configuration);
-      queryBuilder = new MetadataQueryBuilder(metadataManager, configuration);
+      queryBuilder = new MetadataQueryBuilder(replicaInfo, configuration, metadataManager);
     }
   }
 }

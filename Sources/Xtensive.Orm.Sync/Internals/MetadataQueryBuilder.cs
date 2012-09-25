@@ -10,6 +10,7 @@ namespace Xtensive.Orm.Sync
   {
     private readonly MetadataManager manager;
     private readonly SyncConfiguration configuration;
+    private readonly HashSet<uint> locallyKnownReplicas;
 
     public IEnumerable<MetadataQueryGroup> GetQueryGroups(SyncKnowledge destKnowledge)
     {
@@ -17,8 +18,6 @@ namespace Xtensive.Orm.Sync
         var result = new MetadataQueryGroup(store, GetFilter(store.EntityType));
         var knowledge = destKnowledge.GetKnowledgeForRange(store.MinItemId, store.MaxItemId);
         BuildQueriesForStore(store, knowledge, result);
-        if (result.Count==0)
-          result.Add(new MetadataQuery());
         yield return result;
       }
     }
@@ -49,21 +48,23 @@ namespace Xtensive.Orm.Sync
 
     private void BuildQueriesForRange(SyncId minId, SyncId maxId, IClockVector clockVector, MetadataQueryGroup output)
     {
-      var minIdValue = minId.ToString();
-      var maxIdValue = maxId.ToString();
-
       if (clockVector.Count==0) {
-        output.Add(new MetadataQuery(minIdValue, maxIdValue));
+        output.Add(new MetadataQuery(minId, maxId));
         return;
       }
 
+      var knownReplicas = new HashSet<uint>();
+      var unknownReplicas = new HashSet<uint>(locallyKnownReplicas);
+
       foreach (var item in clockVector) {
-        var lastKnownVersion = new SyncVersion(item.ReplicaKey, item.TickCount);
-        output.Add(new MetadataQuery(minIdValue, maxIdValue, lastKnownVersion));
+        var replicaKey = item.ReplicaKey;
+        output.Add(new MetadataQuery(minId, maxId, replicaKey, (long) item.TickCount));
+        knownReplicas.Add(replicaKey);
+        unknownReplicas.Remove(replicaKey);
       }
 
-      var knownReplicas = clockVector.Select(item => item.ReplicaKey);
-      output.Add(new MetadataQuery(minIdValue, maxIdValue, replicasToExclude: knownReplicas));
+      foreach (var replicaKey in unknownReplicas)
+        output.Add(new MetadataQuery(minId, maxId, replicaKey));
     }
 
     private Expression GetFilter(Type type)
@@ -73,15 +74,19 @@ namespace Xtensive.Orm.Sync
       return result;
     }
 
-    public MetadataQueryBuilder(MetadataManager manager, SyncConfiguration configuration)
+    public MetadataQueryBuilder(ReplicaInfo replicaInfo, SyncConfiguration configuration, MetadataManager manager)
     {
-      if (manager==null)
-        throw new ArgumentNullException("manager");
+      if (replicaInfo==null)
+        throw new ArgumentNullException("replicaInfo");
       if (configuration==null)
         throw new ArgumentNullException("configuration");
+      if (manager == null)
+        throw new ArgumentNullException("manager");
 
       this.manager = manager;
       this.configuration = configuration;
+
+      locallyKnownReplicas = replicaInfo.GetKnownReplicas();
     }
   }
 }

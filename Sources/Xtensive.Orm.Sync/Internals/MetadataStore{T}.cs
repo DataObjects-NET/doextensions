@@ -25,17 +25,14 @@ namespace Xtensive.Orm.Sync
 
       // Range filter
       if (query.MinId!=null && query.MaxId!=null)
-        outer = outer.Where(info => info.Id.GreaterThanOrEqual(query.MinId) && info.Id.LessThan(query.MaxId));
+        outer = outer.Where(info => info.Id.GreaterThanOrEqual(query.MinId.ToString()) && info.Id.LessThan(query.MaxId.ToString()));
 
-      // Known versions filter
-      if (query.LastKnownVersion!=null)
-        outer = outer.Where(info =>
-          info.ChangeVersion.Replica==query.LastKnownVersion.ReplicaKey
-          && info.ChangeVersion.Tick > (long) query.LastKnownVersion.TickCount);
-
-      // Unknown relicas filter
-      if (query.ReplicasToExclude!=null && query.ReplicasToExclude.Count > 0)
-        outer = outer.Where(info => !query.ReplicasToExclude.Contains(info.ChangeVersion.Replica));
+      // Replica and tick filter
+      if (query.ReplicaKey!=null) {
+        outer = outer.Where(info => info.ChangeVersion.Replica==query.ReplicaKey.Value);
+        if (query.LastKnownTick!=null)
+          outer = outer.Where(info => info.ChangeVersion.Tick > query.LastKnownTick.Value);
+      }
 
       // User filter
       var predicate = userFilter as Expression<Func<TEntity, bool>>;
@@ -43,7 +40,8 @@ namespace Xtensive.Orm.Sync
         inner = inner.Where(predicate);
 
       var itemQueryResult = outer
-        .LeftJoin(inner, info => info.Entity, target => target, (info, target) => new {SyncInfo = info, Target = target})
+        .LeftJoin(
+          inner, info => info.Entity, target => target, (info, target) => new {SyncInfo = info, Target = target})
         .Where(pair => pair.Target!=null || pair.SyncInfo.IsTombstone)
         .OrderBy(pair => pair.SyncInfo.Id)
         .ToList();
