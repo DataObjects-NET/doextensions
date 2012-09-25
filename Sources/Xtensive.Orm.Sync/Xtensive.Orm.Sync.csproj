@@ -86,10 +86,10 @@
     <Compile Include="Internals\MetadataProcessor.cs" />
     <Compile Include="Internals\MetadataSet.cs" />
     <Compile Include="Internals\MetadataUpdater.cs" />
-    <Compile Include="Internals\ReplicaState.cs" />
+    <Compile Include="Internals\ReplicaInfo.cs" />
     <Compile Include="Internals\MetadataStore.cs" />
     <Compile Include="Internals\MetadataStore{T}.cs" />
-    <Compile Include="Internals\ReplicaManager.cs" />
+    <Compile Include="Internals\ReplicaInfoManager.cs" />
     <Compile Include="Internals\SyncIdFormatter.cs" />
     <Compile Include="Internals\HierarchyIdRegistry.cs" />
     <Compile Include="Internals\SyncSessionMarker.cs" />

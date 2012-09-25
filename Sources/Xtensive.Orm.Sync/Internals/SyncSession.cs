@@ -11,12 +11,12 @@ namespace Xtensive.Orm.Sync
     private readonly Session session;
     private readonly SyncSessionContext syncContext;
     private readonly SyncConfiguration configuration;
-    private readonly ReplicaManager replicaManager;
+    private readonly ReplicaInfoManager replicaInfoManager;
 
     private ChangeBatchBuilder batchBuilder;
     private ChangeApplier changeApplier;
 
-    public ReplicaState ReplicaState { get; private set; }
+    public ReplicaInfo ReplicaInfo { get; private set; }
 
     public Tuple<ChangeBatch, ChangeSet> GetChangeBatch(uint batchSize, SyncKnowledge destinationKnowledge)
     {
@@ -39,9 +39,9 @@ namespace Xtensive.Orm.Sync
       var metadataManager = session.Services.Demand<MetadataManager>();
       var accessor = session.Services.Demand<DirectEntityAccessor>();
       var tupleFormatters = session.Services.Demand<EntityTupleFormatterRegistry>();
-      var changeDetector = new ChangeDetector(ReplicaState, configuration, metadataManager, accessor, tupleFormatters);
+      var changeDetector = new ChangeDetector(ReplicaInfo, configuration, metadataManager, accessor, tupleFormatters);
 
-      return new ChangeBatchBuilder(ReplicaState, configuration, metadataManager, changeDetector);
+      return new ChangeBatchBuilder(ReplicaInfo, configuration, metadataManager, changeDetector);
     }
 
     private ChangeApplier CreateChangerApplier()
@@ -52,7 +52,7 @@ namespace Xtensive.Orm.Sync
       var tickGenerator = session.Services.Demand<SyncTickGenerator>();
       var tupleFormatters = session.Services.Demand<EntityTupleFormatterRegistry>();
 
-      return new ChangeApplier(ReplicaState, metadataManager, metadataFetcher, accessor, tickGenerator, tupleFormatters);
+      return new ChangeApplier(ReplicaInfo, metadataManager, metadataFetcher, accessor, tickGenerator, tupleFormatters);
     }
 
     public void Complete()
@@ -60,7 +60,7 @@ namespace Xtensive.Orm.Sync
       batchBuilder = null;
       changeApplier = null;
 
-      replicaManager.SaveReplicaState(ReplicaState);
+      replicaInfoManager.SaveReplicaInfo(ReplicaInfo);
       session.SaveChanges();
     }
 
@@ -75,8 +75,8 @@ namespace Xtensive.Orm.Sync
       this.session = session;
       this.configuration = configuration;
 
-      replicaManager = session.Services.Demand<ReplicaManager>();
-      ReplicaState = replicaManager.LoadReplicaState();
+      replicaInfoManager = session.Services.Demand<ReplicaInfoManager>();
+      ReplicaInfo = replicaInfoManager.LoadReplicaInfo();
     }
   }
 }

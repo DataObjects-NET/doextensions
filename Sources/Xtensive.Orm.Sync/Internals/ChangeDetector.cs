@@ -11,7 +11,7 @@ namespace Xtensive.Orm.Sync
 {
   internal sealed class ChangeDetector
   {
-    private readonly ReplicaState replicaState;
+    private readonly ReplicaInfo replicaInfo;
     private readonly MetadataManager metadataManager;
     private readonly DirectEntityAccessor entityAccessor;
     private readonly EntityTupleFormatterRegistry tupleFormatters;
@@ -20,8 +20,8 @@ namespace Xtensive.Orm.Sync
 
     public IEnumerable<ChangeSet> DetectChanges(uint batchSize, SyncKnowledge destinationKnowledge)
     {
-      var mappedKnowledge = replicaState.CurrentKnowledge.MapRemoteKnowledgeToLocal(destinationKnowledge);
-      mappedKnowledge.ReplicaKeyMap.FindOrAddReplicaKey(replicaState.Id);
+      var mappedKnowledge = replicaInfo.CurrentKnowledge.MapRemoteKnowledgeToLocal(destinationKnowledge);
+      mappedKnowledge.ReplicaKeyMap.FindOrAddReplicaKey(replicaInfo.Id);
 
       foreach (var queryGroup in queryBuilder.GetQueryGroups(mappedKnowledge)) {
         queryGroup.Dump();
@@ -88,13 +88,13 @@ namespace Xtensive.Orm.Sync
       var lastChangeVersion = item.ChangeVersion.Version;
       var changeKind = item.IsTombstone ? ChangeKind.Deleted : ChangeKind.Update;
 
-      if (destinationKnowledge.Contains(replicaState.Id, item.SyncId, lastChangeVersion)) {
+      if (destinationKnowledge.Contains(replicaInfo.Id, item.SyncId, lastChangeVersion)) {
         keyTracker.UnrequestKeySync(item.TargetKey);
         return null;
       }
 
       var change = new ItemChange(
-        metadataManager.IdFormats, replicaState.Id, item.SyncId,
+        metadataManager.IdFormats, replicaInfo.Id, item.SyncId,
         changeKind, createdVersion, lastChangeVersion);
 
       var changeData = new ItemChangeData {
@@ -139,12 +139,12 @@ namespace Xtensive.Orm.Sync
     }
 
     public ChangeDetector(
-      ReplicaState replicaState, SyncConfiguration configuration,
+      ReplicaInfo replicaInfo, SyncConfiguration configuration,
       MetadataManager metadataManager, DirectEntityAccessor entityAccessor,
       EntityTupleFormatterRegistry tupleFormatters)
     {
-      if (replicaState==null)
-        throw new ArgumentNullException("replicaState");
+      if (replicaInfo==null)
+        throw new ArgumentNullException("replicaInfo");
       if (metadataManager==null)
         throw new ArgumentNullException("metadataManager");
       if (configuration==null)
@@ -154,7 +154,7 @@ namespace Xtensive.Orm.Sync
       if (tupleFormatters==null)
         throw new ArgumentNullException("tupleFormatters");
 
-      this.replicaState = replicaState;
+      this.replicaInfo = replicaInfo;
       this.metadataManager = metadataManager;
       this.entityAccessor = entityAccessor;
       this.tupleFormatters = tupleFormatters;

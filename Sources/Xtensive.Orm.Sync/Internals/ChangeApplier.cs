@@ -20,7 +20,7 @@ namespace Xtensive.Orm.Sync
     private readonly Session session;
     private readonly MetadataFetcher metadataFetcher;
     private readonly DirectEntityAccessor accessor;
-    private readonly ReplicaState replicaState;
+    private readonly ReplicaInfo replicaInfo;
     private readonly MetadataManager metadataManager;
     private readonly SyncTickGenerator tickGenerator;
     private readonly EntityTupleFormatterRegistry tupleFormatters;
@@ -35,7 +35,7 @@ namespace Xtensive.Orm.Sync
       new NotifyingChangeApplier(metadataManager.IdFormats)
         .ApplyChanges(
           resolutionPolicy, sourceChanges, changeDataRetriever,
-          localChanges, replicaState.CurrentKnowledge, replicaState.ForgottenKnowledge,
+          localChanges, replicaInfo.CurrentKnowledge, replicaInfo.ForgottenKnowledge,
           this, syncContext, syncCallbacks);
     }
 
@@ -59,7 +59,7 @@ namespace Xtensive.Orm.Sync
         }
 
         var localChange = new ItemChange(
-          metadataManager.IdFormats, replicaState.Id, sourceChange.ItemId,
+          metadataManager.IdFormats, replicaInfo.Id, sourceChange.ItemId,
           changeKind, createdVersion, lastChangeVersion);
 
         localChange.SetAllChangeUnitsPresent();
@@ -232,8 +232,8 @@ namespace Xtensive.Orm.Sync
 
     void INotifyingChangeApplierTarget.StoreKnowledgeForScope(SyncKnowledge currentKnowledge, ForgottenKnowledge forgottenKnowledge)
     {
-      replicaState.CurrentKnowledge.Combine(currentKnowledge);
-      replicaState.ForgottenKnowledge.Combine(forgottenKnowledge);
+      replicaInfo.CurrentKnowledge.Combine(currentKnowledge);
+      replicaInfo.ForgottenKnowledge.Combine(forgottenKnowledge);
     }
 
     void INotifyingChangeApplierTarget.SaveChangeWithChangeUnits(ItemChange change, SaveChangeWithChangeUnitsContext context)
@@ -249,13 +249,13 @@ namespace Xtensive.Orm.Sync
     #endregion
 
     public ChangeApplier(
-      ReplicaState replicaState,
+      ReplicaInfo replicaInfo,
       MetadataManager metadataManager, MetadataFetcher metadataFetcher,
       DirectEntityAccessor accessor, SyncTickGenerator tickGenerator,
       EntityTupleFormatterRegistry tupleFormatters)
     {
-      if (replicaState==null)
-        throw new ArgumentNullException("replicaState");
+      if (replicaInfo==null)
+        throw new ArgumentNullException("replicaInfo");
       if (metadataManager==null)
         throw new ArgumentNullException("metadataManager");
       if (metadataFetcher==null)
@@ -267,7 +267,7 @@ namespace Xtensive.Orm.Sync
       if (tupleFormatters==null)
         throw new ArgumentNullException("tupleFormatters");
 
-      this.replicaState = replicaState;
+      this.replicaInfo = replicaInfo;
       this.metadataManager = metadataManager;
       this.metadataFetcher = metadataFetcher;
       this.accessor = accessor;

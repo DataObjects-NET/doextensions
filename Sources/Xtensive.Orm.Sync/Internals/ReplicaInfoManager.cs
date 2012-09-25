@@ -7,8 +7,8 @@ using Xtensive.Orm.Metadata;
 
 namespace Xtensive.Orm.Sync
 {
-  [Service(typeof (ReplicaManager), Singleton = true)]
-  internal sealed class ReplicaManager : ISessionService
+  [Service(typeof (ReplicaInfoManager), Singleton = true)]
+  internal sealed class ReplicaInfoManager : ISessionService
   {
     private static readonly XmlSerializer KnowledgeSerializer = new XmlSerializer(typeof (SyncKnowledge));
     private static readonly XmlSerializer ForgottenKnowledgeSerializer = new XmlSerializer(typeof (ForgottenKnowledge));
@@ -16,18 +16,18 @@ namespace Xtensive.Orm.Sync
     private readonly Session session;
     private readonly SyncTickGenerator tickGenerator;
 
-    public ReplicaState LoadReplicaState()
+    public ReplicaInfo LoadReplicaInfo()
     {
-      var result = new ReplicaState {Id = LoadReplicaId()};
+      var result = new ReplicaInfo {Id = LoadReplicaId()};
       LoadCurrentKnowledge(result);
       LoadForgottenKnowledge(result);
       return result;
     }
 
-    public void SaveReplicaState(ReplicaState state)
+    public void SaveReplicaInfo(ReplicaInfo info)
     {
-      SaveCurrentKnowledge(state);
-      SaveForgottenKnowledge(state);
+      SaveCurrentKnowledge(info);
+      SaveForgottenKnowledge(info);
     }
 
     public SyncId LoadReplicaId()
@@ -40,37 +40,37 @@ namespace Xtensive.Orm.Sync
       return new SyncId(syncId);
     }
 
-    private void LoadCurrentKnowledge(ReplicaState state)
+    private void LoadCurrentKnowledge(ReplicaInfo info)
     {
       var container = GetContainer(WellKnown.CurrentKnowledgeExtensionName);
       if (container!=null) {
         var knowledge = (SyncKnowledge) Deserialize(KnowledgeSerializer, container.Text);
-        state.CurrentKnowledge = knowledge;
+        info.CurrentKnowledge = knowledge;
         knowledge.SetLocalTickCount(GetLastTick());
       }
       else
-        state.CurrentKnowledge = new SyncKnowledge(WellKnown.IdFormats, state.Id, GetLastTick());
+        info.CurrentKnowledge = new SyncKnowledge(WellKnown.IdFormats, info.Id, GetLastTick());
     }
 
-    private void LoadForgottenKnowledge(ReplicaState state)
+    private void LoadForgottenKnowledge(ReplicaInfo info)
     {
       var container = GetContainer(WellKnown.ForgottenKnowledgeExtensionName);
       if (container!=null)
-        state.ForgottenKnowledge = (ForgottenKnowledge) Deserialize(ForgottenKnowledgeSerializer, container.Text);
+        info.ForgottenKnowledge = (ForgottenKnowledge) Deserialize(ForgottenKnowledgeSerializer, container.Text);
       else
-        state.ForgottenKnowledge = new ForgottenKnowledge(WellKnown.IdFormats, state.CurrentKnowledge);
+        info.ForgottenKnowledge = new ForgottenKnowledge(WellKnown.IdFormats, info.CurrentKnowledge);
     }
 
-    private void SaveCurrentKnowledge(ReplicaState state)
+    private void SaveCurrentKnowledge(ReplicaInfo info)
     {
       var container = GetOrCreateContainer(WellKnown.CurrentKnowledgeExtensionName);
-      container.Text = Serialize(KnowledgeSerializer, state.CurrentKnowledge);
+      container.Text = Serialize(KnowledgeSerializer, info.CurrentKnowledge);
     }
 
-    private void SaveForgottenKnowledge(ReplicaState state)
+    private void SaveForgottenKnowledge(ReplicaInfo info)
     {
       var container = GetOrCreateContainer(WellKnown.ForgottenKnowledgeExtensionName);
-      container.Text = Serialize(ForgottenKnowledgeSerializer, state.ForgottenKnowledge);
+      container.Text = Serialize(ForgottenKnowledgeSerializer, info.ForgottenKnowledge);
     }
 
     private Extension GetContainer(string name)
@@ -117,7 +117,7 @@ namespace Xtensive.Orm.Sync
     }
 
     [ServiceConstructor]
-    public ReplicaManager(Session session, SyncTickGenerator tickGenerator)
+    public ReplicaInfoManager(Session session, SyncTickGenerator tickGenerator)
     {
       if (session==null)
         throw new ArgumentNullException("session");

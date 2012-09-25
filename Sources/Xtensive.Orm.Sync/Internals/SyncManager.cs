@@ -130,7 +130,7 @@ namespace Xtensive.Orm.Sync
     {
       using (var session = domain.OpenSession(WellKnown.SyncSessionConfiguration))
       using (var tx = session.OpenTransaction()) {
-        ReplicaId = session.Services.Demand<ReplicaManager>().LoadReplicaId();
+        ReplicaId = session.Services.Demand<ReplicaInfoManager>().LoadReplicaId();
         tx.Complete();
       }
     }

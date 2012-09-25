@@ -186,7 +186,7 @@ namespace Xtensive.Orm.Sync
     {
       CheckIsRunning();
       batchSize = (uint) configuration.BatchSize;
-      knowledge = syncSession.ReplicaState.CurrentKnowledge;
+      knowledge = syncSession.ReplicaInfo.CurrentKnowledge;
     }
 
     /// <summary>
