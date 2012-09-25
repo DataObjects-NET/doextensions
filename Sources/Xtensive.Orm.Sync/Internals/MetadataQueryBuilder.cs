@@ -29,33 +29,41 @@ namespace Xtensive.Orm.Sync
 
       var scopeRangeSet = new KnowledgeFragmentInspector(knowledge).ScopeRangeSet;
       foreach (var nextRange in scopeRangeSet) {
-        var upperBound = nextRange.ItemId;
-        if (currentRange!=null && upperBound > store.MinItemId)
-          BuildQueriesForRange(currentRange, upperBound, output);
+        if (currentRange!=null) {
+          var minId = currentRange.ItemId;
+          var maxId = nextRange.ItemId;
+          if (maxId > store.MinItemId)
+            BuildQueriesForRange(minId, maxId, currentRange.ClockVector, output);
+        }
         currentRange = nextRange;
       }
 
-      if (currentRange==null || currentRange.ItemId < store.MaxItemId)
-        BuildQueriesForRange(currentRange, store.MaxItemId, output);
+      if (currentRange!=null && currentRange.ItemId < store.MaxItemId) {
+        var minId = currentRange.ItemId;
+        var maxId = store.MaxItemId;
+        if (minId < store.MinItemId)
+          minId = store.MinItemId;
+        BuildQueriesForRange(minId, maxId, currentRange.ClockVector, output);
+      }
     }
 
-    private void BuildQueriesForRange(Range currentRange, SyncId upperBound, MetadataQueryGroup output)
+    private void BuildQueriesForRange(SyncId minId, SyncId maxId, IClockVector clockVector, MetadataQueryGroup output)
     {
-      var minId = currentRange.ItemId.ToString();
-      var maxId = upperBound.ToString();
+      var minIdValue = minId.ToString();
+      var maxIdValue = maxId.ToString();
 
-      if (currentRange.ClockVector.Count==0) {
-        output.Add(new MetadataQuery(minId, maxId));
+      if (clockVector.Count==0) {
+        output.Add(new MetadataQuery(minIdValue, maxIdValue));
         return;
       }
 
-      foreach (var item in currentRange.ClockVector) {
+      foreach (var item in clockVector) {
         var lastKnownVersion = new SyncVersion(item.ReplicaKey, item.TickCount);
-        output.Add(new MetadataQuery(minId, maxId, lastKnownVersion));
+        output.Add(new MetadataQuery(minIdValue, maxIdValue, lastKnownVersion));
       }
 
-      var knownReplicas = currentRange.ClockVector.Select(item => item.ReplicaKey);
-      output.Add(new MetadataQuery(minId, maxId, replicasToExclude: knownReplicas));
+      var knownReplicas = clockVector.Select(item => item.ReplicaKey);
+      output.Add(new MetadataQuery(minIdValue, maxIdValue, replicasToExclude: knownReplicas));
     }
 
     private Expression GetFilter(Type type)
