@@ -33,26 +33,27 @@ namespace Xtensive.Orm.Sync
 
       foreach (var nextRange in new KnowledgeFragmentInspector(destKnowledge).ScopeRangeSet) {
         if (currentRange!=null)
-          MakeTaskFromRange(currentRange, nextRange, result);
+          MakeTasksFromRange(currentRange, nextRange, result);
         currentRange = nextRange;
       }
 
-      MakeTaskFromRange(currentRange, null, result);
+      MakeTasksFromRange(currentRange, null, result);
 
       return result;
     }
 
-    private void MakeTaskFromRange(Range currentRange, Range nextRange, Dictionary<MetadataStore, List<MetadataQueryTask>> output)
+    private void MakeTasksFromRange(Range currentRange, Range nextRange, Dictionary<MetadataStore, List<MetadataQueryTask>> output)
     {
-      var hierarchyId = SyncIdFormatter.GetInfo(currentRange.ItemId).HierarchyId;
+      var info = SyncIdFormatter.GetInfo(currentRange.ItemId);
+      var hierarchyId = info.HierarchyId;
       if (hierarchyId==0)
         return;
 
       var store = manager.GetStore(hierarchyId);
       var minId = currentRange.ItemId.ToString();
-      var maxId = (nextRange!=null ? nextRange.ItemId : SyncIdFormatter.MaxId).ToString();
+      var upperBound = nextRange!=null ? nextRange.ItemId : SyncIdFormatter.GetUpperBound(info);
+      var maxId = upperBound.ToString();
       var lastKnownVersions = currentRange.ClockVector.Select(item => new SyncVersion(item.ReplicaKey, item.TickCount));
-
       var task = new MetadataQueryTask(store, minId, maxId, lastKnownVersions, GetFilter(store.EntityType));
 
       List<MetadataQueryTask> taskList;

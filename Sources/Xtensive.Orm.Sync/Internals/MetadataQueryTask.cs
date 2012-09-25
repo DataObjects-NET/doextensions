@@ -24,6 +24,13 @@ namespace Xtensive.Orm.Sync
       return store.GetOrderedMetadata(this);
     }
 
+    public override string ToString()
+    {
+      if (string.IsNullOrEmpty(MinId))
+        return string.Format("{0} [all]", store.EntityType);
+      return string.Format("{0} [{1}, {2})", store.EntityType.Name, MinId, MaxId);
+    }
+
     public MetadataQueryTask(MetadataStore store, Expression filter)
     {
       if (store==null)
