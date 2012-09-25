@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using Microsoft.Synchronization;
 using Xtensive.Orm.Sync.Model;
 
@@ -7,25 +8,31 @@ namespace Xtensive.Orm.Sync
 {
   internal abstract class MetadataStore
   {
-    public Session Session { get; private set; }
-
     public Type EntityType { get; private set; }
+
+    public SyncId MinItemId { get; private set; }
+
+    public SyncId MaxItemId { get; private set; }
 
     public abstract SyncInfo CreateMetadata(SyncId syncId, Key targetKey);
 
-    public abstract IEnumerable<SyncInfo> GetOrderedMetadata(IMetadataQuery query);
+    public abstract IEnumerable<SyncInfo> GetOrderedMetadata(MetadataQuery query, Expression userFilter);
 
     public abstract IEnumerable<SyncInfo> GetUnorderedMetadata(List<Key> targetKeys);
 
-    protected MetadataStore(Session session, Type entityType)
+    protected MetadataStore(Type entityType, SyncId minItemId, SyncId maxItemId)
     {
-      if (session==null)
-        throw new ArgumentNullException("session");
       if (entityType==null)
         throw new ArgumentNullException("entityType");
+      if (minItemId==null)
+        throw new ArgumentNullException("minItemId");
+      if (maxItemId==null)
+        throw new ArgumentNullException("maxItemId");
 
-      Session = session;
       EntityType = entityType;
+
+      MinItemId = minItemId;
+      MaxItemId = maxItemId;
     }
   }
 }

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using Microsoft.Synchronization;
 using Xtensive.Core;
 using Xtensive.Orm.Sync.Model;
@@ -12,15 +11,17 @@ namespace Xtensive.Orm.Sync
   internal sealed class MetadataStore<TEntity> : MetadataStore
     where TEntity : class, IEntity
   {
+    private readonly Session session;
+
     public override SyncInfo CreateMetadata(SyncId syncId, Key targetKey)
     {
-      return new SyncInfo<TEntity>(Session, syncId) {TargetKey = targetKey};
+      return new SyncInfo<TEntity>(session, syncId) {TargetKey = targetKey};
     }
 
-    public override IEnumerable<SyncInfo> GetOrderedMetadata(IMetadataQuery query)
+    public override IEnumerable<SyncInfo> GetOrderedMetadata(MetadataQuery query, Expression userFilter)
     {
-      var outer = Session.Query.All<SyncInfo<TEntity>>();
-      var inner = Session.Query.All<TEntity>();
+      var outer = session.Query.All<SyncInfo<TEntity>>();
+      var inner = session.Query.All<TEntity>();
 
       // Range filter
       if (query.MinId!=null && query.MaxId!=null)
@@ -37,7 +38,7 @@ namespace Xtensive.Orm.Sync
         outer = outer.Where(info => !query.ReplicasToExclude.Contains(info.ChangeVersion.Replica));
 
       // User filter
-      var predicate = query.UserFilter as Expression<Func<TEntity, bool>>;
+      var predicate = userFilter as Expression<Func<TEntity, bool>>;
       if (predicate!=null)
         inner = inner.Where(predicate);
 
@@ -53,7 +54,7 @@ namespace Xtensive.Orm.Sync
       var items = itemQueryResult.Select(p => p.SyncInfo);
 
       // To fetch entities
-      Session.Query.Many<TEntity>(keysToPrefetch).Run();
+      session.Query.Many<TEntity>(keysToPrefetch).Run();
       return items;
     }
 
@@ -69,8 +70,8 @@ namespace Xtensive.Orm.Sync
         if (batchCount - i==1 && lastBatchItemCount > 0)
           itemCount = lastBatchItemCount;
 
-        var outer = Session.Query.All<SyncInfo<TEntity>>();
-        var inner = Session.Query.All<TEntity>();
+        var outer = session.Query.All<SyncInfo<TEntity>>();
+        var inner = session.Query.All<TEntity>();
         var filter = FilterByKeys(targetKeys, i * WellKnown.EntityFetchBatchSize, itemCount);
         var itemQueryResult = outer
           .Where(filter)
@@ -83,7 +84,7 @@ namespace Xtensive.Orm.Sync
         var items = itemQueryResult.Select(p => p.SyncInfo);
 
         // To fetch entities
-        Session.Query.Many<TEntity>(keysToFetch).Run();
+        session.Query.Many<TEntity>(keysToFetch).Run();
         foreach (var item in items)
           yield return item;
       }
@@ -102,9 +103,12 @@ namespace Xtensive.Orm.Sync
       return Expression.Lambda<Func<SyncInfo<TEntity>, bool>>(body, info);
     }
 
-    public MetadataStore(Session session)
-      : base(session, typeof (TEntity))
+    public MetadataStore(Session session, SyncId minItemId, SyncId maxItemId)
+      : base(typeof (TEntity), minItemId, maxItemId)
     {
+      if (session==null)
+        throw new ArgumentNullException("session");
+      this.session = session;
     }
   }
 }

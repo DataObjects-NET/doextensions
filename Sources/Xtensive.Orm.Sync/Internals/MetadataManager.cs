@@ -95,7 +95,7 @@ namespace Xtensive.Orm.Sync
       if (tick < 0)
         tick = tickGenerator.GetNextTick();
 
-      var syncId = SyncIdFormatter.GetSyncId(replicaId, hiearchyId, tick);
+      var syncId = SyncIdFormatter.GetSyncId(hiearchyId, replicaId, tick);
       var result = store.CreateMetadata(syncId, key);
 
       result.CreationVersion = GetLocalVersion(tick);
@@ -148,8 +148,10 @@ namespace Xtensive.Orm.Sync
       var nodeIndex = new Dictionary<Type, Node<Type>>();
       var model = session.Domain.Model;
 
-      var types = model.Types[typeof (SyncInfo)].GetDescendants()
-        .Select(t => t.UnderlyingType.GetGenericArguments().First());
+      var types = model.Types[typeof (SyncInfo)]
+        .GetDescendants()
+        .Select(t => t.UnderlyingType.GetGenericArguments().Single());
+
       foreach (var type in types) {
         var node = new Node<Type>(type);
         nodeIndex[type] = node;
@@ -173,8 +175,11 @@ namespace Xtensive.Orm.Sync
       storeIndex = new Dictionary<Type, MetadataStore>(rootTypes.Count);
 
       foreach (var rootType in rootTypes) {
+        var hierarchyId = hierarchyIdRegistry.GetHierarchyId(model.Types[rootType]);
+        var minItemId = SyncIdFormatter.GetLowerBound(hierarchyId);
+        var maxItemid = SyncIdFormatter.GetUpperBound(hierarchyId);
         var storeType = typeof (MetadataStore<>).MakeGenericType(rootType);
-        var storeInstance = (MetadataStore) Activator.CreateInstance(storeType, session);
+        var storeInstance = (MetadataStore) Activator.CreateInstance(storeType, session, minItemId, maxItemid);
         storeList.Add(storeInstance);
         storeIndex[rootType] = storeInstance;
       }

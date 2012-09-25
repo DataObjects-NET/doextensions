@@ -2,14 +2,14 @@
 {
   internal struct SyncIdInfo
   {
-    public readonly int ReplicaIdHash;
     public readonly int HierarchyId;
+    public readonly int ReplicaIdHash;
     public readonly long Tick;
 
-    public SyncIdInfo(int replicaIdHash, int hiearchyId, long tick)
+    public SyncIdInfo(int hiearchyId, int replicaIdHash, long tick)
     {
-      ReplicaIdHash = replicaIdHash;
       HierarchyId = hiearchyId;
+      ReplicaIdHash = replicaIdHash;
       Tick = tick;
     }
   }

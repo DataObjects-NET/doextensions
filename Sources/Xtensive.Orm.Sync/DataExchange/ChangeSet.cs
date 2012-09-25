@@ -13,9 +13,14 @@ namespace Xtensive.Orm.Sync.DataExchange
   public sealed class ChangeSet : IEnumerable<ItemChangeData>
   {
     private readonly SortedDictionary<SyncId, ItemChangeData> index = new SortedDictionary<SyncId, ItemChangeData>();
+
+    [NonSerialized]
     private readonly bool isRange;
 
+    [NonSerialized]
     private SyncId minId;
+
+    [NonSerialized]
     private SyncId maxId;
 
     /// <summary>

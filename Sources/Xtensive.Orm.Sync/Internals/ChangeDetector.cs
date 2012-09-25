@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.Synchronization;
 using Xtensive.Orm.Services;
@@ -15,16 +16,20 @@ namespace Xtensive.Orm.Sync
     private readonly DirectEntityAccessor entityAccessor;
     private readonly EntityTupleFormatterRegistry tupleFormatters;
     private readonly KeyTracker keyTracker;
-    private readonly MetadataQueryTaskBuilder taskBuilder;
+    private readonly MetadataQueryBuilder queryBuilder;
 
     public IEnumerable<ChangeSet> DetectChanges(uint batchSize, SyncKnowledge destinationKnowledge)
     {
       var mappedKnowledge = replicaState.CurrentKnowledge.MapRemoteKnowledgeToLocal(destinationKnowledge);
       mappedKnowledge.ReplicaKeyMap.FindOrAddReplicaKey(replicaState.Id);
 
-      foreach (var task in taskBuilder.GetTasks(mappedKnowledge)) {
-        var items = task.Execute();
-        var batches = DetectChanges(items, batchSize, mappedKnowledge, true);
+      foreach (var queryGroup in queryBuilder.GetQueryGroups(mappedKnowledge)) {
+#if DEBUG
+        foreach (var query in queryGroup)
+          Debug.WriteLine(query);
+#endif
+        var items = queryGroup.ExecuteAll();
+        var batches = DetectChangesForItems(items, batchSize, mappedKnowledge, true);
         foreach (var batch in batches)
           yield return batch;
       }
@@ -34,14 +39,14 @@ namespace Xtensive.Orm.Sync
         var groups = keys.GroupBy(i => i.TypeReference.Type.Hierarchy.Root);
         foreach (var group in groups) {
           var items = metadataManager.GetStore(group.Key).GetUnorderedMetadata(group.ToList());
-          var batches = DetectChanges(items, batchSize, mappedKnowledge, false);
+          var batches = DetectChangesForItems(items, batchSize, mappedKnowledge, false);
           foreach (var batch in batches)
             yield return batch;
         }
       }
     }
 
-    private IEnumerable<ChangeSet> DetectChanges(IEnumerable<SyncInfo> items, uint batchSize, SyncKnowledge mappedKnowledge, bool isOrdered)
+    private IEnumerable<ChangeSet> DetectChangesForItems(IEnumerable<SyncInfo> items, uint batchSize, SyncKnowledge mappedKnowledge, bool isOrdered)
     {
       var result = new ChangeSet(isOrdered);
       var references = new HashSet<Key>();
@@ -137,7 +142,7 @@ namespace Xtensive.Orm.Sync
       this.tupleFormatters = tupleFormatters;
 
       keyTracker = new KeyTracker(configuration);
-      taskBuilder = new MetadataQueryTaskBuilder(metadataManager, configuration);
+      queryBuilder = new MetadataQueryBuilder(metadataManager, configuration);
     }
   }
 }
