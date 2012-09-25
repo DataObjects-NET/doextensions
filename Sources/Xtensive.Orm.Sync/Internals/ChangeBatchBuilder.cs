@@ -43,7 +43,7 @@ namespace Xtensive.Orm.Sync
 
     private void AddChanges(ChangeBatch batch, ChangeSet changeSet, bool isLastBatch)
     {
-      if (changeSet.IsRange) {
+      if (changeSet.IsOrdered) {
         batch.BeginOrderedGroup(changeSet.MinId);
         batch.AddChanges(changeSet.GetItemChanges());
         batch.EndOrderedGroup(changeSet.MaxId, replicaState.CurrentKnowledge);

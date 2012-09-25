@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using Microsoft.Synchronization;
@@ -47,6 +48,14 @@ namespace Xtensive.Orm.Sync
       this.store = store;
 
       this.userFilter = userFilter;
+    }
+
+    [Conditional("DEBUG")]
+    public void Dump()
+    {
+      Debug.WriteLine("{0}:", (object) store.EntityType.Name);
+      foreach (var query in queries)
+        Debug.WriteLine("  {0}", query);
     }
   }
 }

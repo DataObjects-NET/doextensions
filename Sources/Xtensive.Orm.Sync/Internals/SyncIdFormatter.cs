@@ -45,16 +45,6 @@ namespace Xtensive.Orm.Sync
       return GetSyncId(hierarchyId, -1, -1);
     }
 
-    public static SyncId GetLowerBound(SyncIdInfo info)
-    {
-      return GetSyncId(info.HierarchyId, info.ReplicaIdHash, 0);
-    }
-
-    public static SyncId GetUpperBound(SyncIdInfo info)
-    {
-      return GetSyncId(info.HierarchyId, info.ReplicaIdHash, -1);
-    }
-
     public static SyncId GetNextId(SyncId syncId)
     {
       var info = GetInfo(syncId);

@@ -24,14 +24,19 @@ namespace Xtensive.Orm.Sync
       mappedKnowledge.ReplicaKeyMap.FindOrAddReplicaKey(replicaState.Id);
 
       foreach (var queryGroup in queryBuilder.GetQueryGroups(mappedKnowledge)) {
-#if DEBUG
-        foreach (var query in queryGroup)
-          Debug.WriteLine(query);
-#endif
-        var items = queryGroup.ExecuteAll();
-        var batches = DetectChangesForItems(items, batchSize, mappedKnowledge, true);
-        foreach (var batch in batches)
+        queryGroup.Dump();
+        var nextChangeSetLowerBound = queryGroup.MinResultId;
+        var batches = DetectChangesForItems(queryGroup.ExecuteAll(), batchSize, mappedKnowledge, true);
+        foreach (var batch in batches) {
+          batch.MinId = nextChangeSetLowerBound;
+          nextChangeSetLowerBound = SyncIdFormatter.GetNextId(batch.MaxId);
           yield return batch;
+        }
+
+        yield return new ChangeSet(true) {
+          MinId = nextChangeSetLowerBound,
+          MaxId = queryGroup.MaxResultId
+        };
       }
 
       while (keyTracker.HasKeysToSync) {
@@ -46,44 +51,16 @@ namespace Xtensive.Orm.Sync
       }
     }
 
-    private IEnumerable<ChangeSet> DetectChangesForItems(IEnumerable<SyncInfo> items, uint batchSize, SyncKnowledge mappedKnowledge, bool isOrdered)
+    private IEnumerable<ChangeSet> DetectChangesForItems(
+      IEnumerable<SyncInfo> items, uint batchSize, SyncKnowledge destinationKnowledge, bool isOrdered)
     {
       var result = new ChangeSet(isOrdered);
       var references = new HashSet<Key>();
 
       foreach (var item in items) {
-        var createdVersion = item.CreationVersion.Version;
-        var lastChangeVersion = item.ChangeVersion.Version;
-        var changeKind = item.IsTombstone ? ChangeKind.Deleted : ChangeKind.Update;
-
-        if (mappedKnowledge.Contains(replicaState.Id, item.SyncId, lastChangeVersion)) {
-          keyTracker.UnrequestKeySync(item.TargetKey);
+        var changeData = GetChangeData(destinationKnowledge, item, references);
+        if (changeData==null)
           continue;
-        }
-
-        var change = new ItemChange(metadataManager.IdFormats, replicaState.Id, item.SyncId, changeKind, createdVersion, lastChangeVersion);
-        var changeData = new ItemChangeData {
-          Change = change,
-          Identity = new Identity(item.TargetKey, item.SyncId),
-        };
-
-        if (!item.IsTombstone) {
-          keyTracker.RegisterKeySync(item.TargetKey);
-          var syncTarget = item.Target;
-          var entityTuple = entityAccessor.GetEntityState(syncTarget).Tuple;
-          changeData.TupleValue = tupleFormatters.Get(syncTarget.TypeInfo.UnderlyingType).Format(entityTuple);
-          var type = item.TargetKey.TypeInfo;
-          var fields = type.Fields.Where(f => f.IsEntity);
-          foreach (var field in fields) {
-            var key = entityAccessor.GetReferenceKey(syncTarget, field);
-            if (key!=null) {
-              changeData.References.Add(field.Name, new Identity(key));
-              references.Add(key);
-              entityAccessor.SetReferenceKey(syncTarget, field, null);
-            }
-          }
-        }
-
         result.Add(changeData);
 
         if (result.Count!=batchSize)
@@ -105,9 +82,50 @@ namespace Xtensive.Orm.Sync
       }
     }
 
+    private ItemChangeData GetChangeData(SyncKnowledge destinationKnowledge, SyncInfo item, HashSet<Key> references)
+    {
+      var createdVersion = item.CreationVersion.Version;
+      var lastChangeVersion = item.ChangeVersion.Version;
+      var changeKind = item.IsTombstone ? ChangeKind.Deleted : ChangeKind.Update;
+
+      if (destinationKnowledge.Contains(replicaState.Id, item.SyncId, lastChangeVersion)) {
+        keyTracker.UnrequestKeySync(item.TargetKey);
+        return null;
+      }
+
+      var change = new ItemChange(
+        metadataManager.IdFormats, replicaState.Id, item.SyncId,
+        changeKind, createdVersion, lastChangeVersion);
+
+      var changeData = new ItemChangeData {
+        Change = change,
+        Identity = new Identity(item.TargetKey, item.SyncId),
+      };
+
+      if (item.IsTombstone)
+        return changeData;
+
+      keyTracker.RegisterKeySync(item.TargetKey);
+      var syncTarget = item.Target;
+      var entityTuple = entityAccessor.GetEntityState(syncTarget).Tuple;
+      changeData.TupleValue = tupleFormatters.Get(syncTarget.TypeInfo.UnderlyingType).Format(entityTuple);
+      var type = item.TargetKey.TypeInfo;
+      var fields = type.Fields.Where(f => f.IsEntity);
+      foreach (var field in fields) {
+        var key = entityAccessor.GetReferenceKey(syncTarget, field);
+        if (key==null)
+          continue;
+        changeData.References.Add(field.Name, new Identity(key));
+        references.Add(key);
+        entityAccessor.SetReferenceKey(syncTarget, field, null);
+      }
+
+      return changeData;
+    }
+
     private void LoadReferences(IEnumerable<ItemChangeData> items, IEnumerable<Key> keys)
     {
-      var metadataSet = metadataManager.GetMetadata(keys.ToList());
+      var metadataSet = metadataManager.GetMetadata(keys);
 
       foreach (var item in items)
         foreach (var reference in item.References.Values) {

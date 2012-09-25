@@ -15,7 +15,7 @@ namespace Xtensive.Orm.Sync.DataExchange
     private readonly SortedDictionary<SyncId, ItemChangeData> index = new SortedDictionary<SyncId, ItemChangeData>();
 
     [NonSerialized]
-    private readonly bool isRange;
+    private readonly bool isOrdered;
 
     [NonSerialized]
     private SyncId minId;
@@ -27,19 +27,27 @@ namespace Xtensive.Orm.Sync.DataExchange
     /// Gets minimal <see cref="SyncId"/>
     /// among the items included in this change set.
     /// </summary>
-    public SyncId MinId { get { return minId; } }
+    public SyncId MinId
+    {
+      get { return minId; }
+      set { minId = value; }
+    }
 
     /// <summary>
     /// Gets maximal <see cref="SyncId"/>
     /// among the items included in this change set.
     /// </summary>
-    public SyncId MaxId { get { return maxId; } }
+    public SyncId MaxId
+    {
+      get { return maxId; }
+      set { maxId = value; }
+    }
 
     /// <summary>
     /// Gets value indicating if this change set
-    /// represents full range.
+    /// is ordered.
     /// </summary>
-    public bool IsRange { get { return isRange; } }
+    public bool IsOrdered { get { return isOrdered; } }
 
     /// <summary>
     /// Gets the <see cref="ItemChangeData"/> with the specified global id.
@@ -118,9 +126,9 @@ namespace Xtensive.Orm.Sync.DataExchange
     /// <summary>
     /// Initializes new instance of <see cref="ChangeSet"/> class.
     /// </summary>
-    public ChangeSet(bool isRange = false)
+    public ChangeSet(bool isOrdered = false)
     {
-      this.isRange = isRange;
+      this.isOrdered = isOrdered;
     }
   }
 }

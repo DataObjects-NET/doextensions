@@ -29,12 +29,14 @@ namespace Xtensive.Orm.Sync
 
       var scopeRangeSet = new KnowledgeFragmentInspector(knowledge).ScopeRangeSet;
       foreach (var nextRange in scopeRangeSet) {
-        if (currentRange!=null)
-          BuildQueriesForRange(currentRange, nextRange.ItemId, output);
+        var upperBound = nextRange.ItemId;
+        if (currentRange!=null && upperBound > store.MinItemId)
+          BuildQueriesForRange(currentRange, upperBound, output);
         currentRange = nextRange;
       }
 
-      BuildQueriesForRange(currentRange, store.MaxItemId, output);
+      if (currentRange==null || currentRange.ItemId < store.MaxItemId)
+        BuildQueriesForRange(currentRange, store.MaxItemId, output);
     }
 
     private void BuildQueriesForRange(Range currentRange, SyncId upperBound, MetadataQueryGroup output)
