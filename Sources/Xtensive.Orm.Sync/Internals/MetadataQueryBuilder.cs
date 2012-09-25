@@ -53,13 +53,11 @@ namespace Xtensive.Orm.Sync
         return;
       }
 
-      var knownReplicas = new HashSet<uint>();
       var unknownReplicas = new HashSet<uint>(locallyKnownReplicas);
 
       foreach (var item in clockVector) {
         var replicaKey = item.ReplicaKey;
         output.Add(new MetadataQuery(minId, maxId, replicaKey, (long) item.TickCount));
-        knownReplicas.Add(replicaKey);
         unknownReplicas.Remove(replicaKey);
       }
 
