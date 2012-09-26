@@ -14,7 +14,7 @@ namespace Xtensive.Orm.Sync
     /// <summary>
     /// Number of objects to fetch when fetching unordered metadata
     /// </summary>
-    public const int UnorderedMetadataFetchBatchSize = 25;
+    public const int UnorderedMetadataBatchSize = 25;
 
     /// <summary>
     /// Number of object to read when applying <see cref="SyncLog"/>.
