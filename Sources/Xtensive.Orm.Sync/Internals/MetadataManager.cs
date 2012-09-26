@@ -148,9 +148,11 @@ namespace Xtensive.Orm.Sync
       var nodeIndex = new Dictionary<Type, Node<Type>>();
       var model = session.Domain.Model;
 
+      var thisAssembly = GetType().Assembly;
       var types = model.Types[typeof (SyncInfo)]
         .GetDescendants()
-        .Select(t => t.UnderlyingType.GetGenericArguments().Single());
+        .Select(t => t.UnderlyingType.GetGenericArguments()[0])
+        .Where(t => t.Assembly!=thisAssembly);
 
       foreach (var type in types) {
         var node = new Node<Type>(type);
