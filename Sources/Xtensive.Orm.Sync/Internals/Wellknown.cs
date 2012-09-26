@@ -14,7 +14,13 @@ namespace Xtensive.Orm.Sync
     public const int SyncBatchSize = 64;
 
     /// <summary>
-    /// Number of objects to fetch when fetching unordered metadata
+    /// Number of objects to fetch at once when fetching
+    /// ordered metadata.
+    /// </summary>
+    public const int OrderedMetadataBatchSize = 1024;
+
+    /// <summary>
+    /// Number of objects to fetch at once when fetching unordered metadata
     /// </summary>
     public const int UnorderedMetadataBatchSize = 25;
 

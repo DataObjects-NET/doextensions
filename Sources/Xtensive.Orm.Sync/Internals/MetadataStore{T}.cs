@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using Microsoft.Synchronization;
 using Xtensive.Core;
 using Xtensive.Orm.Sync.Model;
+
 namespace Xtensive.Orm.Sync
 {
   internal sealed class MetadataStore<TEntity> : MetadataStore
@@ -19,6 +20,22 @@ namespace Xtensive.Orm.Sync
 
     public override IEnumerable<SyncInfo> GetOrderedMetadata(MetadataQuery query, Expression userFilter)
     {
+      SyncId lastItemId;
+      do {
+        lastItemId = null;
+        var items = ExecuteQuery(query, userFilter);
+        foreach (var item in items) {
+          lastItemId = item.SyncId;
+          yield return item;
+        }
+        if (lastItemId!=null)
+          query = query.ChangeMinId(SyncIdFormatter.GetNextId(lastItemId));
+      }
+      while (lastItemId!=null);
+    }
+
+    private IEnumerable<SyncInfo<TEntity>> ExecuteQuery(MetadataQuery query, Expression userFilter)
+    {
       var outer = session.Query.All<SyncInfo<TEntity>>();
       var inner = session.Query.All<TEntity>();
 
@@ -31,20 +48,21 @@ namespace Xtensive.Orm.Sync
         inner = inner.Where(predicate);
 
       var itemQueryResult = outer
-        .LeftJoin(
-          inner, info => info.Entity, target => target, (info, target) => new {SyncInfo = info, Target = target})
+        .LeftJoin(inner, info => info.Entity, target => target, (info, target) => new {SyncInfo = info, Target = target})
         .Where(pair => pair.Target!=null || pair.SyncInfo.IsTombstone)
         .OrderBy(pair => pair.SyncInfo.Id)
+        .Take(WellKnown.OrderedMetadataBatchSize)
         .ToList();
+
       var keysToPrefetch = itemQueryResult
         .Where(p => !p.SyncInfo.IsTombstone)
         .Select(p => p.Target.Key)
         .ToList();
-      var items = itemQueryResult.Select(p => p.SyncInfo);
 
       // To fetch entities
-      session.Query.Many<TEntity>(keysToPrefetch).Run();
-      return items;
+      PrefetchEntities(keysToPrefetch);
+
+      return itemQueryResult.Select(p => p.SyncInfo);
     }
 
     public override IEnumerable<SyncInfo> GetUnorderedMetadata(List<Key> targetKeys)
@@ -73,10 +91,16 @@ namespace Xtensive.Orm.Sync
         var items = itemQueryResult.Select(p => p.SyncInfo);
 
         // To fetch entities
-        session.Query.Many<TEntity>(keysToFetch).Run();
+        PrefetchEntities(keysToFetch);
+
         foreach (var item in items)
           yield return item;
       }
+    }
+
+    private void PrefetchEntities(IEnumerable<Key> keysToFetch)
+    {
+      session.Query.Many<TEntity>(keysToFetch).Run();
     }
 
     private Expression<Func<SyncInfo<TEntity>, bool>> GetFilter(List<Key> keys, int start, int count)

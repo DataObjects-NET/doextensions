@@ -23,6 +23,14 @@ namespace Xtensive.Orm.Sync
       return result.ToString();
     }
 
+    public MetadataQuery ChangeMinId(SyncId newMinId)
+    {
+      if (newMinId==null)
+        throw new ArgumentNullException("newMinId");
+      var result = new MetadataQuery(this) {MinId = newMinId};
+      return result;
+    }
+
     public MetadataQuery(SyncId minId, SyncId maxId, IEnumerable<MetadataQueryFilter> filters = null)
     {
       if (minId==null)
@@ -39,6 +47,13 @@ namespace Xtensive.Orm.Sync
       Filters = filters.ToList().AsReadOnly();
       if (Filters.Count==0)
         Filters = null;
+    }
+
+    private MetadataQuery(MetadataQuery query)
+    {
+      MinId = query.MinId;
+      MaxId = query.MaxId;
+      Filters = query.Filters;
     }
   }
 }
