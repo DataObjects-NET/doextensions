@@ -13,6 +13,8 @@ namespace Xtensive.Orm.Sync
     private readonly SyncConfiguration configuration;
     private readonly ReplicaInfoManager replicaInfoManager;
 
+    private string activeOperation;
+
     private ChangeBatchBuilder batchBuilder;
     private ChangeApplier changeApplier;
 
@@ -20,18 +22,29 @@ namespace Xtensive.Orm.Sync
 
     public Tuple<ChangeBatch, ChangeSet> GetChangeBatch(uint batchSize, SyncKnowledge destinationKnowledge)
     {
-      if (batchBuilder==null)
-        batchBuilder = CreateBatchBuilder();
-
-      return batchBuilder.GetNextBatch(batchSize, destinationKnowledge);
+      activeOperation = "GetChangeBatch";
+      try {
+        if (batchBuilder==null)
+          batchBuilder = CreateBatchBuilder();
+        return batchBuilder.GetNextBatch(batchSize, destinationKnowledge);
+      }
+      finally {
+        activeOperation = null;
+      }
     }
 
-    public void ProcessChangeBatch(ConflictResolutionPolicy resolutionPolicy, ChangeBatch sourceChanges, IChangeDataRetriever changeDataRetriever, SyncCallbacks syncCallbacks)
+    public void ProcessChangeBatch(ConflictResolutionPolicy resolutionPolicy,
+      ChangeBatch sourceChanges, IChangeDataRetriever changeDataRetriever, SyncCallbacks syncCallbacks)
     {
-      if (changeApplier==null)
-        changeApplier = CreateChangerApplier();
-
-      changeApplier.ProcessChangeBatch(resolutionPolicy, sourceChanges, changeDataRetriever, syncCallbacks, syncContext);
+      activeOperation = "ProcessChangeBatch";
+      try {
+        if (changeApplier==null)
+          changeApplier = CreateChangerApplier();
+        changeApplier.ProcessChangeBatch(resolutionPolicy, sourceChanges, changeDataRetriever, syncCallbacks, syncContext);
+      }
+      finally {
+        activeOperation = null;
+      }
     }
 
     private ChangeBatchBuilder CreateBatchBuilder()
@@ -57,6 +70,9 @@ namespace Xtensive.Orm.Sync
 
     public void Complete()
     {
+      if (activeOperation!=null)
+        throw new InvalidOperationException(string.Format("Operation '{0}' is still in progress", activeOperation));
+
       batchBuilder = null;
       changeApplier = null;
 
