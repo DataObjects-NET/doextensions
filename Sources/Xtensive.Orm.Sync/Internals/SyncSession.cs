@@ -71,7 +71,7 @@ namespace Xtensive.Orm.Sync
     public void Complete()
     {
       if (activeOperation!=null)
-        throw new InvalidOperationException(string.Format("Operation '{0}' is still in progress", activeOperation));
+        throw new InvalidOperationException(string.Format("Operation '{0}' is still in progress.", activeOperation));
 
       batchBuilder = null;
       changeApplier = null;
