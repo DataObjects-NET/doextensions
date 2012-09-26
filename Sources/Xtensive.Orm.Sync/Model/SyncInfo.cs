@@ -6,7 +6,9 @@ namespace Xtensive.Orm.Sync.Model
   /// <summary>
   /// <see cref="Entity"/> that contains synchronization-related information.
   /// </summary>
-  [HierarchyRoot(Clustered = false), KeyGenerator(KeyGeneratorKind.None)]
+  [HierarchyRoot(Clustered = false)]
+  [KeyGenerator(KeyGeneratorKind.None)]
+  [Index("ChangeVersion.Replica", "ChangeVersion.Tick", "Id", Name = "IX_Replica_Tick_Id", Unique = true)]
   public abstract class SyncInfo : Entity
   {
     private SyncId cachedSyncId;
