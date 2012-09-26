@@ -55,6 +55,7 @@ namespace Xtensive.Orm.Sync
       bool resume;
 
       using (var session = domain.OpenSession(WellKnown.SyncSessionConfiguration))
+      using (SyncSessionMarker.Add(session))
       using (var tx = session.OpenTransaction()) {
         var updater = session.Services.Demand<MetadataUpdater>();
         resume = updater.MaintainSyncLogOnce();
