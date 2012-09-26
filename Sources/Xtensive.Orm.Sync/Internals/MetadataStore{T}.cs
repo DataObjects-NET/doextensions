@@ -24,8 +24,7 @@ namespace Xtensive.Orm.Sync
       var inner = session.Query.All<TEntity>();
 
       // Range filter
-      if (query.MinId!=null && query.MaxId!=null)
-        outer = outer.Where(info => info.Id.GreaterThanOrEqual(query.MinId.ToString()) && info.Id.LessThan(query.MaxId.ToString()));
+      outer = outer.Where(info => info.Id.GreaterThanOrEqual(query.MinId.ToString()) && info.Id.LessThan(query.MaxId.ToString()));
 
       // Replica and tick filter
       if (query.ReplicaKey!=null) {

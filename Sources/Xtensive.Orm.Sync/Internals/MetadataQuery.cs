@@ -1,3 +1,4 @@
+using System;
 using System.Text;
 using Microsoft.Synchronization;
 
@@ -16,17 +17,21 @@ namespace Xtensive.Orm.Sync
     public override string ToString()
     {
       var result = new StringBuilder();
-      if (MinId!=null && MaxId!=null)
-        result.AppendFormat("[{0}, {1}) ", MinId, MaxId);
+      result.AppendFormat("[{0}, {1})", MinId, MaxId);
       if (ReplicaKey!=null)
-        result.AppendFormat("replica = {0} ", ReplicaKey.Value);
+        result.AppendFormat(" replica = {0}", ReplicaKey.Value);
       if (LastKnownTick!=null)
-        result.AppendFormat("tick > {0}", LastKnownTick.Value);
+        result.AppendFormat(" tick > {0}", LastKnownTick.Value);
       return result.ToString();
     }
 
-    public MetadataQuery(SyncId minId = null, SyncId maxId = null, uint? replicaKey = null, long? lastKnownTick = null)
+    public MetadataQuery(SyncId minId, SyncId maxId, uint? replicaKey = null, long? lastKnownTick = null)
     {
+      if (minId==null)
+        throw new ArgumentNullException("minId");
+      if (maxId==null)
+        throw new ArgumentNullException("maxId");
+
       MinId = minId;
       MaxId = maxId;
       ReplicaKey = replicaKey;
