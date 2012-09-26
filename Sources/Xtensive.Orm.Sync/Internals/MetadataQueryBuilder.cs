@@ -32,7 +32,7 @@ namespace Xtensive.Orm.Sync
           var minId = currentRange.ItemId;
           var maxId = nextRange.ItemId;
           if (maxId > store.MinItemId)
-            BuildQueriesForRange(minId, maxId, currentRange.ClockVector, output);
+            output.Add(BuildQueryForRange(minId, maxId, currentRange.ClockVector));
         }
         currentRange = nextRange;
       }
@@ -42,27 +42,28 @@ namespace Xtensive.Orm.Sync
         var maxId = store.MaxItemId;
         if (minId < store.MinItemId)
           minId = store.MinItemId;
-        BuildQueriesForRange(minId, maxId, currentRange.ClockVector, output);
+        output.Add(BuildQueryForRange(minId, maxId, currentRange.ClockVector));
       }
     }
 
-    private void BuildQueriesForRange(SyncId minId, SyncId maxId, IClockVector clockVector, MetadataQueryGroup output)
+    private MetadataQuery BuildQueryForRange(SyncId minId, SyncId maxId, IClockVector clockVector)
     {
-      if (clockVector.Count==0) {
-        output.Add(new MetadataQuery(minId, maxId));
-        return;
-      }
+      if (clockVector.Count==0)
+        return new MetadataQuery(minId, maxId);
+
+      var filters = new List<MetadataQueryFilter>();
 
       var unknownReplicas = new HashSet<uint>(locallyKnownReplicas);
 
       foreach (var item in clockVector) {
         var replicaKey = item.ReplicaKey;
-        output.Add(new MetadataQuery(minId, maxId, replicaKey, (long) item.TickCount));
+        filters.Add(new MetadataQueryFilter(replicaKey, (long) item.TickCount));
         unknownReplicas.Remove(replicaKey);
       }
 
-      foreach (var replicaKey in unknownReplicas)
-        output.Add(new MetadataQuery(minId, maxId, replicaKey));
+      filters.AddRange(unknownReplicas.Select(replicaKey => new MetadataQueryFilter(replicaKey)));
+
+      return new MetadataQuery(minId, maxId, filters);
     }
 
     private Expression GetFilter(Type type)

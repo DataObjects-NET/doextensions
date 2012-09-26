@@ -68,6 +68,7 @@
     <Compile Include="Internals\MetadataQuery.cs" />
     <Compile Include="Internals\MetadataQueryBuilder.cs" />
     <Compile Include="Internals\MetadataQueryGroup.cs" />
+    <Compile Include="Internals\MetadataQueryFilter.cs" />
     <Compile Include="Internals\SyncIdInfo.cs" />
     <Compile Include="Model\EntityChangeKind.cs" />
     <Compile Include="Interfaces\ISkippable.cs" />

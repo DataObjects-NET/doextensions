@@ -5,7 +5,6 @@ using System.Linq.Expressions;
 using Microsoft.Synchronization;
 using Xtensive.Core;
 using Xtensive.Orm.Sync.Model;
-
 namespace Xtensive.Orm.Sync
 {
   internal sealed class MetadataStore<TEntity> : MetadataStore
@@ -23,15 +22,8 @@ namespace Xtensive.Orm.Sync
       var outer = session.Query.All<SyncInfo<TEntity>>();
       var inner = session.Query.All<TEntity>();
 
-      // Range filter
-      outer = outer.Where(info => info.Id.GreaterThanOrEqual(query.MinId.ToString()) && info.Id.LessThan(query.MaxId.ToString()));
-
-      // Replica and tick filter
-      if (query.ReplicaKey!=null) {
-        outer = outer.Where(info => info.ChangeVersion.Replica==query.ReplicaKey.Value);
-        if (query.LastKnownTick!=null)
-          outer = outer.Where(info => info.ChangeVersion.Tick > query.LastKnownTick.Value);
-      }
+      // Knowledge filter
+      outer = outer.Where(GetFilter(query));
 
       // User filter
       var predicate = userFilter as Expression<Func<TEntity, bool>>;
@@ -69,7 +61,7 @@ namespace Xtensive.Orm.Sync
 
         var outer = session.Query.All<SyncInfo<TEntity>>();
         var inner = session.Query.All<TEntity>();
-        var filter = FilterByKeys(targetKeys, i * WellKnown.UnorderedMetadataBatchSize, itemCount);
+        var filter = GetFilter(targetKeys, i * WellKnown.UnorderedMetadataBatchSize, itemCount);
         var itemQueryResult = outer
           .Where(filter)
           .LeftJoin(inner, info => info.Entity, target => target, (info, target) => new {SyncInfo = info, Target = target})
@@ -87,7 +79,7 @@ namespace Xtensive.Orm.Sync
       }
     }
 
-    private Expression<Func<SyncInfo<TEntity>, bool>> FilterByKeys(List<Key> keys, int start, int count)
+    private Expression<Func<SyncInfo<TEntity>, bool>> GetFilter(List<Key> keys, int start, int count)
     {
       var info = Expression.Parameter(typeof (SyncInfo<TEntity>), "p");
       var entity = Expression.Property(info, WellKnown.EntityFieldName);
@@ -97,6 +89,46 @@ namespace Xtensive.Orm.Sync
       for (int i = 1; i < count; i++)
         body = Expression.OrElse(body, Expression.Equal(key, Expression.Constant(keys[start + i])));
 
+      return CreateFilter(info, body);
+    }
+
+    private Expression<Func<SyncInfo<TEntity>,bool>> GetFilter(MetadataQuery query)
+    {
+      var info = Expression.Parameter(typeof (SyncInfo<TEntity>), "p");
+      var changeVersion = Expression.Property(info, "ChangeVersion");
+      var id = Expression.Property(info, "Id");
+
+      var minId = Expression.Constant(query.MinId.ToString());
+      var maxId = Expression.Constant(query.MaxId.ToString());
+      var zero = Expression.Constant(0);
+
+      var rangeFilter = Expression.And(
+        Expression.GreaterThanOrEqual(Expression.Call(id, WellKnown.StringCompareToMethod, minId), zero),
+        Expression.LessThan(Expression.Call(id, WellKnown.StringCompareToMethod, maxId), zero));
+
+      if (query.Filters==null)
+        return CreateFilter(info, rangeFilter);
+
+      var replica = Expression.Property(changeVersion, "Replica");
+      var tick = Expression.Property(changeVersion, "Tick");
+
+      var replicaFilter = query.Filters
+        .Select(f => GetFilter(f, replica, tick))
+        .Aggregate(Expression.Or);
+
+      return CreateFilter(info, Expression.And(rangeFilter, replicaFilter));
+    }
+
+    private Expression GetFilter(MetadataQueryFilter filter, Expression replica, Expression tick)
+    {
+      var result = Expression.Equal(replica, Expression.Constant(filter.ReplicaKey));
+      if (filter.LastKnownTick!=null)
+        result = Expression.And(result, Expression.GreaterThan(tick, Expression.Constant(filter.LastKnownTick.Value)));
+      return result;
+    }
+
+    private static Expression<Func<SyncInfo<TEntity>, bool>> CreateFilter(ParameterExpression info, Expression body)
+    {
       return Expression.Lambda<Func<SyncInfo<TEntity>, bool>>(body, info);
     }
 

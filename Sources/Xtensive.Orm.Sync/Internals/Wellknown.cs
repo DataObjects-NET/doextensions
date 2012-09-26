@@ -1,4 +1,6 @@
-﻿using Microsoft.Synchronization;
+﻿using System.Linq;
+using System.Reflection;
+using Microsoft.Synchronization;
 using Xtensive.Orm.Configuration;
 using Xtensive.Orm.Sync.Model;
 
@@ -39,6 +41,8 @@ namespace Xtensive.Orm.Sync
 
     public static SessionConfiguration SyncSessionConfiguration { get; private set; }
 
+    public static MethodInfo StringCompareToMethod { get; private set; }
+
     static WellKnown()
     {
       IdFormats = new SyncIdFormatGroup();
@@ -49,6 +53,13 @@ namespace Xtensive.Orm.Sync
 
       SyncSessionConfiguration = new SessionConfiguration("Sync", SessionOptions.ServerProfile);
       SyncSessionConfiguration.Lock();
+
+      StringCompareToMethod =
+        typeof (string).GetMethods()
+          .Select(m => new {Method = m, Parameters = m.GetParameters()})
+          .Where(info => info.Method.Name=="CompareTo" && info.Parameters.Length==1 && info.Parameters[0].ParameterType==typeof (string))
+          .Select(info => info.Method)
+          .Single();
     }
   }
 }

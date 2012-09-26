@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Microsoft.Synchronization;
 
@@ -10,22 +12,18 @@ namespace Xtensive.Orm.Sync
 
     public SyncId MaxId { get; private set; }
 
-    public uint? ReplicaKey { get; private set; }
-
-    public long? LastKnownTick { get; private set; }
+    public IList<MetadataQueryFilter> Filters { get; private set; }
 
     public override string ToString()
     {
       var result = new StringBuilder();
       result.AppendFormat("[{0}, {1})", MinId, MaxId);
-      if (ReplicaKey!=null)
-        result.AppendFormat(" replica = {0}", ReplicaKey.Value);
-      if (LastKnownTick!=null)
-        result.AppendFormat(" tick > {0}", LastKnownTick.Value);
+      if (Filters!=null)
+        result.AppendFormat(" where {0}", string.Join(" or ", Filters.Select(f => string.Format("({0})", f))));
       return result.ToString();
     }
 
-    public MetadataQuery(SyncId minId, SyncId maxId, uint? replicaKey = null, long? lastKnownTick = null)
+    public MetadataQuery(SyncId minId, SyncId maxId, IEnumerable<MetadataQueryFilter> filters = null)
     {
       if (minId==null)
         throw new ArgumentNullException("minId");
@@ -34,8 +32,13 @@ namespace Xtensive.Orm.Sync
 
       MinId = minId;
       MaxId = maxId;
-      ReplicaKey = replicaKey;
-      LastKnownTick = lastKnownTick;
+
+      if (filters==null)
+        return;
+
+      Filters = filters.ToList().AsReadOnly();
+      if (Filters.Count==0)
+        Filters = null;
     }
   }
 }
