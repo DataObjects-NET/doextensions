@@ -1,13 +1,29 @@
 ﻿using Microsoft.Synchronization;
 using Xtensive.Orm.Configuration;
+using Xtensive.Orm.Sync.Model;
 
 namespace Xtensive.Orm.Sync
 {
   internal static class WellKnown
   {
+    /// <summary>
+    /// Default value for <see cref="SyncConfiguration.BatchSize"/>.
+    /// </summary>
     public const int SyncBatchSize = 64;
-    public const int EntityFetchBatchSize = 25;
+
+    /// <summary>
+    /// Number of objects to fetch when fetching unordered metadata
+    /// </summary>
+    public const int UnorderedMetadataFetchBatchSize = 25;
+
+    /// <summary>
+    /// Number of object to read when applying <see cref="SyncLog"/>.
+    /// </summary>
     public const int SyncLogBatchSize = 512;
+
+    /// <summary>
+    /// Number of metadata items to cache on destination side.
+    /// </summary>
     public const int SyncInfoCacheSize = 128 * 1024;
 
     public const uint LocalReplicaKey = 0;

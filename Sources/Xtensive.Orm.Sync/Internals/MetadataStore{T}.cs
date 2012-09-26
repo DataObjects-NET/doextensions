@@ -58,19 +58,19 @@ namespace Xtensive.Orm.Sync
 
     public override IEnumerable<SyncInfo> GetUnorderedMetadata(List<Key> targetKeys)
     {
-      int batchCount = targetKeys.Count / WellKnown.EntityFetchBatchSize;
-      int lastBatchItemCount = targetKeys.Count % WellKnown.EntityFetchBatchSize;
+      int batchCount = targetKeys.Count / WellKnown.UnorderedMetadataFetchBatchSize;
+      int lastBatchItemCount = targetKeys.Count % WellKnown.UnorderedMetadataFetchBatchSize;
       if (lastBatchItemCount > 0)
         batchCount++;
 
       for (int i = 0; i < batchCount; i++) {
-        var itemCount = WellKnown.EntityFetchBatchSize;
+        var itemCount = WellKnown.UnorderedMetadataFetchBatchSize;
         if (batchCount - i==1 && lastBatchItemCount > 0)
           itemCount = lastBatchItemCount;
 
         var outer = session.Query.All<SyncInfo<TEntity>>();
         var inner = session.Query.All<TEntity>();
-        var filter = FilterByKeys(targetKeys, i * WellKnown.EntityFetchBatchSize, itemCount);
+        var filter = FilterByKeys(targetKeys, i * WellKnown.UnorderedMetadataFetchBatchSize, itemCount);
         var itemQueryResult = outer
           .Where(filter)
           .LeftJoin(inner, info => info.Entity, target => target, (info, target) => new {SyncInfo = info, Target = target})
