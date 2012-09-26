@@ -8,7 +8,7 @@ namespace Xtensive.Orm.Sync.Model
   /// </summary>
   [HierarchyRoot(Clustered = false)]
   [KeyGenerator(KeyGeneratorKind.None)]
-  [Index("ChangeVersion.Replica", "ChangeVersion.Tick", "Id", Name = "IX_Replica_Tick_Id", Unique = true)]
+  [Index("ChangeVersion.Replica", "Id", "ChangeVersion.Tick", Name = "IX_Replica_Id_Tick", Unique = true)]
   public abstract class SyncInfo : Entity
   {
     private SyncId cachedSyncId;
