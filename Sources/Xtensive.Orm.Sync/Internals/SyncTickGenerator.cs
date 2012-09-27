@@ -6,14 +6,11 @@ using Xtensive.Orm.Sync.Model;
 
 namespace Xtensive.Orm.Sync
 {
-  /// <summary>
-  /// <see cref="IKeyGenerator"/> wrapper
-  /// </summary>
   [Service(typeof (SyncTickGenerator), Singleton = true)]
   internal sealed class SyncTickGenerator : ISessionService
   {
     private readonly Session session;
-    private readonly IKeyGenerator generator;
+    private readonly KeyGenerator generator;
     private readonly KeyInfo syncTickKey;
 
     private long lastTick = -1;
@@ -66,7 +63,7 @@ namespace Xtensive.Orm.Sync
       this.session = session;
 
       syncTickKey = session.Domain.Model.Types[typeof (SyncLog)].Key;
-      generator = session.Domain.Services.Get<IKeyGenerator>(WellKnown.TickGeneratorName);
+      generator = session.Domain.Services.Get<KeyGenerator>(WellKnown.TickGeneratorName);
 
       session.Events.TransactionCommitted += OnTransactionCompleted;
       session.Events.TransactionRollbacked += OnTransactionCompleted;

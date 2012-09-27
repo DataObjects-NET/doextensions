@@ -33,14 +33,6 @@ namespace Xtensive.Orm.Sync
       throw new InvalidOperationException(string.Format("Store for type '{0}' is not registered", type));
     }
 
-    public MetadataStore GetStore(int hierarchyId)
-    {
-      var type = hierarchyIdRegistry.GetHierarchyRoot(hierarchyId);
-      if (type==null)
-        throw new InvalidOperationException(string.Format("Store for hierarchy id '{0}' is not registered", hierarchyId));
-      return GetStore(type);
-    }
-
     public IEnumerable<MetadataStore> GetStores(SyncConfiguration configuration)
     {
       var stores = storeList.AsEnumerable();
@@ -148,11 +140,9 @@ namespace Xtensive.Orm.Sync
       var nodeIndex = new Dictionary<Type, Node<Type>>();
       var model = session.Domain.Model;
 
-      var thisAssembly = GetType().Assembly;
       var types = model.Types[typeof (SyncInfo)]
         .GetDescendants()
-        .Select(t => t.UnderlyingType.GetGenericArguments()[0])
-        .Where(t => t.Assembly!=thisAssembly);
+        .Select(t => t.UnderlyingType.GetGenericArguments()[0]);
 
       foreach (var type in types) {
         var node = new Node<Type>(type);

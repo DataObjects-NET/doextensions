@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Synchronization;
 using Xtensive.Core;
@@ -14,6 +15,7 @@ namespace Xtensive.Orm.Sync
   internal sealed class SyncManager : ISyncManager, IDomainService, IDisposable
   {
     private readonly Domain domain;
+    private readonly HashSet<Type> synchronizedRoots;
     private readonly bool useSyncLog;
 
     private MetadataProcessor processor;
@@ -135,18 +137,10 @@ namespace Xtensive.Orm.Sync
       }
     }
 
-    private static bool IsUserEntity(EntityState state)
+    private bool IsUserEntity(EntityState state)
     {
-      var entityType = state.Entity.GetType();
-
-      if (entityType.Assembly==typeof (Persistent).Assembly)
-        return false;
-      if (entityType.Assembly==typeof (SyncInfo).Assembly)
-        return false;
-      if (state.Type.IsAuxiliary)
-        return false;
-
-      return true;
+      var rootType = state.Entity.TypeInfo.Hierarchy.Root.UnderlyingType;
+      return synchronizedRoots.Contains(rootType);
     }
 
     [ServiceConstructor]
@@ -157,6 +151,11 @@ namespace Xtensive.Orm.Sync
 
       this.domain = domain;
       useSyncLog = !domain.StorageProviderInfo.Supports(ProviderFeatures.SingleSessionAccess);
+
+      synchronizedRoots = domain.Model.Types[typeof (SyncInfo)]
+        .GetDescendants()
+        .Select(t => t.UnderlyingType.GetGenericArguments()[0])
+        .ToHashSet();
 
       SubscribeToDomainEvents();
       LoadReplicaId();
