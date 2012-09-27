@@ -49,6 +49,7 @@ namespace Xtensive.Orm.Sync
 
       var itemQueryResult = outer
         .LeftJoin(inner, info => info.Entity, target => target, (info, target) => new {SyncInfo = info, Target = target})
+        .Where(p => p.Target!=null || p.SyncInfo.IsTombstone)
         .OrderBy(pair => pair.SyncInfo.Id)
         .Take(WellKnown.OrderedMetadataBatchSize)
         .ToList();
