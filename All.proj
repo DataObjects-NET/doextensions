@@ -89,7 +89,7 @@
 </Target>
 
 <Target Name="GetDO">
-  <MSBuild Projects="Lib\GetDO.proj" Properties="DOVersion=$(DOVersion)" />
+  <MSBuild Projects="Lib\GetLib.proj" Properties="LibName=DataObjects.Net;LibVersion=$(DOVersion)" />
 </Target>
 
 <!-- NuGet packaging -->
