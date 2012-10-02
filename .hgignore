@@ -1,21 +1,14 @@
 syntax: glob
 
-_ReSharper.*
+*ReSharper*
 
 *.suo
 *.user
-*.csproj.user
-*.sln.cache
-*.cache
-*.resharper
-*.ReSharper
-*.resharperoptions
-*.dotCover
-*.vs10x
 *.DotSettings
 
-packages
 obj
 
 _Build
-Lib
+
+Lib/DataObjects.Net
+Lib/DataObjects.Net-Cache
