@@ -139,7 +139,7 @@
         Condition="'$(Configuration)'=='Release'"
         DependsOnTargets="InitZipDir;BuildBinaries;CopyDocumentation">
   <PropertyGroup>
-    <ZipFile>$(ZipDir)DataObjects.Net.Extensions-$(VersionNameZip).zip</ZipFile>
+    <ZipFile>$(ZipDir)DataObjects.Net_Extensions-$(VersionNameZip).zip</ZipFile>
   </PropertyGroup>
   <Zip Files="@(Libraries)" ZipFileName="$(ZipFile)" WorkingDirectory="$(BinariesDir)" />
 </Target>
