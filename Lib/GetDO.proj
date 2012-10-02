@@ -2,7 +2,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003"
          ToolsVersion="4.0" DefaultTargets="Unpack" InitialTargets="Check">
 
-<Import Project="Tasks.targets" />
+<Import Project="..\MSBuild\Tasks.targets" />
 
 <PropertyGroup>
   <LibRoot>..\Lib\</LibRoot>
