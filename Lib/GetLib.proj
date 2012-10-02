@@ -11,7 +11,7 @@
 </PropertyGroup>
 
 <PropertyGroup>
-  <DistFile>$(LibName)-$(LibVersion).zip</DistFile>
+  <DistFile>$(LibName)-$(LibVersion.Replace(' ', '_')).zip</DistFile>
   <DistUrl>http://get.dataobjects.net/Download/$(DistFile)</DistUrl>
   <DistFilePath>$(CachePath)$(DistFile)</DistFilePath>
   <Marker>$(DistFilePath).unpacked</Marker>
