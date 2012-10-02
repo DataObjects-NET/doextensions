@@ -10,5 +10,5 @@ obj
 
 _Build
 
+Lib/_Cache
 Lib/DataObjects.Net
-Lib/DataObjects.Net-Cache

@@ -6,12 +6,12 @@
 
 <PropertyGroup>
   <LibRoot>..\Lib\</LibRoot>
-  <LibPath>$(LibRoot)DataObjects.Net\</LibPath>
-  <CachePath>$(LibRoot)DataObjects.Net-Cache\</CachePath>
+  <LibPath>$(LibRoot)$(LibName)\</LibPath>
+  <CachePath>$(LibRoot)_Cache\$(LibName)\</CachePath>
 </PropertyGroup>
 
 <PropertyGroup>
-  <DistFile>DataObjects.Net-$(DOVersion).zip</DistFile>
+  <DistFile>$(LibName)-$(LibVersion).zip</DistFile>
   <DistUrl>http://get.dataobjects.net/Download/$(DistFile)</DistUrl>
   <DistFilePath>$(CachePath)$(DistFile)</DistFilePath>
   <Marker>$(DistFilePath).unpacked</Marker>
@@ -22,7 +22,8 @@
 </ItemGroup>
 
 <Target Name="Check">
-  <Error Condition="'$(DOVersion)'==''" Text="DOVersion is not set" />
+  <Error Condition="'$(LibName)'==''" Text="LibName is not set" />
+  <Error Condition="'$(LibVersion)'==''" Text="LibVersion is not set" />
 </Target>
 
 <Target Name="Fetch" Outputs="$(DistFilePath)" Condition="!Exists('$(DistFilePath)')">
