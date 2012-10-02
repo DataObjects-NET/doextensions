@@ -3,7 +3,7 @@
          ToolsVersion="4.0" DefaultTargets="Build">
 
 <Import Project="MSBuild\Tasks.targets" />
-<Import Project="All.props" />
+<Import Project="Version.props" />
 
 <PropertyGroup>
   <Configuration Condition="'$(Configuration)'==''">Release</Configuration>

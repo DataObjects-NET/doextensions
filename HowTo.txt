@@ -77,7 +77,7 @@ Extensions.sln from Sources folder and start developing.
 
 How to change version for all projects
 ======================================
-Open All.props in text editor. At the top of the file you'll see version variable declaration.
+Open Version.props in text editor. At the top of the file you'll see version variable declaration.
 It should look like the following:
 
     <PropertyGroup>
