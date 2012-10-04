@@ -92,7 +92,7 @@ namespace Xtensive.Orm.BulkOperations
     /// </summary>
     /// <typeparam name="T">Type of the entity.</typeparam>
     /// <param name="query">The query.</param>
-    /// <param name="evaluator">The expression, that specify new values. Constructor parameters are ignored</param>
+    /// <param name="evaluator">The expression, that specify new values. Constructor parameters are ignored.</param>
     /// <returns>Number of updated entities.</returns>
     public static int Update<T>(this IQueryable<T> query, Expression<Func<T, T>> evaluator) where T : class, IEntity
     {
@@ -110,6 +110,13 @@ namespace Xtensive.Orm.BulkOperations
       return new BulkUpdateOperation<T>(query).Execute();
     }
 
+    /// <summary>
+    /// Executes INSERT operation.
+    /// </summary>
+    /// <typeparam name="T">Type of the entity.</typeparam>
+    /// <param name="queryEndpoint">The query endpoint.</param>
+    /// <param name="evaluator">The expression, tha specify new values.</param>
+    /// <returns>Key of the created entity.</returns>
     public static Key Insert<T>(this QueryEndpoint queryEndpoint, Expression<Func<T>> evaluator) where T : Entity
     {
       var operation = new InsertOperation<T>(queryEndpoint.Provider, evaluator);
