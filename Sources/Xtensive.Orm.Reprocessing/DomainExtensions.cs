@@ -62,16 +62,37 @@ namespace Xtensive.Orm.Reprocessing
       return result;
     }
 
+    /// <summary>
+    /// Starts <see cref="IExecuteConfiguration"/> flow
+    /// and provides <see cref="IsolationLevel"/> to use.
+    /// </summary>
+    /// <param name="domain">The domain.</param>
+    /// <param name="isolationLevel">Isolation level to use.</param>
+    /// <returns>Created <see cref="IExecuteConfiguration"/>.</returns>
     public static IExecuteConfiguration WithIsolationLevel(this Domain domain, IsolationLevel isolationLevel)
     {
       return new ExecuteConfiguration(domain).WithIsolationLevel(isolationLevel);
     }
 
+    /// <summary>
+    /// Starts <see cref="IExecuteConfiguration"/> flow
+    /// and provides <see cref="IExecuteActionStrategy"/> to use.
+    /// </summary>
+    /// <param name="domain">The domain.</param>
+    /// <param name="strategy">Strategy to use.</param>
+    /// <returns>Created <see cref="IExecuteConfiguration"/>.</returns>
     public static IExecuteConfiguration WithStrategy(this Domain domain, IExecuteActionStrategy strategy)
     {
       return new ExecuteConfiguration(domain).WithStrategy(strategy);
     }
 
+    /// <summary>
+    /// Starts <see cref="IExecuteConfiguration"/> flow
+    /// and provides <see cref="TransactionOpenMode"/> to use.
+    /// </summary>
+    /// <param name="domain">The domain.</param>
+    /// <param name="transactionOpenMode">Transaction open mode to use.</param>
+    /// <returns>Created <see cref="IExecuteConfiguration"/>.</returns>
     public static IExecuteConfiguration WithTransactionOpenMode(this Domain domain, TransactionOpenMode transactionOpenMode)
     {
       return new ExecuteConfiguration(domain).WithTransactionOpenMode(transactionOpenMode);
