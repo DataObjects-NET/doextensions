@@ -15,7 +15,6 @@
     <summary>MS Sync provider for DataObjects.Net</summary>
     <dependencies>
       <dependency id="Xtensive.Orm" version="[4.6.0, 4.7.0)" />
-      <dependency id="Xtensive.Orm.Tracking" version="[4.6.0, 4.7.0)" />
     </dependencies>
   </metadata>
   <files>
