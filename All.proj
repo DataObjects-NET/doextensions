@@ -146,7 +146,7 @@
   <MSBuild Projects="@(Projects)" Targets="Build" />
 </Target>
 
-<Target Name="CleanBinaries" DependsOnTargets="RestorePackages">
+<Target Name="CleanBinaries" DependsOnTargets="GetDO">
   <MSBuild Projects="@(Projects)" Targets="Clean" />
   <RemoveDir Directories="$(BinariesDir)" />
 </Target>
