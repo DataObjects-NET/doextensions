@@ -14,9 +14,16 @@ namespace Xtensive.Orm.Sync.Tests
       get
       {
         if (localDomain==null)
-          localDomain = BuildDomain();
+          localDomain = BuildDomain(CreateLocalConfiguration());
         return localDomain;
       }
+    }
+
+    private DomainConfiguration CreateLocalConfiguration()
+    {
+      return new DomainConfiguration(WellKnown.Provider.Sqlite, "Data Source=SyncLocal.db") {
+        UpgradeMode = DomainUpgradeMode.Recreate
+      };
     }
 
     public Domain RemoteDomain
@@ -24,14 +31,13 @@ namespace Xtensive.Orm.Sync.Tests
       get
       {
         if (remoteDomain==null)
-          remoteDomain = BuildDomain("remote");
+          remoteDomain = BuildDomain(DomainConfigurationFactory.Create());
         return remoteDomain;
       }
     }
 
-    private Domain BuildDomain(string name = null)
+    private Domain BuildDomain(DomainConfiguration configuration)
     {
-      var configuration = DomainConfigurationFactory.Create(name);
       configuration.Types.Register(typeof (SyncModule).Assembly);
       configuration.Types.Register(typeof (SyncDomainManager).Assembly);
       var domain = Domain.Build(configuration);
