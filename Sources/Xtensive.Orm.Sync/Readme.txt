@@ -43,8 +43,8 @@ var localDomain = BuildDomain(localDomainConfiguration);
 var remoteDomain = BuildDomain(remoteDomainConfiguration);
 
 var orchestrator = new SyncOrchestrator {
-    LocalProvider = localDomain.GetSyncProvider(),
-    RemoteProvider = remoteDomain.GetSyncProvider(),
+    LocalProvider = localDomain.GetSyncManager().GetSyncProvider(),
+    RemoteProvider = remoteDomain.GetSyncManager().GetSyncProvider(),
     Direction = SyncDirectionOrder.Upload
 };
 orchestrator.Synchronize();
@@ -54,7 +54,7 @@ orchestrator.Synchronize();
 var localDomain = BuildDomain(localDomainConfiguration);
 var remoteDomain = BuildDomain(remoteDomainConfiguration);
 
-var localProvider = LocalDomain.GetSyncProvider();
+var localProvider = LocalDomain.GetSyncManager().GetSyncProvider();
 
 // Fluent configuration of what exactly should be synchronized
 localProvider.Sync
@@ -64,7 +64,7 @@ localProvider.Sync
 
 var orchestrator = new SyncOrchestrator {
     LocalProvider = localProvider,
-    RemoteProvider = remoteDomain.GetSyncProvider(),
+    RemoteProvider = remoteDomain.GetSyncManager().GetSyncProvider(),
     Direction = SyncDirectionOrder.Upload
 };
 orchestrator.Synchronize();

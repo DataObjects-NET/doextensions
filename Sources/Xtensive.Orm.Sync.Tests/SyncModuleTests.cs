@@ -1,39 +1,27 @@
-﻿using System.Linq;
-using Microsoft.Synchronization;
-using NUnit.Framework;
-using Xtensive.Orm.Sync.Tests.Model;
-using Xtensive.Orm.Tracking;
+﻿using NUnit.Framework;
 
 namespace Xtensive.Orm.Sync.Tests
 {
   [TestFixture]
-  public class SyncModuleTests : AutoBuildTest
+  public class SyncModuleTests : SingleSyncTest
   {
     [Test]
     public void InfrastructureTest()
     {
-      using (var session = LocalDomain.OpenSession()) {
-        using (var t = session.OpenTransaction()) {
+      var syncManager1 = LocalDomain.Services.Get<ISyncManager>();
+      Assert.IsNotNull(syncManager1);
 
-          var m = LocalDomain.Services.Get<IDomainTrackingMonitor>();
-          Assert.IsNotNull(m);
-
-          var sp = LocalDomain.Services.Get<OrmSyncProvider>();
-          Assert.IsNotNull(sp);
-          t.Complete();
-        }
-      }
+      var syncManager2 = LocalDomain.GetSyncManager();
+      Assert.IsNotNull(syncManager1);
+      
+      Assert.AreSame(syncManager1, syncManager2);
     }
 
     [Test]
-    public void TrackingTest()
+    public void ReplicaIdTest()
     {
-      using (var session = LocalDomain.OpenSession()) {
-        using (var t = session.OpenTransaction()) {
-          new MyEntity(session);
-          t.Complete();
-        }
-      }
+      var syncId = LocalDomain.GetSyncManager().ReplicaId;
+      Assert.That(syncId, Is.Not.Null);
     }
   }
 }

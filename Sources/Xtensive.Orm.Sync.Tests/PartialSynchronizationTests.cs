@@ -1,27 +1,17 @@
-﻿using System;
-using System.Linq;
-using System.Threading;
+﻿using System.Linq;
 using Microsoft.Synchronization;
 using NUnit.Framework;
+using Xtensive.Orm.Sync.Model;
 using Xtensive.Orm.Sync.Tests.Model;
 
 namespace Xtensive.Orm.Sync.Tests
 {
   [TestFixture]
-  public class PartialSynchronizationTests : AutoBuildTest
+  public class PartialSynchronizationTests : MultisyncTest
   {
-    public override void TestFixtureSetUp()
-    {
-    }
-
-    public override void TestFixtureTearDown()
-    {
-    }
-
     public override void TestSetUp()
     {
-      base.TestFixtureTearDown();
-      base.TestFixtureSetUp();
+      base.TestSetUp();
 
       using (var session = LocalDomain.OpenSession()) {
         using (var t = session.OpenTransaction()) {
@@ -35,18 +25,19 @@ namespace Xtensive.Orm.Sync.Tests
           t.Complete();
         }
       }
+
+      LocalDomain.GetSyncManager().WaitForPendingSyncTasks();
     }
 
     [Test]
     public void SyncStandaloneEntitiesTest()
     {
-      Thread.Sleep(TimeSpan.FromSeconds(2));
-      var localProvider = LocalDomain.GetSyncProvider();
+      var localProvider = LocalDomain.GetSyncManager().GetSyncProvider();
       localProvider.Sync.All<MyReferenceProperty>();
       localProvider.Sync.All<AbstractEntity>();
       var orchestrator = new SyncOrchestrator {
           LocalProvider = localProvider,
-          RemoteProvider = RemoteDomain.GetSyncProvider(),
+          RemoteProvider = RemoteDomain.GetSyncManager().GetSyncProvider(),
           Direction = SyncDirectionOrder.Upload
         };
       orchestrator.Synchronize();
@@ -63,12 +54,11 @@ namespace Xtensive.Orm.Sync.Tests
     [Test]
     public void SyncReferencingEntitiesTest()
     {
-      Thread.Sleep(TimeSpan.FromSeconds(2));
-      var localProvider = LocalDomain.GetSyncProvider();
+      var localProvider = LocalDomain.GetSyncManager().GetSyncProvider();
       localProvider.Sync.All<MyEntity>();
       var orchestrator = new SyncOrchestrator {
           LocalProvider = localProvider,
-          RemoteProvider = RemoteDomain.GetSyncProvider(),
+          RemoteProvider = RemoteDomain.GetSyncManager().GetSyncProvider(),
           Direction = SyncDirectionOrder.Upload
         };
       orchestrator.Synchronize();
@@ -85,10 +75,9 @@ namespace Xtensive.Orm.Sync.Tests
     [Test]
     public void SyncWithFilterTest()
     {
-      Thread.Sleep(TimeSpan.FromSeconds(2));
       var orchestrator = new SyncOrchestrator {
-          LocalProvider = LocalDomain.GetSyncProvider(),
-          RemoteProvider = RemoteDomain.GetSyncProvider(),
+          LocalProvider = LocalDomain.GetSyncManager().GetSyncProvider(),
+          RemoteProvider = RemoteDomain.GetSyncManager().GetSyncProvider(),
           Direction = SyncDirectionOrder.Upload
         };
       orchestrator.Synchronize();
@@ -104,12 +93,12 @@ namespace Xtensive.Orm.Sync.Tests
         }
       }
 
-      Thread.Sleep(TimeSpan.FromSeconds(2));
-      var localProvider = LocalDomain.GetSyncProvider();
+      LocalDomain.GetSyncManager().WaitForPendingSyncTasks();
+      var localProvider = LocalDomain.GetSyncManager().GetSyncProvider();
       localProvider.Sync.All<MyEntity>(e => false);
       orchestrator = new SyncOrchestrator {
           LocalProvider = localProvider,
-          RemoteProvider = RemoteDomain.GetSyncProvider(),
+          RemoteProvider = RemoteDomain.GetSyncManager().GetSyncProvider(),
           Direction = SyncDirectionOrder.Upload
         };
       orchestrator.Synchronize();

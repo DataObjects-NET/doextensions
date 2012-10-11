@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using NUnit.Framework;
-using Xtensive.Orm.Reprocessing.Tests;
-using Xtensive.Orm.Reprocessing.Tests.Model;
+using TestCommon.Model;
 
 namespace Xtensive.Orm.BulkOperations.Tests
 {

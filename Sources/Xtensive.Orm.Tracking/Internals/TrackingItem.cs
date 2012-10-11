@@ -13,55 +13,39 @@ using Tuple = Xtensive.Tuples.Tuple;
 
 namespace Xtensive.Orm.Tracking
 {
-  [Serializable]
   [DebuggerDisplay("{Key}")]
-  public class TrackingItem : ITrackingItem
+  internal sealed class TrackingItem : ITrackingItem
   {
+    private IList<ChangedValue> cachedChangedValues;
+
     public Key Key { get; private set; }
 
     public DifferentialTuple RawData { get; private set; }
 
     public TrackingItemState State { get; private set; }
 
-    public IEnumerable<ChangedValue> ChangedValues
+    public IList<ChangedValue> ChangedValues
     {
       get
       {
-        var origValues = RawData.Origin;
-        var changedValues = RawData.Difference;
-
-        if (State==TrackingItemState.Created) {
-          origValues = null;
-          changedValues = RawData.Origin;
-        }
-
-        foreach (var field in Key.TypeInfo.Fields.Where(f => f.Column!=null)) {
-          object origValue = null, changedValue = null;
-          int fieldIndex = field.MappingInfo.Offset;
-          if (origValues!=null)
-            origValue = origValues.GetValue(fieldIndex);
-          if (changedValues!=null) {
-            if (changedValues.GetFieldState(fieldIndex)!=TupleFieldState.Available)
-              continue;
-            changedValue = changedValues.GetValue(fieldIndex);
-          }
-          yield return new ChangedValue(field, origValue, changedValue);
-        }
+        if (cachedChangedValues==null)
+          cachedChangedValues = CalculateChangedValues().ToList().AsReadOnly();
+        return cachedChangedValues;
       }
     }
 
     public void MergeWith(TrackingItem source)
     {
-      if (source == null)
-        throw new NullReferenceException("source");
+      if (source==null)
+        throw new ArgumentNullException("source");
 
-      if (State == TrackingItemState.Deleted && source.State == TrackingItemState.Created) {
+      if (State==TrackingItemState.Deleted && source.State==TrackingItemState.Created) {
         State = TrackingItemState.Changed;
         RawData = source.RawData; // TODO: Check whether a clone is required
         return;
       }
 
-      if (State == TrackingItemState.Created && source.State == TrackingItemState.Changed) {
+      if (State==TrackingItemState.Created && source.State==TrackingItemState.Changed) {
         State = TrackingItemState.Created;
         MergeWith(source.RawData.Difference);
         return;
@@ -69,6 +53,30 @@ namespace Xtensive.Orm.Tracking
 
       MergeWith(source.RawData.Difference);
       State = source.State;
+    }
+
+    private IEnumerable<ChangedValue> CalculateChangedValues()
+    {
+      var originalValues = RawData.Origin;
+      var changedValues = RawData.Difference;
+
+      if (State==TrackingItemState.Created) {
+        originalValues = null;
+        changedValues = RawData.Origin;
+      }
+
+      foreach (var field in Key.TypeInfo.Fields.Where(f => f.Column!=null)) {
+        object origValue = null, changedValue = null;
+        int fieldIndex = field.MappingInfo.Offset;
+        if (originalValues!=null)
+          origValue = originalValues.GetValue(fieldIndex);
+        if (changedValues!=null) {
+          if (changedValues.GetFieldState(fieldIndex)!=TupleFieldState.Available)
+            continue;
+          changedValue = changedValues.GetValue(fieldIndex);
+        }
+        yield return new ChangedValue(field, origValue, changedValue);
+      }
     }
 
     private void MergeWith(Tuple difference)
@@ -79,15 +87,15 @@ namespace Xtensive.Orm.Tracking
         RawData.Difference.MergeWith(difference, MergeBehavior.PreferDifference);
     }
 
-    public TrackingItem(Key key, DifferentialTuple tuple, TrackingItemState state)
+    public TrackingItem(Key key, TrackingItemState state, DifferentialTuple tuple)
     {
-      if (key == null)
-        throw new NullReferenceException("key");
-      if (state != TrackingItemState.Deleted && tuple == null)
-        throw new NullReferenceException("tuple");
+      if (key==null)
+        throw new ArgumentNullException("key");
+      if (state!=TrackingItemState.Deleted && tuple==null)
+        throw new ArgumentNullException("tuple");
 
       Key = key;
-      if (tuple != null)
+      if (tuple!=null)
         RawData = (DifferentialTuple) tuple.Clone();
       State = state;
     }

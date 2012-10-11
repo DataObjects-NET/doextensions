@@ -1,17 +1,14 @@
-                                                                     
-                                                                     
-                                                                     
-                                             
 How to build DataObjects.Net Extensions
 =======================================
 DataObjects.Net Extensions are built using MSBuild tool from .NET Framework 4.0 or later.
 At the root of repository you can find MSBuild project All.proj.
 This project builds binaries as well as distribution packages.
-Also it is capable of fetching all dependencies from NuGet package repository.
+Also it is capable of fetching required DataObjects.Net version from its download site.
 
 ***Important*** 
-You can't build the DataObjects.Net Extensions in Visual Studio first time because several
-packages must be installed with NuGet. MSBuild project All.proj will handle this. After first 
+
+You can't build the DataObjects.Net Extensions in Visual Studio first time because DataObjects.Net
+needs to be downloaded. MSBuild project All.proj will handle this. After first 
 build with MSBuild all prerequisites are installed and you can use Visual Studio to build 
 and test the extensions. You must create a SQLEXPRESS database named 'Tests' to run unit tests.
 
@@ -22,7 +19,7 @@ separately and put in the %PATH% manually.
 
 All.proj have multiple targets to control build process:
 
-  * RestorePackages - fetches all packages required to build DataObjects.Net extensions
+  * GetDO - fetches DataObjects.Net of required version
 
   * BuildBinaries - builds all projects
   * CleanBinaries - cleans all artifacts that are produced by BuildBinaries target
@@ -67,9 +64,9 @@ How to clean all artifacts?
 
     > msbuild /t:Clean
 
-How to fetch all required packages?
+How to fetch required version of DataObjects.Net?
 
-    > msbuild /t:RestorePackages
+    > msbuild /t:GetDO
 
 How to develop DataObjects.Net Extensions
 =========================================
@@ -80,11 +77,13 @@ Extensions.sln from Sources folder and start developing.
 
 How to change version for all projects
 ======================================
-Open All.proj in text editor. At the top of the file you'll see version variable declaration.
+Open Version.props in text editor. At the top of the file you'll see version variable declaration.
 It should look like the following:
 
     <PropertyGroup>
       <Version>4.5.1</Version>
+      <Modifier>RC</Modifier>
+      <DOVersion>4.5.3</DOVersion>
     </PropertyGroup>
 
 Change the version to required. Rebuild everything using corresponding command from first section

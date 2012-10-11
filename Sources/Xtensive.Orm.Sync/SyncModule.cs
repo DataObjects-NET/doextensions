@@ -1,101 +1,41 @@
-﻿using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Xtensive.Orm.Building;
-using Xtensive.Orm.Building.Definitions;
-using Xtensive.Orm.Tracking;
+using Xtensive.Orm.Sync.Model;
 
 namespace Xtensive.Orm.Sync
 {
   /// <summary>
-  /// <see cref="IModule"/> implementation for Sync extension
+  /// <see cref="IModule"/> implementation for sync extension.
   /// </summary>
-  public class SyncModule : IModule
+  public sealed class SyncModule : Module
   {
-    private Domain domain;
-    private readonly BlockingCollection<List<ITrackingItem>> queuedItems;
-
-    /// <summary>
-    /// Called when the build of <see cref="T:Xtensive.Orm.Building.Definitions.DomainModelDef"/> is completed.
-    /// </summary>
-    /// <param name="context">The domain building context.</param>
-    /// <param name="model">The domain model definition.</param>
-    public void OnDefinitionsBuilt(BuildingContext context, DomainModelDef model)
-    {
-    }
-
     /// <summary>
     /// Called when 'complex' build process is completed.
     /// </summary>
     /// <param name="domain">The built domain.</param>
-    public void OnBuilt(Domain domain)
+    public override void OnBuilt(Domain domain)
     {
-      this.domain = domain;
-      // Initializing global structures
-      using (var session = domain.OpenSession())
-      using (var t = session.OpenTransaction()) {
-        new Replica(session);
-        t.Complete();
-      }
-      var m = domain.GetTrackingMonitor();
-      m.TrackingCompleted += OnTrackingCompleted;
-      Task.Factory.StartNew(ProcessQueuedItems, TaskCreationOptions.PreferFairness | TaskCreationOptions.LongRunning);
+      // This ensures that sync manager is subscribed to all required events
+      // before executing any user code.
+
+      domain.GetSyncManager();
     }
 
-    private void OnTrackingCompleted(object sender, TrackingCompletedEventArgs e)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="autoGenerics"></param>
+    public override void OnAutoGenericsBuilt(BuildingContext context, ICollection<System.Type> autoGenerics)
     {
-      var changes = e.Changes;
-      var items = changes
-        .Where(TrackingItemFilter)
+      var thisAssembly = GetType().Assembly;
+      var toRemove = autoGenerics
+        .Where(t => t.GetGenericTypeDefinition()==typeof (SyncInfo<>) && t.GetGenericArguments()[0].Assembly==thisAssembly)
         .ToList();
 
-      if (items.Count == 0)
-        return;
-
-      queuedItems.Add(items);
-    }
-
-    private void ProcessQueuedItems()
-    {
-      using (var session = domain.OpenSession())
-        while (!queuedItems.IsCompleted) {
-          var items = queuedItems.Take();
-          if (items == null)
-            continue;
-          using (var t = session.OpenTransaction()) {
-            var ms = new Metadata(session, new SyncConfiguration());
-            var info = ms.GetMetadata(items.Select(i => i.Key)).ToList();
-            var lookup = info
-              .ToDictionary(i => i.SyncTargetKey);
-
-            foreach (var item in items) {
-              if (item.State==TrackingItemState.Created)
-                ms.CreateMetadata(item.Key);
-              else {
-                SyncInfo syncInfo;
-                if (lookup.TryGetValue(item.Key, out syncInfo))
-                  ms.UpdateMetadata(syncInfo, item.State==TrackingItemState.Deleted);
-                else
-                  ms.CreateMetadata(item.Key);
-              }
-            }
-            t.Complete();
-          }
-        }
-    }
-
-    private static bool TrackingItemFilter(ITrackingItem item)
-    {
-      var entityKey = item.Key;
-      var entityType = entityKey.TypeInfo.UnderlyingType;
-
-      if (entityType.Assembly==typeof (Persistent).Assembly)
-        return false;
-      if (entityType.Assembly==typeof (SyncInfo).Assembly)
-        return false;
-
-      return true;
+      foreach (var type in toRemove)
+        autoGenerics.Remove(type);
     }
 
     /// <summary>
@@ -103,7 +43,6 @@ namespace Xtensive.Orm.Sync
     /// </summary>
     public SyncModule()
     {
-      queuedItems = new BlockingCollection<List<ITrackingItem>>(new ConcurrentQueue<List<ITrackingItem>>());
     }
   }
 }

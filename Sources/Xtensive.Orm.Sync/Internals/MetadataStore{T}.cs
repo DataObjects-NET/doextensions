@@ -2,104 +2,167 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using Microsoft.Synchronization;
+using Xtensive.Core;
+using Xtensive.Orm.Sync.Model;
 
 namespace Xtensive.Orm.Sync
 {
-  internal class MetadataStore<TEntity> : MetadataStore where TEntity : class, IEntity
+  internal sealed class MetadataStore<TEntity> : MetadataStore
+    where TEntity : class, IEntity
   {
-    public override Type EntityType
+    private readonly Session session;
+
+    public override SyncInfo CreateMetadata(SyncId syncId, Key targetKey)
     {
-      get { return typeof(TEntity); }
+      return new SyncInfo<TEntity>(session, syncId) {TargetKey = targetKey};
     }
 
-    public override Type ItemType
+    public override IEnumerable<SyncInfo> GetOrderedMetadata(MetadataQuery query, Expression userFilter)
     {
-      get { return typeof(SyncInfo<TEntity>); }
-    }
-
-    public override IEnumerable<SyncInfo> GetMetadata(Expression filter)
-    {
-      var outer = Session.Query.All<SyncInfo<TEntity>>();
-      var inner = Session.Query.All<TEntity>();
-      IEnumerable<SyncInfo<TEntity>> result = null;
-      var predicate = filter as Expression<Func<TEntity, bool>>;
-      if (predicate!=null) {
-        inner = inner.Where(predicate);
-        result = outer.Join(inner, si => si.Entity.Key, t => t.Key, (si, t) => new {SyncInfo = si, Target = t})
-          .AsEnumerable()  // To fetch entities
-          .Select(i => i.SyncInfo)
-          .Union(outer.Where(s => s.IsTombstone));
+      SyncId lastItemId;
+      do {
+        lastItemId = null;
+        var items = ExecuteQuery(query, userFilter);
+        foreach (var item in items) {
+          lastItemId = item.SyncId;
+          yield return item;
+        }
+        if (lastItemId!=null)
+          query = query.ChangeMinId(SyncIdFormatter.GetNextId(lastItemId));
       }
-      else
-        result = outer
-          .LeftJoin(inner, si => si.Entity.Key, t => t.Key, (si, t) => new {SyncInfo = si, Target = t})
-          .AsEnumerable()  // To fetch entities
-          .Select(i => i.SyncInfo);
-
-      return UpdateItemState(result);
+      while (lastItemId!=null);
     }
 
-    public override IEnumerable<SyncInfo> GetMetadata(List<Key> keys)
+    private IEnumerable<SyncInfo<TEntity>> ExecuteQuery(MetadataQuery query, Expression userFilter)
     {
-      int batchCount = keys.Count / Wellknown.KeyPreloadBatchSize;
-      int lastBatchItemCount = keys.Count % Wellknown.KeyPreloadBatchSize;
+      var outer = session.Query.All<SyncInfo<TEntity>>();
+      var inner = session.Query.All<TEntity>();
+
+      // Knowledge filter
+      outer = outer.Where(GetFilter(query));
+
+      // User filter
+      var predicate = userFilter as Expression<Func<TEntity, bool>>;
+      if (predicate!=null)
+        inner = inner.Where(predicate);
+
+      var itemQueryResult = outer
+        .LeftJoin(inner, info => info.Entity, target => target, (info, target) => new {SyncInfo = info, Target = target})
+        .Where(p => p.Target!=null || p.SyncInfo.IsTombstone)
+        .OrderBy(pair => pair.SyncInfo.Id)
+        .Take(WellKnown.OrderedMetadataBatchSize)
+        .ToList();
+
+      var keysToPrefetch = itemQueryResult
+        .Where(p => p.Target!=null && !p.SyncInfo.IsTombstone)
+        .Select(p => p.Target.Key);
+
+      // To fetch entities
+      PrefetchEntities(keysToPrefetch);
+
+      return itemQueryResult.Select(p => p.SyncInfo);
+    }
+
+    public override IEnumerable<SyncInfo> GetUnorderedMetadata(List<Key> targetKeys)
+    {
+      const int batchSize = WellKnown.UnorderedMetadataBatchSize;
+
+      int batchCount = targetKeys.Count / batchSize;
+      int lastBatchItemCount = targetKeys.Count % batchSize;
       if (lastBatchItemCount > 0)
         batchCount++;
 
       for (int i = 0; i < batchCount; i++) {
-        var itemCount = Wellknown.KeyPreloadBatchSize;
-        if (batchCount - i == 1 && lastBatchItemCount > 0)
+        var itemCount = batchSize;
+        if (batchCount - i==1 && lastBatchItemCount > 0)
           itemCount = lastBatchItemCount;
 
-        var filter = FilterByKeys<TEntity>(keys, i*Wellknown.KeyPreloadBatchSize, itemCount);
-        var items = Session.Query.All<SyncInfo<TEntity>>()
-          .Where(filter)
-          .Prefetch(s => s.Entity)
-          .ToArray();
+        var outer = session.Query.All<SyncInfo<TEntity>>();
+        var inner = session.Query.All<TEntity>();
 
-        foreach (var item in UpdateItemState(items))
+        outer = outer.Where(GetFilter(targetKeys, i * batchSize, itemCount));
+
+        var itemQueryResult = outer
+          .LeftJoin(inner, info => info.Entity, target => target, (info, target) => new {SyncInfo = info, Target = target})
+          .ToList();
+
+        var keysToFetch = itemQueryResult
+          .Where(p => p.Target!=null && !p.SyncInfo.IsTombstone)
+          .Select(p => p.Target.Key);
+
+        // To fetch entities
+        PrefetchEntities(keysToFetch);
+
+        foreach (var item in itemQueryResult.Select(p => p.SyncInfo))
           yield return item;
       }
     }
 
-    public override SyncInfo GetMetadata(SyncInfo item)
+    private void PrefetchEntities(IEnumerable<Key> keysToFetch)
     {
-      UpdateItemState((SyncInfo<TEntity>) item);
-      return item;
+      session.Query.Many<TEntity>(keysToFetch).Run();
     }
 
-    private Expression<Func<SyncInfo<TEntity>, bool>> FilterByKeys<T>(List<Key> keys, int start, int count)
+    private Expression<Func<SyncInfo<TEntity>, bool>> GetFilter(List<Key> keys, int start, int count)
     {
-      var p = Expression.Parameter(typeof(SyncInfo<TEntity>), "p");
-      var ea = Expression.Property(p, Wellknown.EntityFieldName);
-      var ka = Expression.Property(ea, WellKnown.KeyFieldName);
+      var info = Expression.Parameter(typeof (SyncInfo<TEntity>), "p");
+      var entity = Expression.Property(info, WellKnown.EntityFieldName);
+      var key = Expression.Property(entity, Orm.WellKnown.KeyFieldName);
 
-      var body = Expression.Equal(ka, Expression.Constant(keys[start]));
+      var body = Expression.Equal(key, Expression.Constant(keys[start]));
       for (int i = 1; i < count; i++)
-        body = Expression.OrElse(body, Expression.Equal(ka, Expression.Constant(keys[start+i])));
+        body = Expression.OrElse(body, Expression.Equal(key, Expression.Constant(keys[start + i])));
 
-      return Expression.Lambda<Func<SyncInfo<TEntity>, bool>>(body, p);
+      return CreateFilter(info, body);
     }
 
-    protected IEnumerable<SyncInfo> UpdateItemState(IEnumerable<SyncInfo<TEntity>> items)
+    private Expression<Func<SyncInfo<TEntity>,bool>> GetFilter(MetadataQuery query)
     {
-      foreach (var item in items) {
-        UpdateItemState(item);
-        yield return item;
-      }
+      var info = Expression.Parameter(typeof (SyncInfo<TEntity>), "p");
+      var changeVersion = Expression.Property(info, "ChangeVersion");
+      var id = Expression.Property(info, "Id");
+
+      var minId = Expression.Constant(query.MinId.ToString());
+      var maxId = Expression.Constant(query.MaxId.ToString());
+      var zero = Expression.Constant(0);
+
+      var rangeFilter = Expression.And(
+        Expression.GreaterThanOrEqual(Expression.Call(id, WellKnown.StringCompareToMethod, minId), zero),
+        Expression.LessThan(Expression.Call(id, WellKnown.StringCompareToMethod, maxId), zero));
+
+      if (query.Filters==null)
+        return CreateFilter(info, rangeFilter);
+
+      var replica = Expression.Property(changeVersion, "Replica");
+      var tick = Expression.Property(changeVersion, "Tick");
+
+      var replicaFilter = query.Filters
+        .Select(f => GetFilter(f, replica, tick))
+        .Aggregate(Expression.Or);
+
+      return CreateFilter(info, Expression.And(rangeFilter, replicaFilter));
     }
 
-    private void UpdateItemState(SyncInfo<TEntity> item)
+    private Expression GetFilter(MetadataQueryFilter filter, Expression replica, Expression tick)
     {
-      if (item.Entity!=null)
-        item.SyncTargetKey = item.Entity.Key;
-      else
-        item.SyncTargetKey = EntityAccessor.GetReferenceKey(item, EntityField);
+      var result = Expression.Equal(replica, Expression.Constant(filter.ReplicaKey));
+      if (filter.LastKnownTick!=null)
+        result = Expression.And(result, Expression.GreaterThan(tick, Expression.Constant(filter.LastKnownTick.Value)));
+      return result;
     }
 
-    public MetadataStore(Session session)
-      : base(session)
+    private static Expression<Func<SyncInfo<TEntity>, bool>> CreateFilter(ParameterExpression info, Expression body)
     {
+      return Expression.Lambda<Func<SyncInfo<TEntity>, bool>>(body, info);
+    }
+
+    public MetadataStore(Session session, SyncId minItemId, SyncId maxItemId)
+      : base(typeof (TEntity), minItemId, maxItemId)
+    {
+      if (session==null)
+        throw new ArgumentNullException("session");
+      this.session = session;
     }
   }
 }

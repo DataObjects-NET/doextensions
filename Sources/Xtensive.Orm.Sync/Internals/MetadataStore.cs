@@ -1,40 +1,38 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using Xtensive.Orm.Model;
-using Xtensive.Orm.Services;
+using Microsoft.Synchronization;
+using Xtensive.Orm.Sync.Model;
 
 namespace Xtensive.Orm.Sync
 {
-  internal abstract class MetadataStore : SessionBound
+  internal abstract class MetadataStore
   {
-    public abstract Type ItemType { get; }
+    public Type EntityType { get; private set; }
 
-    public abstract Type EntityType { get; }
+    public SyncId MinItemId { get; private set; }
 
-    public FieldInfo EntityField { get; private set; }
+    public SyncId MaxItemId { get; private set; }
 
-    public DirectEntityAccessor EntityAccessor { get; private set; }
+    public abstract SyncInfo CreateMetadata(SyncId syncId, Key targetKey);
 
-    public abstract IEnumerable<SyncInfo> GetMetadata(Expression filter);
+    public abstract IEnumerable<SyncInfo> GetOrderedMetadata(MetadataQuery query, Expression userFilter);
 
-    public abstract IEnumerable<SyncInfo> GetMetadata(List<Key> keys);
+    public abstract IEnumerable<SyncInfo> GetUnorderedMetadata(List<Key> targetKeys);
 
-    public abstract SyncInfo GetMetadata(SyncInfo item);
-
-    public SyncInfo CreateItem(Key key)
+    protected MetadataStore(Type entityType, SyncId minItemId, SyncId maxItemId)
     {
-      var result = (SyncInfo) EntityAccessor.CreateEntity(ItemType);
-      EntityAccessor.SetReferenceKey(result, EntityField, key);
-      return result;
-    }
+      if (entityType==null)
+        throw new ArgumentNullException("entityType");
+      if (minItemId==null)
+        throw new ArgumentNullException("minItemId");
+      if (maxItemId==null)
+        throw new ArgumentNullException("maxItemId");
 
-    protected MetadataStore(Session session)
-      : base(session)
-    {
-      var typeInfo = session.Domain.Model.Types[ItemType];
-      EntityField = typeInfo.Fields[Wellknown.EntityFieldName];
-      EntityAccessor = session.Services.Get<DirectEntityAccessor>();
+      EntityType = entityType;
+
+      MinItemId = minItemId;
+      MaxItemId = maxItemId;
     }
   }
 }

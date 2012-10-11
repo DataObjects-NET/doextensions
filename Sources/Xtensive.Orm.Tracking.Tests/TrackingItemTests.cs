@@ -24,7 +24,7 @@ namespace Xtensive.Orm.Tracking.Tests
       var source = TestHelper.CreateTrackingItem(key, TrackingItemState.Created);
       source.RawData.SetValue(0, "value2");
 
-      target.MergeWith(source);
+      TestHelper.Merge(target, source);
 
       Assert.IsFalse(target.RawData.Origin.GetFieldState(0) == TupleFieldState.Available);
       Assert.AreEqual("value2", target.RawData.Difference.GetValue<string>(0));
@@ -42,7 +42,7 @@ namespace Xtensive.Orm.Tracking.Tests
       var source = TestHelper.CreateTrackingItem(key, TrackingItemState.Changed);
       source.RawData.SetValue(0, "value2");
 
-      target.MergeWith(source);
+      TestHelper.Merge(target, source);
 
       Assert.IsFalse(target.RawData.Origin.GetFieldState(0) == TupleFieldState.Available);
       Assert.AreEqual("value2", target.RawData.Difference.GetValue<string>(0));
@@ -60,7 +60,7 @@ namespace Xtensive.Orm.Tracking.Tests
       var source = TestHelper.CreateTrackingItem(key, TrackingItemState.Deleted);
       source.RawData.SetValue(0, "value2");
 
-      target.MergeWith(source);
+      TestHelper.Merge(target, source);
 
       Assert.IsFalse(target.RawData.Origin.GetFieldState(0) == TupleFieldState.Available);
       Assert.AreEqual("value2", target.RawData.Difference.GetValue<string>(0));
@@ -78,7 +78,7 @@ namespace Xtensive.Orm.Tracking.Tests
       var source = TestHelper.CreateTrackingItem(key, TrackingItemState.Changed);
       source.RawData.SetValue(0, "value2");
 
-      target.MergeWith(source);
+      TestHelper.Merge(target, source);
 
       Assert.IsTrue(target.RawData.Origin.GetFieldState(0) == TupleFieldState.Available);
       Assert.AreEqual("value1", target.RawData.Origin.GetValue<string>(0));
@@ -97,7 +97,7 @@ namespace Xtensive.Orm.Tracking.Tests
       var source = TestHelper.CreateTrackingItem(key, TrackingItemState.Deleted);
       source.RawData.SetValue(0, "value2");
 
-      target.MergeWith(source);
+      TestHelper.Merge(target, source);
 
       Assert.IsTrue(target.RawData.Origin.GetFieldState(0) == TupleFieldState.Available);
       Assert.AreEqual("value1", target.RawData.Origin.GetValue<string>(0));
@@ -116,7 +116,7 @@ namespace Xtensive.Orm.Tracking.Tests
       var source = TestHelper.CreateTrackingItem(key, TrackingItemState.Deleted);
       source.RawData.SetValue(0, "value2");
 
-      target.MergeWith(source);
+      TestHelper.Merge(target, source);
 
       Assert.IsTrue(target.RawData.Origin.GetFieldState(0) == TupleFieldState.Available);
       Assert.AreEqual("value1", target.RawData.Origin.GetValue<string>(0));
@@ -135,7 +135,7 @@ namespace Xtensive.Orm.Tracking.Tests
       var source = TestHelper.CreateTrackingItem(key, TrackingItemState.Created);
       source.RawData.SetValue(0, "value2");
 
-      target.MergeWith(source);
+      TestHelper.Merge(target, source);
 
       Assert.IsFalse(target.RawData.Origin.GetFieldState(0) == TupleFieldState.Available);
       Assert.AreEqual("value2", target.RawData.Difference.GetValue<string>(0));

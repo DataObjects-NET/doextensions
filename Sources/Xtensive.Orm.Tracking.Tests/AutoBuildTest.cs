@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using System;
+using TestCommon;
 using Xtensive.Core;
 using Xtensive.Orm.Tracking.Tests.Model;
 using Xtensive.Reflection;
@@ -39,7 +40,10 @@ namespace Xtensive.Orm.Tracking.Tests
 
     protected virtual DomainConfiguration BuildConfiguration()
     {
-      return DomainConfiguration.Load("default");
+      var configuration = DomainConfigurationFactory.Create();
+      configuration.Types.Register(typeof (ITrackingMonitor).Assembly);
+      configuration.Types.Register(typeof (AutoBuildTest).Assembly);
+      return configuration;
     }
 
     protected virtual Domain BuildDomain(DomainConfiguration configuration)

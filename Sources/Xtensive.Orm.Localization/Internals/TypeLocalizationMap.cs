@@ -34,7 +34,7 @@ namespace Xtensive.Orm.Localization
         if (!type.IsOfGenericInterface(typeof (ILocalizable<>)))
           continue;
         var localizationType = type.GetInterface("ILocalizable`1").GetGenericArguments()[0];
-        map.Register(type, localizationType.GetTypeInfo(domain));
+        map.Register(type, domain.Model.Types[localizationType]);
       }
       domain.Extensions.Set(map);
     }

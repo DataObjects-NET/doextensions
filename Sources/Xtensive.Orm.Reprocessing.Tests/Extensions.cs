@@ -4,9 +4,10 @@ using System.Data.Common;
 using System.Linq;
 using System.Text;
 using Xtensive.Core;
+using Xtensive.Orm;
 using Xtensive.Orm.Services;
 
-namespace Xtensive.Orm.Reprocessing.Tests
+namespace TestCommon.Model
 {
   static class Extensions
   {

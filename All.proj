@@ -3,13 +3,18 @@
          ToolsVersion="4.0" DefaultTargets="Build">
 
 <Import Project="MSBuild\Tasks.targets" />
-
-<PropertyGroup>
-  <Version>4.6.0</Version>
-</PropertyGroup>
+<Import Project="Version.props" />
 
 <PropertyGroup>
   <Configuration Condition="'$(Configuration)'==''">Release</Configuration>
+</PropertyGroup>
+
+<PropertyGroup>
+  <Modifier Condition="'$(Modifier)'=='Final'"></Modifier>
+  <VersionName>$(Version)</VersionName>
+  <VersionName Condition="'$(Modifier)'!=''">$(Version) $(Modifier)</VersionName>
+  <VersionNameZip>$(VersionName.Replace(' ', '_'))</VersionNameZip>
+  <VersionNameNuGet>$(VersionName.Replace(' ', '-'))</VersionNameNuGet>
 </PropertyGroup>
 
 <PropertyGroup>
@@ -21,8 +26,8 @@
 </PropertyGroup>
 
 <ItemGroup>
-  <SpecFiles Include="$(SourcesDir)*\*.nuspec" />
-  <PackageLists Include="$(SourcesDir)*\packages.config" />
+  <SpecFiles Include="$(SourcesDir)*\*.nuspec"
+             Exclude="$(SourcesDir)Xtensive.Orm.Sync\Xtensive.Orm.Sync.nuspec" />
 </ItemGroup>
 
 <ItemGroup>
@@ -34,6 +39,9 @@
 <ItemGroup>
   <ProductVariables Include="Version">
     <ReplacementValue>$(Version)</ReplacementValue>
+  </ProductVariables>
+  <ProductVariables Include="VersionName">
+    <ReplacementValue>$(VersionName)</ReplacementValue>
   </ProductVariables>
 </ItemGroup>
 
@@ -57,14 +65,16 @@
   <Libraries Include="$(BinariesDir)Xtensive.Orm.Security.dll" />
   <Libraries Include="$(BinariesDir)Xtensive.Orm.Security.xml" />
   <Libraries Include="$(BinariesDir)Xtensive.Orm.Security.txt" />
+  
+<!--
+  <Libraries Include="$(BinariesDir)Xtensive.Orm.Sync.dll" />
+  <Libraries Include="$(BinariesDir)Xtensive.Orm.Sync.xml" />
+  <Libraries Include="$(BinariesDir)Xtensive.Orm.Sync.txt" />
+-->
 
   <Libraries Include="$(BinariesDir)Xtensive.Orm.Tracking.dll" />
   <Libraries Include="$(BinariesDir)Xtensive.Orm.Tracking.xml" />
   <Libraries Include="$(BinariesDir)Xtensive.Orm.Tracking.txt" />
-
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Sync.dll" />
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Sync.xml" />
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Sync.txt" />
 </ItemGroup>
 
 <Target Name="InitBuildDir">
@@ -73,27 +83,24 @@
 
 <Target Name="UpdateProductInfo" DependsOnTargets="InitBuildDir">
   <PropertyGroup>
-    <CompareCommand>fc "$(BuildDir)ProductInfo.cs" "$(BuildDir)ProductInfo.cs.tmp" >nul 2>nul</CompareCommand>
+    <ProductInfoWorkFile>$(BuildDir)ProductInfo.cs.generated</ProductInfoWorkFile>
+    <CompareCommand>fc "$(BuildDir)ProductInfo.cs" "$(ProductInfoWorkFile)" >nul 2>nul</CompareCommand>
   </PropertyGroup>
   <TemplateFile
     Template="$(SourcesDir)ProductInfo.cs"
-    OutputFilename="$(BuildDir)ProductInfo.cs.tmp"
+    OutputFilename="$(ProductInfoWorkFile)"
     Tokens="@(ProductVariables)" />
   <Exec Command="$(CompareCommand)" IgnoreExitCode="true">
     <Output TaskParameter="ExitCode" PropertyName="CompareResult" />
   </Exec>
   <Copy
     Condition="'$(CompareResult)'!='0'"
-    SourceFiles="$(BuildDir)ProductInfo.cs.tmp"
+    SourceFiles="$(ProductInfoWorkFile)"
     DestinationFiles="$(BuildDir)ProductInfo.cs" />
 </Target>
 
-<Target Name="RestorePackages" Inputs="@(PackageLists)" Outputs="%(Identity).Fake">
-  <PropertyGroup>
-    <ConfigFile>%(PackageLists.RootDir)%(PackageLists.Directory)%(PackageLists.Filename)%(PackageLists.Extension)</ConfigFile>
-    <RestoreCommand>nuget install "$(ConfigFile)" -source "" -o "$(SourcesDir)packages"</RestoreCommand>
-  </PropertyGroup>
-  <Exec Command="$(RestoreCommand)" />
+<Target Name="GetDO">
+  <MSBuild Projects="Lib\GetLib.proj" Properties="LibName=DataObjects.Net;LibVersion=$(DOVersion)" />
 </Target>
 
 <!-- NuGet packaging -->
@@ -108,7 +115,7 @@
         Inputs="@(SpecFiles)" Outputs="%(Identity).Fake">
   <PropertyGroup>
     <ProjectFile>%(SpecFiles.RootDir)%(SpecFiles.Directory)%(SpecFiles.Filename).csproj</ProjectFile>
-    <BuildCommand>nuget pack "$(ProjectFile)" -version $(Version) -p Configuration=Release -o "$(PackagesDir)." -symbols</BuildCommand>
+    <BuildCommand>nuget pack "$(ProjectFile)" -version $(VersionNameNuGet) -p Configuration=Release -o "$(PackagesDir)." -symbols</BuildCommand>
   </PropertyGroup>
   <Exec Command="$(BuildCommand)" />
 </Target>
@@ -135,7 +142,7 @@
         Condition="'$(Configuration)'=='Release'"
         DependsOnTargets="InitZipDir;BuildBinaries;CopyDocumentation">
   <PropertyGroup>
-    <ZipFile>$(ZipDir)DataObjects.Net.Extensions-$(Version).zip</ZipFile>
+    <ZipFile>$(ZipDir)DataObjects.Net-Extensions-$(VersionNameZip).zip</ZipFile>
   </PropertyGroup>
   <Zip Files="@(Libraries)" ZipFileName="$(ZipFile)" WorkingDirectory="$(BinariesDir)" />
 </Target>
@@ -146,11 +153,11 @@
 
 <!-- Binaries -->
 
-<Target Name="BuildBinaries" DependsOnTargets="RestorePackages;UpdateProductInfo">
+<Target Name="BuildBinaries" DependsOnTargets="GetDO;UpdateProductInfo">
   <MSBuild Projects="@(Projects)" Targets="Build" />
 </Target>
 
-<Target Name="CleanBinaries" DependsOnTargets="RestorePackages">
+<Target Name="CleanBinaries" DependsOnTargets="GetDO">
   <MSBuild Projects="@(Projects)" Targets="Clean" />
   <RemoveDir Directories="$(BinariesDir)" />
 </Target>

@@ -10,19 +10,16 @@ using System.Collections.Generic;
 
 namespace Xtensive.Orm.Tracking
 {
-  public class TrackingStackFrame : IEnumerable<TrackingItem>
+  internal sealed class TrackingStackFrame : IEnumerable<TrackingItem>
   {
-    private readonly Dictionary<Key, TrackingItem> items = new Dictionary<Key,TrackingItem>();
+    private readonly Dictionary<Key, TrackingItem> items = new Dictionary<Key, TrackingItem>();
 
-    public int Count
-    {
-      get { return items.Count; }
-    }
+    public int Count { get { return items.Count; } }
 
     public void Register(TrackingItem item)
     {
-      if (item == null)
-        throw new NullReferenceException("item");
+      if (item==null)
+        throw new ArgumentNullException("item");
 
       TrackingItem existing;
       if (items.TryGetValue(item.Key, out existing)) {
@@ -42,8 +39,8 @@ namespace Xtensive.Orm.Tracking
 
     public void MergeWith(TrackingStackFrame source)
     {
-      if (source == null)
-        throw new NullReferenceException("source");
+      if (source==null)
+        throw new ArgumentNullException("source");
 
       foreach (var sourceItem in source) {
         TrackingItem target;

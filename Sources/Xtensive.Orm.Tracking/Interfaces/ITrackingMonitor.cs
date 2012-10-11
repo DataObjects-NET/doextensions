@@ -21,10 +21,5 @@ namespace Xtensive.Orm.Tracking
     /// Disables tracking.
     /// </summary>
     void Disable();
-
-    /// <summary>
-    /// Gets or sets the filter that is applied to include only entities of required types.
-    /// </summary>
-    Func<Type, bool> Filter { get; set; }
   }
 }

@@ -1,53 +1,28 @@
-﻿using System.Collections.Generic;
-using NUnit.Framework;
-using Xtensive.Core;
+﻿using NUnit.Framework;
+using TestCommon;
+using TestCommon.Model;
 using Xtensive.Orm.Configuration;
+using Xtensive.Orm.Providers;
 
 namespace Xtensive.Orm.Reprocessing.Tests
 {
   [TestFixture]
-  public abstract class AutoBuildTest
+  public abstract class AutoBuildTest : CommonModelTest
   {
-    private List<Session> notDisposed;
-    protected Domain Domain { get; private set; }
-
-    [SetUp]
-    public virtual void SetUp()
+    protected override DomainConfiguration BuildConfiguration()
     {
-      DomainConfiguration config = BuildConfiguration();
-      Domain = BuildDomain(config);
-      notDisposed = new List<Session>();
-      Domain.SessionOpen += (sender, args) => {
-        notDisposed.Add(args.Session);
-        args.Session.Events.Disposing += (o, eventArgs) => {
-          lock (notDisposed) {
-            notDisposed.Remove(args.Session);
-          }
-        };
-      };
-      PopulateData();
+      var configuration = base.BuildConfiguration();
+      configuration.Types.Register(typeof (ReprocessAttribute).Assembly);
+      configuration.Types.Register(typeof (AutoBuildTest).Assembly);
+      return configuration;
     }
 
-    [TearDown]
-    public virtual void TearDown()
+    protected override Domain BuildDomain(DomainConfiguration configuration)
     {
-      Assert.That(notDisposed, Is.Empty);
-      Assert.That(SessionScope.CurrentSession, Is.Null);
-      Domain.DisposeSafely();
-    }
-
-    protected virtual DomainConfiguration BuildConfiguration()
-    {
-      return DomainConfiguration.Load("Default");
-    }
-
-    protected virtual Domain BuildDomain(DomainConfiguration configuration)
-    {
-      return Domain.Build(configuration);
-    }
-
-    protected virtual void PopulateData()
-    {
+      var domain = base.BuildDomain(configuration);
+      if (domain.StorageProviderInfo.Supports(ProviderFeatures.SingleSessionAccess))
+        Assert.Ignore("This storage does not support multiple sessions writing to the same database, ignoring");
+      return domain;
     }
   }
 }

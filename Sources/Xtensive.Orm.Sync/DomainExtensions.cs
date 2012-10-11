@@ -1,5 +1,4 @@
-﻿using Microsoft.Synchronization;
-using Xtensive.Orm.Sync;
+﻿using Xtensive.Orm.Sync;
 
 namespace Xtensive.Orm
 {
@@ -9,13 +8,13 @@ namespace Xtensive.Orm
   public static class DomainExtensions
   {
     /// <summary>
-    /// Gets the <see cref="KnowledgeSyncProvider"/> implementation.
+    /// Gets the <see cref="SyncManager"/> for the specified <paramref name="domain"/>.
     /// </summary>
-    /// <param name="domain">The domain.</param>
-    /// <returns></returns>
-    public static OrmSyncProvider GetSyncProvider(this Domain domain)
+    /// <param name="domain">The domain to use.</param>
+    /// <returns>Sync manager for specified domain if sync is enabled, otherwise null.</returns>
+    public static ISyncManager GetSyncManager(this Domain domain)
     {
-      return domain.Services.Get<OrmSyncProvider>();
+      return domain.Services.Get<ISyncManager>();
     }
   }
 }

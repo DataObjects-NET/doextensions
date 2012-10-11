@@ -5,7 +5,7 @@ namespace Xtensive.Orm.Tracking
   /// <summary>
   /// Represents a pair of original and changed values for a persistent field
   /// </summary>
-  public class ChangedValue
+  public sealed class ChangedValue
   {
     /// <summary>
     /// Gets the field.

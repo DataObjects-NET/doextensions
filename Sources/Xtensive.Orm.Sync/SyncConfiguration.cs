@@ -7,13 +7,8 @@ namespace Xtensive.Orm.Sync
   /// <summary>
   /// Configuration for <see cref="OrmSyncProvider"/>
   /// </summary>
-  public class SyncConfiguration
+  public sealed class SyncConfiguration
   {
-    /// <summary>
-    /// Gets the <see cref="SyncConfigurationEndpoint"/> instance for fluent configuration.
-    /// </summary>
-    public SyncConfigurationEndpoint Endpoint { get; private set; }
-
     /// <summary>
     /// Gets or sets a value indicating whether all instances of all types should be synchronized.
     /// </summary>
@@ -38,14 +33,42 @@ namespace Xtensive.Orm.Sync
     public Dictionary<Type, Expression> Filters { get; private set; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SyncConfiguration"/> class.
+    /// Gets or sets the size of the synchronization batch.
     /// </summary>
-    public SyncConfiguration()
+    public int BatchSize { get; set; }
+
+    /// <summary>
+    /// Gets or sets the <see cref="Session"/> to use for synchronization.
+    /// If set to null separate session would be created.
+    /// </summary>
+    public Session Session { get; set; }
+
+    /// <summary>
+    /// Resets this instance.
+    /// </summary>
+    public void Reset()
     {
-      Endpoint = new SyncConfigurationEndpoint(this);
+      Initialize();
+    }
+
+    internal void Prepare()
+    {
+      if (SyncTypes.Count==0 && Filters.Count==0 && SkipTypes.Count==0)
+        SyncAll = true;
+    }
+
+    private void Initialize()
+    {
+      SyncAll = false;
+      BatchSize = WellKnown.SyncBatchSize;
       SyncTypes = new HashSet<Type>();
       SkipTypes = new HashSet<Type>();
-      Filters = new Dictionary<Type,Expression>();
+      Filters = new Dictionary<Type, Expression>();
+    }
+
+    internal SyncConfiguration()
+    {
+      Initialize();
     }
   }
 }
