@@ -26,8 +26,7 @@
 </PropertyGroup>
 
 <ItemGroup>
-  <SpecFiles Include="$(SourcesDir)*\*.nuspec"
-             Exclude="$(SourcesDir)Xtensive.Orm.Sync\Xtensive.Orm.Sync.nuspec" />
+  <SpecFiles Include="$(SourcesDir)*\*.nuspec" />
 </ItemGroup>
 
 <ItemGroup>
@@ -65,12 +64,10 @@
   <Libraries Include="$(BinariesDir)Xtensive.Orm.Security.dll" />
   <Libraries Include="$(BinariesDir)Xtensive.Orm.Security.xml" />
   <Libraries Include="$(BinariesDir)Xtensive.Orm.Security.txt" />
-  
-<!--
+
   <Libraries Include="$(BinariesDir)Xtensive.Orm.Sync.dll" />
   <Libraries Include="$(BinariesDir)Xtensive.Orm.Sync.xml" />
   <Libraries Include="$(BinariesDir)Xtensive.Orm.Sync.txt" />
--->
 
   <Libraries Include="$(BinariesDir)Xtensive.Orm.Tracking.dll" />
   <Libraries Include="$(BinariesDir)Xtensive.Orm.Tracking.xml" />
