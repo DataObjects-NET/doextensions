@@ -42,7 +42,7 @@ namespace Xtensive.Orm.Web
     private static readonly object domainBuildLock = new object();
     private static Func<Domain> domainBuilder;
     private static Func<Pair<Session, IDisposable>> sessionProvider;
-    private static Domain domain;
+    private static volatile Domain domain;
 
     private readonly object provideSessionLock = new object();
     private Session session;
