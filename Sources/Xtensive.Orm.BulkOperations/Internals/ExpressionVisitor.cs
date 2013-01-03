@@ -15,9 +15,9 @@ namespace Xtensive.Orm.BulkOperations
   {
     private readonly Func<T, Expression> visitor;
 
-    public static void Visit(Expression exp, Func<T, Expression> visitor)
+    public static Expression Visit(Expression exp, Func<T, Expression> visitor)
     {
-      new ExpressionVisitor<T>(visitor).Visit(exp);
+      return new ExpressionVisitor<T>(visitor).Visit(exp);
     }
 
     #region Non-public methods

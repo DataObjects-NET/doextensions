@@ -48,59 +48,69 @@ namespace Xtensive.Orm.Reprocessing
     public virtual T Execute<T>(ExecutionContext<T> context)
     {
       int i = 0;
-      while (true) {
+      while (true)
+      {
         Session session = null;
         TransactionScope tran = null;
         bool needBreak = false;
         Transaction transaction = null;
-        try {
+        try
+        {
           T result;
           SessionScope sessionScope = null;
-          try {
-            try {
+          try
+          {
+            try
+            {
               IsolationLevel isolationLevel = context.IsolationLevel;
               SystemTransaction currentTransaction = SystemTransaction.Current;
-              if (isolationLevel==IsolationLevel.Unspecified && currentTransaction!=null)
+              if (isolationLevel == IsolationLevel.Unspecified && currentTransaction != null)
                 isolationLevel = currentTransaction.IsolationLevel;
               session = SessionScope.CurrentSession;
-              if (session==null) {
+              if (session == null)
+              {
                 session = context.Domain.OpenSession();
                 sessionScope = session.Activate();
               }
-              if (currentTransaction!=null && session.Transaction!=null)
+              if (currentTransaction != null && session.Transaction != null)
                 session.EnsureTransactionIsStarted();
-              tran = currentTransaction!=null &&
-                currentTransaction.TransactionInformation.DistributedIdentifier!=Guid.Empty
-                ? session.OpenTransaction(isolationLevel)
-                : session.OpenTransaction(context.TransactionOpenMode, isolationLevel);
+              tran = (currentTransaction != null && currentTransaction.TransactionInformation.DistributedIdentifier != Guid.Empty) ||
+                     (session.Transaction != null && session.Transaction.IsDisconnected)
+                       ? session.OpenTransaction(isolationLevel)
+                       : session.OpenTransaction(context.TransactionOpenMode, isolationLevel);
               transaction = session.Transaction;
               result = context.Function(session);
               tran.Complete();
             }
-            finally {
-              try {
+            finally
+            {
+              try
+              {
                 tran.DisposeSafely();
               }
-              catch (StorageException e) {
-                if (e.InnerException==null || !(e.InnerException is InvalidOperationException) ||
-                  e.InnerException.Source!="System.Data")
+              catch (StorageException e)
+              {
+                if (e.InnerException == null || !(e.InnerException is InvalidOperationException) ||
+                    e.InnerException.Source != "System.Data")
                   throw;
                 if (tran.Transaction.IsNested)
                   needBreak = true;
               }
             }
           }
-          finally {
+          finally
+          {
             sessionScope.DisposeSafely();
-            if (SessionScope.CurrentSession!=session)
+            if (SessionScope.CurrentSession != session)
               session.DisposeSafely();
           }
           return result;
         }
-        catch (Exception e) {
-          if ((SystemTransaction.Current!=null &&
-            SystemTransaction.Current.TransactionInformation.DistributedIdentifier!=Guid.Empty) ||
-              (transaction!=null && transaction.State==TransactionState.Active))
+        catch (Exception e)
+        {
+          if ((SystemTransaction.Current != null &&
+               SystemTransaction.Current.TransactionInformation.DistributedIdentifier != Guid.Empty) ||
+              (transaction != null && (transaction.State == TransactionState.Active || transaction.IsDisconnected)))
             throw;
           if (e is RollbackTransactionException)
             return default(T);

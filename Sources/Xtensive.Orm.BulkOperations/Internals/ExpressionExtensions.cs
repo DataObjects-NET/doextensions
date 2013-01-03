@@ -26,9 +26,9 @@ namespace Xtensive.Orm.BulkOperations
       return Expression.Lambda(typeof (Func<>).MakeGenericType(expression.Type), expression).Compile().DynamicInvoke();
     }
 
-    internal static void Visit<T>(this Expression exp, Func<T, Expression> visitor) where T : Expression
+    internal static Expression Visit<T>(this Expression exp, Func<T, Expression> visitor) where T : Expression
     {
-      ExpressionVisitor<T>.Visit(exp, visitor);
+      return ExpressionVisitor<T>.Visit(exp, visitor);
     }
 
     #endregion
