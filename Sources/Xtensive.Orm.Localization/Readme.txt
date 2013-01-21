@@ -27,6 +27,15 @@ Implementation
     </domains>
   </Xtensive.Orm>
 
+  2.1 Optionally add default localization configuration
+  <configSections>
+    <section name="Xtensive.Orm.Localization" type="Xtensive.Orm.Localization.Configuration.ConfigurationSection, Xtensive.Orm.Localization"/>
+  </configSections>
+
+  <Xtensive.Orm.Localization>
+    <defaultCulture name="es-ES"/>
+  </Xtensive.Orm.Localization>
+
 3. Implement ILocalizable<TLocalization> on your localizable entities, e.g.:
 
   [HierarchyRoot]
