@@ -68,12 +68,13 @@ namespace Xtensive.Orm.Tracking
       foreach (var field in Key.TypeInfo.Fields.Where(f => f.Column!=null)) {
         object origValue = null, changedValue = null;
         int fieldIndex = field.MappingInfo.Offset;
+        TupleFieldState fieldState;
         if (originalValues!=null)
-          origValue = originalValues.GetValue(fieldIndex);
+          origValue = originalValues.GetValue(fieldIndex, out fieldState);
         if (changedValues!=null) {
-          if (changedValues.GetFieldState(fieldIndex)!=TupleFieldState.Available)
+          changedValue = changedValues.GetValue(fieldIndex, out fieldState);
+          if (!fieldState.IsAvailable())
             continue;
-          changedValue = changedValues.GetValue(fieldIndex);
         }
         yield return new ChangedValue(field, origValue, changedValue);
       }

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using Xtensive.Orm;
 
 namespace Xtensive.Orm.Tracking.Tests.Model
 {

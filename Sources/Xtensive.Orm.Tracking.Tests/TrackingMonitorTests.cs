@@ -355,6 +355,38 @@ namespace Xtensive.Orm.Tracking.Tests
       }
     }
 
+    [Test]
+    public void TrackPartiallyLoadedEntity()
+    {
+      Key key;
+      using (var session = Domain.OpenSession()) {
+        using (var t = session.OpenTransaction()) {
+          var e = new MyChildEntity(session);
+          key = e.Key;
+          e.Text = "some text";
+          t.Complete();
+        }
+      }
+
+      var monitor = Domain.Services.Get<IDomainTrackingMonitor>();
+      monitor.TrackingCompleted += CreateAndModifyInNextListener;
+
+      try {
+        using (var session = Domain.OpenSession()) {
+          using (var t = session.OpenTransaction()) {
+            var entities = session.Query.All<MyEntity>().Where(e => e.Key==key);
+            foreach (var e in entities)
+              e.Text = "another text";
+            t.Complete();
+          }
+        }
+      }
+      finally {
+        monitor.TrackingCompleted -= CreateAndModifyInNextListener;
+        Assert.IsTrue(listenerIsCalled);
+      }
+    }
+
     private void CreateAndModifyInNextListener(object sender, TrackingCompletedEventArgs e)
     {
       ListenerIsCalled();
