@@ -86,8 +86,6 @@ namespace Xtensive.Orm.BulkOperations
     }
     private void AddComputedStaticExpression(AddValueContext addContext)
     {
-//      var t = (QueryTranslationResult) parent.QueryBuilder.GetType().GetMethod("TranslateQuery", new Type[] {typeof (Expression)}).MakeGenericMethod(addContext.Lambda.Type.GetGenericArguments()[1]).Invoke(parent.QueryBuilder, new object[] {addContext.Lambda.Body});
-
       SqlTableColumn column = SqlDml.TableColumn(addContext.Statement.Table, addContext.Field.Column.Name);
       var all = Expression.Call(Expression.Constant(parent.Session.Query), "All", new[] { typeof(T) });
       MethodCallExpression selectExpression = Expression.Call(
@@ -99,9 +97,21 @@ namespace Xtensive.Orm.BulkOperations
       QueryTranslationResult request = parent.GetRequest(parent.QueryProvider.CreateQuery<T>(selectExpression));
       var sqlSelect = ((SqlSelect)request.Query);
       SqlExpression ex = sqlSelect.OrderBy[0].Expression;
-      parent.Bindings.AddRange(request.ParameterBindings);
-
-      addContext.Statement.AddValue(column, ex);
+      var placeholder = ex as SqlPlaceholder;
+      if (placeholder == null)
+      {
+        parent.Bindings.AddRange(request.ParameterBindings);
+        addContext.Statement.AddValue(column, ex);
+        return;
+      }
+      //hack for this case
+      addContext.Lambda=(LambdaExpression) addContext.Lambda.Visit((Expression e) =>
+                                                                     {
+                                                                       if (e.Type != typeof (Session))
+                                                                         return e;
+                                                                       return Expression.Property(addContext.Lambda.Parameters[0], "Session");
+                                                                     });
+      AddComputedExpression(addContext);
     }
 
     private void AddComputedExpression(AddValueContext addContext)

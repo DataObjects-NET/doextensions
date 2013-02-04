@@ -10,6 +10,9 @@ namespace Xtensive.Orm.Reprocessing
   [Serializable]
   public class ReprocessAttribute : MethodInterceptionAspect
   {
+    private StandardExecutionStrategy? _strategy;
+    private TransactionOpenMode? _transactionOpenMode;
+
     /// <summary>
     /// Gets or sets the custom strategy. This property overrides <see cref="Strategy"/> property if set.
     /// </summary>
@@ -23,7 +26,12 @@ namespace Xtensive.Orm.Reprocessing
     /// <value>
     /// The strategy.
     /// </value>
-    public StandardExecutionStrategy? Strategy { get; set; }
+    public StandardExecutionStrategy Strategy
+    {
+      get { return _strategy.GetValueOrDefault(); }
+      set { _strategy = value; }
+    }
+
     /// <summary>
     /// Gets or sets the isolation level.
     /// </summary>
@@ -38,8 +46,12 @@ namespace Xtensive.Orm.Reprocessing
     /// <value>
     /// The transaction open mode.
     /// </value>
-    public TransactionOpenMode? TransactionOpenMode { get; set; }
-      
+    public TransactionOpenMode TransactionOpenMode
+    {
+      get { return _transactionOpenMode.GetValueOrDefault(); }
+      set { _transactionOpenMode = value; }
+    }
+
 
     /// <summary>
     /// Gets or sets the domain in which context should run all methods marked with this attribute.
@@ -58,9 +70,9 @@ namespace Xtensive.Orm.Reprocessing
       IExecuteActionStrategy strategy = null;
       if (CustomStrategy != null)
         strategy = ExecuteActionStrategy.GetSingleton(CustomStrategy);
-      else if (Strategy != null)
+      else if (_strategy != null)
       {
-        switch (Strategy.Value)
+        switch (_strategy.Value)
         {
           case StandardExecutionStrategy.HandleReprocessableException:
             strategy = ExecuteActionStrategy.HandleReprocessableException;
@@ -76,7 +88,7 @@ namespace Xtensive.Orm.Reprocessing
         }
       }
       
-      GetDomain().ExecuteInternal(IsolationLevel, TransactionOpenMode, strategy, session => args.Proceed());
+      GetDomain().ExecuteInternal(IsolationLevel, _transactionOpenMode, strategy, session => args.Proceed());
     }
 
     #region Non-public methods

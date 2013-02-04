@@ -2,6 +2,8 @@
 using NUnit.Framework;
 using Xtensive.Orm;
 using Xtensive.Orm.Reprocessing;
+using PostSharp.Extensibility;
+using Xtensive.Orm.Configuration;
 using Xtensive.Orm.Reprocessing.Configuration;
 using TestCommon.Model;
 using System.Linq;
@@ -72,6 +74,29 @@ namespace TestCommon.Model
           session2.Query.All<Foo>().ToArray();
         });
       });
+    }
+
+    [Test]
+    public void ParentIsDisconnectedState()
+    {
+      Domain.Execute(session =>
+                       {
+                         new Bar(session);
+                       });
+      using (var session = Domain.OpenSession(new SessionConfiguration(SessionOptions.ClientProfile)))
+      using(session.Activate())
+      {
+        var bar = session.Query.All<Bar>().FirstOrDefault();
+        bar=new Bar(session);
+        session.SaveChanges();
+        Domain.Execute(session1 =>
+                         {
+                           bar = session1.Query.All<Bar>().FirstOrDefault();
+                           bar=new Bar(session1);
+                         });
+        session.SaveChanges();
+      }
+      Domain.Execute(session => Assert.That(session.Query.All<Bar>().Count(), Is.EqualTo(3)));
     }
   }
 }
