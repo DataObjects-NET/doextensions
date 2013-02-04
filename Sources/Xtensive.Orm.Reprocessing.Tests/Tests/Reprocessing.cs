@@ -8,20 +8,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
 using NUnit.Framework;
-using Xtensive.Orm;
-using Xtensive.Orm.Reprocessing;
 using TestCommon.Model;
-using Xtensive.Orm.Reprocessing.Tests;
-using Xtensive.Orm.Rse;
-using TransactionScope = System.Transactions.TransactionScope;
 
-namespace TestCommon.Model
+namespace Xtensive.Orm.Reprocessing.Tests
 {
   public class Reprocessing : AutoBuildTest
   {
     private int Bar2Count()
     {
-      return Domain.Execute(session => session.Query.All<Bar2>().Count());
+      return Domain.Execute(session => Queryable.Count(session.Query.All<Bar2>()));
     }
 
     private class Context

@@ -1,15 +1,11 @@
-﻿using System.Transactions;
+﻿using System.Linq;
+using System.Transactions;
 using NUnit.Framework;
-using Xtensive.Orm;
-using Xtensive.Orm.Reprocessing;
-using PostSharp.Extensibility;
+using TestCommon.Model;
 using Xtensive.Orm.Configuration;
 using Xtensive.Orm.Reprocessing.Configuration;
-using TestCommon.Model;
-using System.Linq;
-using Xtensive.Orm.Reprocessing.Tests;
 
-namespace TestCommon.Model
+namespace Xtensive.Orm.Reprocessing.Tests
 {
   public class Other : AutoBuildTest
   {
