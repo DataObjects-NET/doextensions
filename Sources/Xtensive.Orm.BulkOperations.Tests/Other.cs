@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using Xtensive.Orm.Reprocessing.Tests;
 using Xtensive.Orm.Reprocessing.Tests.Model;
+using Xtensive.Orm.Rse;
 
 namespace Xtensive.Orm.BulkOperations.Tests
 {
@@ -190,6 +192,57 @@ namespace Xtensive.Orm.BulkOperations.Tests
           Assert.That(foo3.Bar, Is.Null);
           trx.Complete();
         }
+      }
+    }
+    [Test]
+    public void In()
+    {
+      using (Session session = Domain.OpenSession())
+      using (TransactionScope trx = session.OpenTransaction())
+      {
+        var bar1 = new Bar(session, 1);
+        var bar3 = new Bar(session, 3);
+        var bar5 = new Bar(session, 5);
+        var bar6 = new Bar(session, 6);
+        var list = new List<int>() {1, 2, 3, 4, 5};
+
+        session.Query.All<Bar>()
+               .Where(a => a.Id.In(IncludeAlgorithm.Auto, list))
+               .Set(a => a.Count, 2)
+               .Update();
+        Assert.That(bar1.Count, Is.EqualTo(2));
+        Assert.That(bar3.Count, Is.EqualTo(2));
+        Assert.That(bar5.Count, Is.EqualTo(2));
+        Assert.That(bar6.Count, Is.EqualTo(0));
+
+        session.Query.All<Bar>()
+               .Where(a => a.Id.In(IncludeAlgorithm.ComplexCondition, list))
+               .Set(a => a.Count, 3)
+               .Update();
+        Assert.That(bar1.Count, Is.EqualTo(3));
+        Assert.That(bar3.Count, Is.EqualTo(3));
+        Assert.That(bar5.Count, Is.EqualTo(3));
+        Assert.That(bar6.Count, Is.EqualTo(0));
+
+        session.Query.All<Bar>()
+               .Where(a => a.Id.In(list))
+               .Set(a => a.Count, 4)
+               .Update();
+        Assert.That(bar1.Count, Is.EqualTo(4));
+        Assert.That(bar3.Count, Is.EqualTo(4));
+        Assert.That(bar5.Count, Is.EqualTo(4));
+        Assert.That(bar6.Count, Is.EqualTo(0));
+
+        session.Query.All<Bar>()
+               .Where(a => a.Id.In(1, 2, 3, 4, 5))
+               .Set(a => a.Count, 5)
+               .Update();
+        Assert.That(bar1.Count, Is.EqualTo(5));
+        Assert.That(bar3.Count, Is.EqualTo(5));
+        Assert.That(bar5.Count, Is.EqualTo(5));
+        Assert.That(bar6.Count, Is.EqualTo(0));
+
+        trx.Complete();
       }
     }
   }
