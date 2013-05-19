@@ -89,7 +89,9 @@ namespace Xtensive.Orm.Sync
               continue;
             var mappedRefKey = TryResolveIdentity(identity);
             if (mappedRefKey==null)
-              throw new InvalidOperationException(string.Format("Mapped key for original key '{0}' is not found", identity.Key.Format()));
+              throw new InvalidOperationException(string.Format(
+                "Unable to translate key '{0}': field '{1}' has value '{2}' which is unknown in current replica.",
+                data.Identity.Key.Format(), field.Name, identity.Key.Format()));
             offset = field.MappingInfo.Offset;
             mappedRefKey.Value.CopyTo(targetTuple, 0, offset, field.MappingInfo.Length);
           }
