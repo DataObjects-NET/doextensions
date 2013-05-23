@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Xtensive.Core;
 using Xtensive.IoC;
@@ -39,11 +40,22 @@ namespace Xtensive.Orm.Sync
 
       var metadataSet = metadataManager.GetMetadata(logItems.Select(log => log.TargetKey.Key));
       foreach (var item in logItems) {
-        var metadata = metadataSet[item.TargetKey.Key];
-        if (metadata==null)
-          metadataManager.CreateMetadata(item.TargetKey.Key, item.Tick);
-        else
+        var targetKey = item.TargetKey.Key;
+        var metadata = metadataSet[targetKey];
+        switch (item.ChangeKind) {
+        case EntityChangeKind.Create:
+          metadata = metadataManager.CreateMetadata(targetKey, item.Tick);
+          metadataSet.Add(metadata);
+          break;
+        case EntityChangeKind.Update:
+        case EntityChangeKind.Remove:
+          if (metadata==null)
+            throw new InvalidOperationException(string.Format("Metadata for object '{0}' is not found", targetKey.Format()));
           metadataManager.UpdateMetadata(metadata, item.ChangeKind==EntityChangeKind.Remove, item.Tick);
+          break;
+        default:
+          throw new ArgumentOutOfRangeException("item.ChangeKind");
+        }
         item.Remove();
       }
 
