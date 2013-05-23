@@ -7,6 +7,7 @@ namespace Xtensive.Orm.Sync.Model
   /// <summary>
   /// Represents the metadata that is associated with an item in the synchronization scope.
   /// </summary>
+  [Index("Entity", Unique = true)]
   public class SyncInfo<TEntity> : SyncInfo
     where TEntity : IEntity
   {
