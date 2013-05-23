@@ -74,6 +74,8 @@ namespace Xtensive.Orm.Sync
 
     private bool FilteredBatchIsRequired()
     {
+      if (configuration.UseUnreliablePartialSync)
+        return false;
       return configuration.SyncTypes.Count > 0
         || configuration.Filters.Count > 0
         || configuration.SkipTypes.Count > 0;

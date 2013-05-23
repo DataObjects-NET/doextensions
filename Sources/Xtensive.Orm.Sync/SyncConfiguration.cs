@@ -44,6 +44,12 @@ namespace Xtensive.Orm.Sync
     public Session Session { get; set; }
 
     /// <summary>
+    /// Enables unreliable (but fast) method of
+    /// performing partial sync.
+    /// </summary>
+    public bool UseUnreliablePartialSync { get; set; }
+
+    /// <summary>
     /// Resets this instance.
     /// </summary>
     public void Reset()
