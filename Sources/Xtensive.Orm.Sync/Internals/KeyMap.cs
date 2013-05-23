@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using Microsoft.Synchronization;
 using Xtensive.Orm.Sync.DataExchange;
 
@@ -11,6 +13,14 @@ namespace Xtensive.Orm.Sync
 
     public void Register(Identity mapping, Key newKey)
     {
+      Key existingKey;
+
+      if (keyIndex.TryGetValue(mapping.Key, out existingKey))
+        throw MappingConflict(mapping.Key.Format(), newKey.Format(), existingKey.Format());
+
+      if (globalIdIndex.TryGetValue(mapping.GlobalId, out existingKey))
+        throw MappingConflict(mapping.GlobalId.ToString(), newKey.Format(), existingKey.Format());
+
       keyIndex.Add(mapping.Key, newKey);
       globalIdIndex.Add(mapping.GlobalId, newKey);
     }
@@ -35,6 +45,13 @@ namespace Xtensive.Orm.Sync
       Key result;
       globalIdIndex.TryGetValue(globalId, out result);
       return result;
+    }
+
+    private static InvalidOperationException MappingConflict(string from, string to, string existing)
+    {
+      return new InvalidOperationException(string.Format(
+        "Unable to register key mapping from '{0}' to '{1}', '{0} is already mapped to '{2}'.",
+        from, to, existing));
     }
   }
 }
