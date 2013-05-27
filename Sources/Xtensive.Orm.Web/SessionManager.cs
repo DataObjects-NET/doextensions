@@ -194,7 +194,7 @@ namespace Xtensive.Orm.Web
     /// </summary>
     /// <param name="sender">The sender.</param>
     /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
-    protected void Error(object sender, EventArgs e)
+    protected virtual void Error(object sender, EventArgs e)
     {
       HasErrors = true;
     }
@@ -204,7 +204,7 @@ namespace Xtensive.Orm.Web
     /// </summary>
     /// <param name="sender">The sender.</param>
     /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
-    protected void EndRequest(object sender, EventArgs e)
+    protected virtual void EndRequest(object sender, EventArgs e)
     {
       lock (provideSessionLock) 
         try {
