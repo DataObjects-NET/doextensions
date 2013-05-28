@@ -23,13 +23,8 @@ namespace Xtensive.Orm.Sync
     public void UpdateMetadata(ICollection<EntityChangeInfo> changes)
     {
       var metadataSet = metadataManager.GetMetadata(changes.Select(i => i.Key));
-      foreach (var item in changes) {
-        var metadata = metadataSet[item.Key];
-        if (metadata==null)
-          metadataManager.CreateMetadata(item.Key);
-        else
-          metadataManager.UpdateMetadata(metadata, item.ChangeKind==EntityChangeKind.Remove);
-      }
+      foreach (var item in changes)
+        ProcessMetadataChange(metadataSet, item.Key, item.ChangeKind);
     }
 
     public bool MaintainSyncLogOnce()
@@ -40,26 +35,30 @@ namespace Xtensive.Orm.Sync
 
       var metadataSet = metadataManager.GetMetadata(logItems.Select(log => log.TargetKey.Key));
       foreach (var item in logItems) {
-        var targetKey = item.TargetKey.Key;
-        var metadata = metadataSet[targetKey];
-        switch (item.ChangeKind) {
-        case EntityChangeKind.Create:
-          metadata = metadataManager.CreateMetadata(targetKey, item.Tick);
-          metadataSet.Add(metadata);
-          break;
-        case EntityChangeKind.Update:
-        case EntityChangeKind.Remove:
-          if (metadata==null)
-            throw new InvalidOperationException(string.Format("Metadata for object '{0}' is not found", targetKey.Format()));
-          metadataManager.UpdateMetadata(metadata, item.ChangeKind==EntityChangeKind.Remove, item.Tick);
-          break;
-        default:
-          throw new ArgumentOutOfRangeException("item.ChangeKind");
-        }
+        ProcessMetadataChange(metadataSet, item.TargetKey.Key, item.ChangeKind, item.Tick);
         item.Remove();
       }
 
       return true;
+    }
+
+    private void ProcessMetadataChange(MetadataSet metadataSet, Key targetKey, EntityChangeKind changeKind, long tick = -1)
+    {
+      switch (changeKind) {
+      case EntityChangeKind.Create:
+        var newMetadata = metadataManager.CreateMetadata(targetKey, tick);
+        metadataSet.Add(newMetadata);
+        break;
+      case EntityChangeKind.Update:
+      case EntityChangeKind.Remove:
+        var existingMetadata = metadataSet[targetKey];
+        if (existingMetadata==null)
+          throw new InvalidOperationException(string.Format("Metadata for object '{0}' is not found", targetKey.Format()));
+        metadataManager.UpdateMetadata(existingMetadata, changeKind==EntityChangeKind.Remove, tick);
+        break;
+      default:
+        throw new ArgumentOutOfRangeException("changeKind");
+      }
     }
 
     public static bool MaintainSyncLogOnce(Domain domain)
