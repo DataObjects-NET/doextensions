@@ -16,11 +16,12 @@ namespace Xtensive.Orm.Sync
   {
     private readonly Domain domain;
     private readonly HashSet<Type> synchronizedRoots;
-    private readonly bool useSyncLog;
+    private readonly bool directMetadataUpdates;
 
     private MetadataProcessor processor;
 
     public SyncId ReplicaId { get; private set; }
+    public IList<Type> SynchronizedRoots { get; private set; }
 
     public OrmSyncProvider GetSyncProvider()
     {
@@ -48,7 +49,7 @@ namespace Xtensive.Orm.Sync
 
     public void StartMetadataProcessor()
     {
-      if (!useSyncLog || processor!=null)
+      if (directMetadataUpdates || processor!=null)
         return;
 
       processor = new MetadataProcessor(domain);
@@ -56,7 +57,51 @@ namespace Xtensive.Orm.Sync
 
     public bool IsSyncRunning(Session session)
     {
+      if (session==null)
+        throw new ArgumentNullException("session");
       return SyncSessionMarker.Check(session);
+    }
+
+    public void ForgetMetadata(Session session, Type type)
+    {
+      if (session==null)
+        throw new ArgumentNullException("session");
+      if (type==null)
+        throw new ArgumentNullException("type");
+      if (!synchronizedRoots.Contains(type))
+        throw UnknownHierarchyRoot(type);
+
+      if (session.Transaction!=null)
+        session.SaveChanges();
+
+      using (SyncSessionMarker.Add(session))
+      using (var tx = session.OpenTransaction()) {
+        var manager = session.Services.Demand<MetadataManager>();
+        var store = manager.GetStore(domain.Model.Types[type]);
+        store.ForgetMetadata();
+        tx.Complete();
+      }
+    }
+
+    public void CreateMissingMetadata(Session session, Type type)
+    {
+      if (session==null)
+        throw new ArgumentNullException("session");
+      if (type==null)
+        throw new ArgumentNullException("type");
+      if (!synchronizedRoots.Contains(type))
+        throw UnknownHierarchyRoot(type);
+
+      if (session.Transaction!=null)
+        session.SaveChanges();
+
+      using (SyncSessionMarker.Add(session))
+      using (var tx = session.OpenTransaction()) {
+        var manager = session.Services.Demand<MetadataManager>();
+        var store = manager.GetStore(domain.Model.Types[type]);
+        store.CreateMissingMetadata();
+        tx.Complete();
+      }
     }
 
     public void Dispose()
@@ -65,6 +110,11 @@ namespace Xtensive.Orm.Sync
         return;
       processor.Dispose();
       processor = null;
+    }
+
+    private ArgumentException UnknownHierarchyRoot(Type type)
+    {
+      return new ArgumentException(string.Format("Type '{0}' is not synchronized hierarchy root", type.FullName), "type");
     }
 
     private void SubscribeToDomainEvents()
@@ -107,10 +157,10 @@ namespace Xtensive.Orm.Sync
 
       using (session.DisableSaveChanges()) {
         var updater = session.Services.Demand<MetadataUpdater>();
-        if (useSyncLog)
-          updater.WriteSyncLog(items);
-        else
+        if (directMetadataUpdates)
           updater.UpdateMetadata(items);
+        else
+          updater.WriteSyncLog(items);
       }
     }
 
@@ -150,12 +200,14 @@ namespace Xtensive.Orm.Sync
         throw new ArgumentNullException("domain");
 
       this.domain = domain;
-      useSyncLog = !domain.StorageProviderInfo.Supports(ProviderFeatures.SingleSessionAccess);
+      directMetadataUpdates = !domain.StorageProviderInfo.Supports(ProviderFeatures.SingleSessionAccess);
 
       synchronizedRoots = domain.Model.Types[typeof (SyncInfo)]
         .GetDescendants()
         .Select(t => t.UnderlyingType.GetGenericArguments()[0])
         .ToHashSet();
+
+      SynchronizedRoots = synchronizedRoots.ToList().AsReadOnly();
 
       SubscribeToDomainEvents();
       LoadReplicaId();

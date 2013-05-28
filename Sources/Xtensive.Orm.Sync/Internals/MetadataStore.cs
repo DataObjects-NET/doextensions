@@ -20,6 +20,10 @@ namespace Xtensive.Orm.Sync
 
     public abstract IEnumerable<SyncInfo> GetUnorderedMetadata(List<Key> targetKeys);
 
+    public abstract void ForgetMetadata();
+
+    public abstract void CreateMissingMetadata();
+
     protected MetadataStore(Type entityType, SyncId minItemId, SyncId maxItemId)
     {
       if (entityType==null)

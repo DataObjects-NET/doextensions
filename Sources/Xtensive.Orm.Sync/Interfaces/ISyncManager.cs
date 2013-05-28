@@ -1,4 +1,6 @@
-﻿using Microsoft.Synchronization;
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.Synchronization;
 
 namespace Xtensive.Orm.Sync
 {
@@ -11,6 +13,11 @@ namespace Xtensive.Orm.Sync
     /// Gets replica identifier for current domain.
     /// </summary>
     SyncId ReplicaId { get; }
+
+    /// <summary>
+    /// Gets list of hierarchy roots that could be synchronized.
+    /// </summary>
+    IList<Type> SynchronizedRoots { get; }
 
     /// <summary>
     /// Creates <see cref="OrmSyncProvider"/> for current domain.
@@ -54,5 +61,20 @@ namespace Xtensive.Orm.Sync
     /// <returns>True if sync is using <paramref name="session"/>,
     /// otherwise false.</returns>
     bool IsSyncRunning(Session session);
+
+    /// <summary>
+    /// Deletes all metadata for the specified type.
+    /// </summary>
+    /// <param name="session">Session to use.</param>
+    /// <param name="type">Type to delete metadata for (hierarchy root).</param>
+    void ForgetMetadata(Session session, Type type);
+
+    /// <summary>
+    /// Creates metadata information for the entities that don't have it
+    /// for some reason.
+    /// </summary>
+    /// <param name="session">Session to use.</param>
+    /// <param name="type">Type to create metadata for (hierarchy root).</param>
+    void CreateMissingMetadata(Session session, Type type);
   }
 }

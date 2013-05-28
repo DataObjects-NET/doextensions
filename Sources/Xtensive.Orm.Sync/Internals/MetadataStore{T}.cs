@@ -9,7 +9,7 @@ using Xtensive.Orm.Sync.Model;
 namespace Xtensive.Orm.Sync
 {
   internal sealed class MetadataStore<TEntity> : MetadataStore
-    where TEntity : class, IEntity
+    where TEntity : Entity
   {
     private readonly Session session;
 
@@ -97,6 +97,52 @@ namespace Xtensive.Orm.Sync
         foreach (var item in itemQueryResult.Select(p => p.SyncInfo))
           yield return item;
       }
+    }
+
+    public override void ForgetMetadata()
+    {
+      var items = GetMetadataBatch();
+      while (items.Count > 0) {
+        session.Remove(items);
+        items = GetMetadataBatch();
+      }
+    }
+
+    public override void CreateMissingMetadata()
+    {
+      var updater = session.Services.Demand<MetadataUpdater>();
+      var items = GetEntityWithoutMetadataBatch();
+      while (items.Count > 0) {
+        var changes = items
+          .Select(i => new EntityChangeInfo(i.Key, EntityChangeKind.Create))
+          .ToList();
+        updater.UpdateMetadata(changes);
+        items = GetEntityWithoutMetadataBatch();
+      }
+    }
+
+    private List<TEntity> GetEntityWithoutMetadataBatch()
+    {
+      return session.Query
+        .Execute(
+          q => q.All<TEntity>()
+            .LeftJoin(
+              q.All<SyncInfo<TEntity>>(), e => e.Key, m => m.Entity.Key, (e, m) => new {Entity = e, Metadata = m})
+            .Where(item => item.Metadata==null)
+            .Select(item => item.Entity)
+            .Take(() => WellKnown.SyncLogBatchSize)
+        )
+        .ToList();
+    }
+
+    private List<SyncInfo<TEntity>> GetMetadataBatch()
+    {
+      return session.Query
+        .Execute(
+          q => q.All<SyncInfo<TEntity>>()
+            .OrderBy(e => e.Key)
+            .Take(() => WellKnown.SyncLogBatchSize))
+        .ToList();
     }
 
     private void PrefetchEntities(IEnumerable<Key> keysToFetch)
