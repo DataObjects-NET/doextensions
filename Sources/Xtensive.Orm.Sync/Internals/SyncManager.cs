@@ -200,7 +200,7 @@ namespace Xtensive.Orm.Sync
         throw new ArgumentNullException("domain");
 
       this.domain = domain;
-      directMetadataUpdates = !domain.StorageProviderInfo.Supports(ProviderFeatures.SingleSessionAccess);
+      directMetadataUpdates = domain.StorageProviderInfo.Supports(ProviderFeatures.ExclusiveWriterConnection);
 
       synchronizedRoots = domain.Model.Types[typeof (SyncInfo)]
         .GetDescendants()
