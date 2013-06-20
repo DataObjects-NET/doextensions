@@ -43,6 +43,17 @@ namespace Xtensive.Orm.Security
     /// <param name="session">The session.</param>
     protected GenericPrincipal(Session session)
       : base(session)
-    {}
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GenericPrincipal"/> class.
+    /// </summary>
+    /// <param name="session">The session.</param>
+    /// <param name="values">Key values.</param>
+    protected GenericPrincipal(Session session, params object[] values)
+      : base(session, values)
+    {
+    }
   }
 }
