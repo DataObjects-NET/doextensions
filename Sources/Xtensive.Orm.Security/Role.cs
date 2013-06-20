@@ -80,5 +80,16 @@ namespace Xtensive.Orm.Security
     {
       Name = GetType().Name;
     }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Role"/> class.
+    /// </summary>
+    /// <param name="session">The session.</param>
+    /// <param name="values">Key values.</param>
+    protected Role(Session session, params object[] values)
+      : base(session, values)
+    {
+      Name = GetType().Name;
+    }
   }
 }
