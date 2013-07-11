@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Reflection;
+using System.Transactions;
 using Microsoft.Synchronization;
 using Xtensive.Orm.Configuration;
 using Xtensive.Orm.Sync.Model;
@@ -58,6 +59,7 @@ namespace Xtensive.Orm.Sync
       IdFormats.ReplicaIdFormat.Length = 16;
 
       SyncSessionConfiguration = new SessionConfiguration("Sync", SessionOptions.ServerProfile);
+      SyncSessionConfiguration.DefaultIsolationLevel = IsolationLevel.Snapshot;
       SyncSessionConfiguration.Lock();
 
       StringCompareToMethod =
