@@ -189,7 +189,7 @@ namespace Xtensive.Orm.Sync
 
     private bool IsUserEntity(EntityState state)
     {
-      var rootType = state.Entity.TypeInfo.Hierarchy.Root.UnderlyingType;
+      var rootType = state.Type.Hierarchy.Root.UnderlyingType;
       return synchronizedRoots.Contains(rootType);
     }
 
