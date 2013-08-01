@@ -45,8 +45,8 @@ namespace Xtensive.Orm.Web
     private static volatile Domain domain;
 
     private readonly object provideSessionLock = new object();
-    private Session session;
-    private IDisposable disposable;
+    private volatile Session session;
+    private IDisposable resource;
 
     /// <summary>
     /// Sets the domain builder delegate.
@@ -125,7 +125,7 @@ namespace Xtensive.Orm.Web
     {
       var current = Current;
       if (current==null)
-        throw new InvalidOperationException("There is no current HttpRequest or SessionManager isn't bound to it yet");
+        throw new InvalidOperationException("There is no current HttpRequest or SessionManager isn't bound to it yet.");
       return current;
     }
 
@@ -143,10 +143,7 @@ namespace Xtensive.Orm.Web
     /// Gets a value indicating whether current <see cref="SessionManager"/> has session.
     /// </summary>
     public bool HasSession {
-      get
-      {
-        return session!=null;
-      }
+      get { return session!=null; }
     }
 
     /// <summary>
@@ -174,16 +171,18 @@ namespace Xtensive.Orm.Web
     /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
     protected virtual void BeginRequest(object sender, EventArgs e)
     {
-      if (disposable!=null) 
+      if (resource!=null)
         try {
-          //Log.Error("SessionManager.EndRequest method was not invoked during processing of the previous request to this module");
           EndRequest(null, null);
         }
         finally {
-          disposable = null;
+          resource = null;
         }
+
       HasErrors = false;
       Current = this;
+
+      EnsureDomainIsBuilt();
     }
     
     /// <summary>
@@ -191,7 +190,7 @@ namespace Xtensive.Orm.Web
     /// </summary>
     /// <param name="sender">The sender.</param>
     /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
-    protected void Error(object sender, EventArgs e)
+    protected virtual void Error(object sender, EventArgs e)
     {
       HasErrors = true;
     }
@@ -201,14 +200,14 @@ namespace Xtensive.Orm.Web
     /// </summary>
     /// <param name="sender">The sender.</param>
     /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
-    protected void EndRequest(object sender, EventArgs e)
+    protected virtual void EndRequest(object sender, EventArgs e)
     {
-      lock (provideSessionLock) 
+      lock (provideSessionLock)
         try {
-          disposable.DisposeSafely();
+          resource.DisposeSafely();
         }
         finally {
-          disposable = null;
+          resource = null;
           session = null;
         }
     }
@@ -220,16 +219,16 @@ namespace Xtensive.Orm.Web
     /// to invoke on request completion.</returns>
     protected virtual Pair<Session, IDisposable> ProvideSession()
     {
-      var session = Domain.OpenSession(); // Open, but don't activate!
-      var transactionScope = session.OpenTransaction();
-      var disposable = transactionScope.Join(session);
-      return new Pair<Session, IDisposable>(session, new Disposable(disposing => {
+      var newSession = Domain.OpenSession(); // Open, but don't activate!
+      var transactionScope = newSession.OpenTransaction();
+      var newResource = transactionScope.Join(newSession);
+      return new Pair<Session, IDisposable>(newSession, new Disposable(disposing => {
         try {
           if (!HasErrors)
             transactionScope.Complete();
         }
         finally {
-          disposable.DisposeSafely();
+          newResource.DisposeSafely();
         }
       }));
     }
@@ -244,9 +243,8 @@ namespace Xtensive.Orm.Web
       context.BeginRequest += BeginRequest;
       context.EndRequest += EndRequest;
       context.Error += Error;
-      
-      if (Session.Resolver == null)
-        Session.Resolver = () => Current.Session;
+
+      EnableSessionResolver();
     }
 
     /// <inheritdoc/>
@@ -256,20 +254,36 @@ namespace Xtensive.Orm.Web
 
     #endregion
 
-    #region Private \ internal methods
+    #region Private / internal methods
 
     private static void EnsureDomainIsBuilt()
     {
       if (domain == null) lock (domainBuildLock) if (domain == null) {
-        Session.Resolver = null;
+        var builder = DomainBuilder;
+        if (builder==null)
+          throw new InvalidOperationException("SessionManager.DomainBuilder is not set.");
+        DisableSessionResolver();
         try {
-          domain = DomainBuilder.Invoke();
+          var newDomain = builder.Invoke();
+          if (newDomain==null)
+            throw new InvalidOperationException("SessionManager.DomainBuilder returned null. Domain is not available.");
+          domain = newDomain;
         }
         finally {
-          if (Session.Resolver == null)
-            Session.Resolver = () => Current.Session;
+          EnableSessionResolver();
         }
       }
+    }
+
+    private static void EnableSessionResolver()
+    {
+      if (Session.Resolver==null)
+        Session.Resolver = () => Demand().Session;
+    }
+
+    private static void DisableSessionResolver()
+    {
+      Session.Resolver = null;
     }
 
     private void EnsureSessionIsProvided()
@@ -277,7 +291,7 @@ namespace Xtensive.Orm.Web
       if (session==null) lock (provideSessionLock) if (session==null) {
         var pair = sessionProvider==null ? ProvideSession() : SessionProvider.Invoke();
         session = pair.First;
-        disposable = pair.Second;
+        resource = pair.Second;
       }
     }
 

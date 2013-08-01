@@ -11,12 +11,11 @@ namespace Xtensive.Orm.BulkOperations
   internal class BulkDeleteOperation<T> : QueryOperation<T>
     where T : class, IEntity
   {
-    private readonly IQueryable<T> query;
-
     #region Non-public methods
 
     protected override int ExecuteInternal()
     {
+      base.ExecuteInternal();
       QueryTranslationResult request = GetRequest(query);
       Bindings = request.ParameterBindings.ToList();
       if (PrimaryIndexes.Length > 1)

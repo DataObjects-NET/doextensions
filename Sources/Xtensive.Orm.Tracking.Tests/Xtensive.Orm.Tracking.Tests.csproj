@@ -61,6 +61,7 @@
       <Link>Properties\ProductInfo.cs</Link>
     </Compile>
     <Compile Include="AutoBuildTest.cs" />
+    <Compile Include="Model\MyChildEntity.cs" />
     <Compile Include="ServiceRegistrationTest.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="Model\MyEntity.cs" />

@@ -1,13 +1,11 @@
-﻿using System.Transactions;
+﻿using System.Linq;
+using System.Transactions;
 using NUnit.Framework;
-using Xtensive.Orm;
-using Xtensive.Orm.Reprocessing;
-using Xtensive.Orm.Reprocessing.Configuration;
 using TestCommon.Model;
-using System.Linq;
-using Xtensive.Orm.Reprocessing.Tests;
+using Xtensive.Orm.Configuration;
+using Xtensive.Orm.Reprocessing.Configuration;
 
-namespace TestCommon.Model
+namespace Xtensive.Orm.Reprocessing.Tests
 {
   public class Other : AutoBuildTest
   {
@@ -72,6 +70,29 @@ namespace TestCommon.Model
           session2.Query.All<Foo>().ToArray();
         });
       });
+    }
+
+    [Test]
+    public void ParentIsDisconnectedState()
+    {
+      Domain.Execute(session =>
+                       {
+                         new Bar(session);
+                       });
+      using (var session = Domain.OpenSession(new SessionConfiguration(SessionOptions.ClientProfile)))
+      using(session.Activate())
+      {
+        var bar = session.Query.All<Bar>().FirstOrDefault();
+        bar=new Bar(session);
+        session.SaveChanges();
+        Domain.Execute(session1 =>
+                         {
+                           bar = session1.Query.All<Bar>().FirstOrDefault();
+                           bar=new Bar(session1);
+                         });
+        session.SaveChanges();
+      }
+      Domain.Execute(session => Assert.That(session.Query.All<Bar>().Count(), Is.EqualTo(3)));
     }
   }
 }

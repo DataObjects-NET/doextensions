@@ -8,9 +8,9 @@ namespace TestCommon
 {
   public sealed class TestConfiguration
   {
-    private const string StorageKey = "DOEX_STORAGE";
-    private const string StorageFileKey = "DOEX_STORAGE_FILE";
-    private const string ConfigurationFileKey = "DOEX_CONFIG_FILE";
+    private const string StorageKey = "DO_STORAGE";
+    private const string StorageFileKey = "DO_STORAGE_FILE";
+    private const string ConfigurationFileKey = "DO_CONFIG_FILE";
     private const string DefaultStorage = "default";
 
     private static readonly object InstanceLock = new object();

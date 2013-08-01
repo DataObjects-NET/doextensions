@@ -53,6 +53,17 @@ namespace Xtensive.Orm.Security
     /// <param name="session">The session.</param>
     protected Principal(Session session)
       : base(session)
-    {}
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Principal"/> class.
+    /// </summary>
+    /// <param name="session">The session.</param>
+    /// <param name="values">Key values.</param>
+    protected Principal(Session session, params object[] values)
+      : base(session, values)
+    {
+    }
   }
 }
