@@ -114,9 +114,9 @@ namespace Xtensive.Orm.Reprocessing.Tests
       {
         domain.Execute(
           session => {
-            session.Query.All<Foo>().Remove();
-            session.Query.All<Bar>().Remove();
-            session.Query.All<Bar2>().Remove();
+            session.Remove(session.Query.All<Foo>());
+            session.Remove(session.Query.All<Bar>());
+            session.Remove(session.Query.All<Bar2>());
             new Bar(session);
             new Foo(session);
           });

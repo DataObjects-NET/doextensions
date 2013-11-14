@@ -20,7 +20,7 @@ namespace Xtensive.Orm.Reprocessing.Tests
     protected override Domain BuildDomain(DomainConfiguration configuration)
     {
       var domain = base.BuildDomain(configuration);
-      if (domain.StorageProviderInfo.Supports(ProviderFeatures.SingleSessionAccess))
+      if (domain.StorageProviderInfo.Supports(ProviderFeatures.ExclusiveWriterConnection))
         Assert.Ignore("This storage does not support multiple sessions writing to the same database, ignoring");
       return domain;
     }

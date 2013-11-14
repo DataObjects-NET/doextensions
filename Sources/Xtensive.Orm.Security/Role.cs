@@ -14,7 +14,7 @@ namespace Xtensive.Orm.Security
     private ReadOnlyList<Permission> readOnlyPermissions;
 
     /// <inheritdoc/>
-    [NotNullConstraint(Mode = ConstrainMode.OnSetValue)]
+    [NotNullConstraint(IsImmediate = true)]
     [Field(Length = 128)]
     public string Name { get; protected set; }
 
