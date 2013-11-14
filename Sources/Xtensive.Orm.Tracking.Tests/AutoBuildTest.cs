@@ -52,8 +52,8 @@ namespace Xtensive.Orm.Tracking.Tests
         return Domain.Build(configuration);
       }
       catch (Exception e) {
-        Log.Error(GetType().GetFullName());
-        Log.Error(e);
+        Console.WriteLine(GetType().GetFullName());
+        Console.WriteLine(e);
         throw;
       }
     }

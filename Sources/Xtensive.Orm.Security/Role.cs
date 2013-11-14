@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
-using Xtensive.Aspects;
 using Xtensive.Collections;
-using Xtensive.Orm;
 using Xtensive.Orm.Validation;
 
 namespace Xtensive.Orm.Security
@@ -25,7 +23,6 @@ namespace Xtensive.Orm.Security
     public EntitySet<IPrincipal> Principals { get; private set; }
 
     /// <inheritdoc/>
-    [Infrastructure]
     public IList<Permission> Permissions
     {
       get { return readOnlyPermissions; }
@@ -35,7 +32,6 @@ namespace Xtensive.Orm.Security
     /// Registers the permission.
     /// </summary>
     /// <param name="permission">The permission.</param>
-    [Infrastructure]
     protected void RegisterPermission(Permission permission)
     {
       if (permissions.Count == 0) {
@@ -68,7 +64,6 @@ namespace Xtensive.Orm.Security
     /// <summary>
     /// Registers the permissions.
     /// </summary>
-    [Infrastructure]
     protected abstract void RegisterPermissions();
 
     /// <summary>

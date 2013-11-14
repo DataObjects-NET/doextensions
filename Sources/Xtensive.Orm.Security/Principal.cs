@@ -1,7 +1,5 @@
 using System.Linq;
 using System.Security.Principal;
-using Xtensive.Aspects;
-using Xtensive.Orm;
 using Xtensive.Orm.Validation;
 
 namespace Xtensive.Orm.Security
@@ -17,7 +15,7 @@ namespace Xtensive.Orm.Security
     #region IPrincipal Members
 
     /// <inheritdoc/>
-    [NotNullConstraint(Mode = ConstrainMode.OnSetValue)]
+    [NotNullConstraint(IsImmediate = true)]
     [Field(Length = 128)]
     public string Name { get; set; }
 
@@ -26,7 +24,6 @@ namespace Xtensive.Orm.Security
     public EntitySet<IRole> Roles { get; private set; }
 
     /// <inheritdoc/>
-    [Infrastructure]
     public virtual IIdentity Identity
     {
       get

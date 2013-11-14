@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if NOT_IMPLMENETED
+
+using System;
 using System.Transactions;
 using PostSharp.Aspects;
 
@@ -113,3 +115,5 @@ namespace Xtensive.Orm.Reprocessing
     }
   }
 }
+
+#endif

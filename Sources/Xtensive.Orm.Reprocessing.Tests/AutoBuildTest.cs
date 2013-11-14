@@ -12,7 +12,7 @@ namespace Xtensive.Orm.Reprocessing.Tests
     protected override DomainConfiguration BuildConfiguration()
     {
       var configuration = base.BuildConfiguration();
-      configuration.Types.Register(typeof (ReprocessAttribute).Assembly);
+      configuration.Types.Register(typeof (IExecuteActionStrategy).Assembly);
       configuration.Types.Register(typeof (AutoBuildTest).Assembly);
       return configuration;
     }

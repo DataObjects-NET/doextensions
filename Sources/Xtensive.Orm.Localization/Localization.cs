@@ -6,8 +6,6 @@
 
 using System;
 using System.Globalization;
-using Xtensive.Internals.DocTemplates;
-using Xtensive.Orm;
 
 namespace Xtensive.Orm.Localization
 {
@@ -28,7 +26,7 @@ namespace Xtensive.Orm.Localization
     // Constructor
 
     /// <summary>
-    /// 	<see cref="ClassDocTemplate.Ctor" copy="true"/>
+    /// Initializes new instance of this type.
     /// </summary>
     /// <param name="session">The session.</param>
     /// <param name="culture">The culture.</param>
@@ -59,7 +57,7 @@ namespace Xtensive.Orm.Localization
     // Constructor
 
     /// <summary>
-    /// 	<see cref="ClassDocTemplate.Ctor" copy="true"/>
+    /// Initializes new instance of this type.
     /// </summary>
     /// <param name="session">The session.</param>
     /// <param name="culture">The culture.</param>

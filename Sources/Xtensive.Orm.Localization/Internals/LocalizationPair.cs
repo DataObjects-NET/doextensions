@@ -4,9 +4,6 @@
 // Created by: Dmitri Maximov
 // Created:    2009.12.16
 
-using Xtensive.Internals.DocTemplates;
-using Xtensive.Orm;
-
 namespace Xtensive.Orm.Localization
 {
   /// <summary>
@@ -27,7 +24,7 @@ namespace Xtensive.Orm.Localization
     public TLocalization Localization { get; private set; }
 
     /// <summary>
-    /// <see cref="ClassDocTemplate.Ctor" copy="true"/>
+    /// Initializes new instance of this type.
     /// </summary>
     /// <param name="target">The target.</param>
     /// <param name="localization">The localization.</param>

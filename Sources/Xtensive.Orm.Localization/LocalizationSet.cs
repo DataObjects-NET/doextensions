@@ -6,8 +6,6 @@
 
 using System;
 using System.Globalization;
-using Xtensive.Internals.DocTemplates;
-using Xtensive.Orm;
 using Xtensive.Orm.Model;
 
 namespace Xtensive.Orm.Localization
@@ -73,7 +71,7 @@ namespace Xtensive.Orm.Localization
     // Constructors
 
     /// <summary>
-    /// <see cref="ClassDocTemplate.Ctor" copy="true"/>
+    /// Initializes new instance of this type.
     /// </summary>
     /// <param name="owner">The owner.</param>
     /// <param name="field">The field.</param>

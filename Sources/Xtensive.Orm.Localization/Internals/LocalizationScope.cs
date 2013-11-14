@@ -6,8 +6,6 @@
 
 using System.Globalization;
 using Xtensive.Core;
-using Xtensive.Internals.DocTemplates;
-using Xtensive.IoC;
 
 namespace Xtensive.Orm.Localization
 {
@@ -34,7 +32,7 @@ namespace Xtensive.Orm.Localization
     }
 
     /// <summary>
-    /// <see cref="ClassDocTemplate.Ctor" copy="true"/>
+    /// Initializes new instance of this type.
     /// </summary>
     /// <param name="culture">The culture.</param>
     public LocalizationScope(CultureInfo culture)
@@ -43,7 +41,7 @@ namespace Xtensive.Orm.Localization
     }
 
     /// <summary>
-    /// <see cref="ClassDocTemplate.Ctor" copy="true"/>
+    /// Initializes new instance of this type.
     /// </summary>
     /// <param name="culture">The culture.</param>
     /// <param name="policy">The policy.</param>

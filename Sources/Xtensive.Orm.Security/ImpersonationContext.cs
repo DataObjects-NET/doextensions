@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using Xtensive.Aspects;
 using Xtensive.Core;
-using Xtensive.Orm;
 
 namespace Xtensive.Orm.Security
 {
@@ -22,20 +17,17 @@ namespace Xtensive.Orm.Security
     /// Gets or sets the current principal.
     /// </summary>
     /// <value>The principal.</value>
-    [Infrastructure]
     public IPrincipal Principal { get; private set; }
 
     /// <summary>
     /// Gets or sets the permissions for the current principal.
     /// </summary>
     /// <value>The permissions.</value>
-    [Infrastructure]
     public PermissionSet Permissions { get; private set; }
 
     /// <summary>
     /// Invalidates this instance. Permissions for the current principal will be recalculated.
     /// </summary>
-    [Infrastructure]
     public void Invalidate()
     {
       Permissions = new PermissionSet(Principal.Roles);
@@ -44,7 +36,6 @@ namespace Xtensive.Orm.Security
     /// <summary>
     /// Reverts the impersonation context to the outer one.
     /// </summary>
-    [Infrastructure]
     public void Undo()
     {
       queryRootScope.Dispose();
@@ -52,14 +43,12 @@ namespace Xtensive.Orm.Security
     }
 
     /// <inheritdoc/>
-    [Infrastructure]
     public void Dispose()
     {
       Dispose(true);
     }
 
     /// <inheritdoc/>
-    [Infrastructure]
     protected virtual void Dispose(bool disposing) 
     {
       if (disposing)
@@ -71,7 +60,6 @@ namespace Xtensive.Orm.Security
     /// </summary>
     /// <param name="principal">The principal.</param>
     /// <param name="outerContext">The outer context.</param>
-    [Infrastructure]
     public ImpersonationContext(IPrincipal principal, ImpersonationContext outerContext)
       : base(principal.Session)
     {

@@ -44,17 +44,9 @@
     <Reference Include="nunit.framework, Version=2.6.0.12051, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
       <HintPath>..\..\Lib\NUnit\nunit.framework.dll</HintPath>
     </Reference>
-    <Reference Include="PostSharp, Version=2.1.0.0, Culture=neutral, PublicKeyToken=b13fd38b8f9c99d7, processorArchitecture=MSIL">
-      <HintPath>..\..\Lib\DataObjects.Net\Lib\Net40\PostSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="Xtensive.Aspects, Version=4.6.0.0, Culture=neutral, PublicKeyToken=93a6c53d77a5296c, processorArchitecture=MSIL">
-      <HintPath>..\..\Lib\DataObjects.Net\Lib\Net40\Xtensive.Aspects.dll</HintPath>
-    </Reference>
-    <Reference Include="Xtensive.Core, Version=4.6.0.0, Culture=neutral, PublicKeyToken=93a6c53d77a5296c, processorArchitecture=MSIL">
-      <HintPath>..\..\Lib\DataObjects.Net\Lib\Net40\Xtensive.Core.dll</HintPath>
-    </Reference>
     <Reference Include="Xtensive.Orm, Version=4.6.0.0, Culture=neutral, PublicKeyToken=93a6c53d77a5296c, processorArchitecture=MSIL">
       <HintPath>..\..\Lib\DataObjects.Net\Lib\Net40\Xtensive.Orm.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
     </Reference>
     <Reference Include="Xtensive.Orm.Firebird">
       <HintPath>..\..\Lib\DataObjects.Net\Lib\Net40\Xtensive.Orm.Firebird.dll</HintPath>
