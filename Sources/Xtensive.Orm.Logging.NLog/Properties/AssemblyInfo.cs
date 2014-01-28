@@ -1,3 +1,3 @@
 ﻿using System.Reflection;
 
-[assembly: AssemblyTitle("NLog provider for DataObjects.Net")]
+[assembly: AssemblyTitle("DataObjects.Net logging provider for NLog")]

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -30,7 +30,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="NLog">
-      <HintPath>..\..\Lib\NLog\net40\NLog.dll</HintPath>
+      <HintPath>..\..\Lib\NLog\NLog.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -44,7 +44,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Log.cs" />
-    <Compile Include="LogLevelExtensions.cs" />
     <Compile Include="LogProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="..\..\_Build\ProductInfo.cs">

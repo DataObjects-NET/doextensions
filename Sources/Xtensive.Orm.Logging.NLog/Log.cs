@@ -1,54 +1,51 @@
-﻿using System;
+﻿// Copyright (C) 2003-2013 Xtensive LLC.
+// All rights reserved.
+// For conditions of distribution and use, see license.
+// Created by: Dmitri Maximov
+// Created:    2013.12.13
+
 using NLog;
+using NLogLevel = NLog.LogLevel;
 using NLogManager = NLog.LogManager;
 
 namespace Xtensive.Orm.Logging.NLog
 {
-    public class Log : BaseLog
+  public class Log : BaseLog
+  {
+    private readonly Logger target;
+
+    private static NLogLevel ConvertLevel(LogLevel level)
     {
-        private readonly Logger target;
-
-        public override bool IsLogged(LogLevel eventTypes)
-        {
-            return target.IsEnabled(eventTypes.ToNative());
-        }
-
-        public override void Debug(string message, object[] parameters = null, Exception exception = null)
-        {
-            Execute(target.Debug, target.DebugException, message, parameters, exception);
-        }
-
-        public override void Info(string message, object[] parameters = null, Exception exception = null)
-        {
-            Execute(target.Info, target.InfoException, message, parameters, exception);
-        }
-
-        public override void Warning(string message, object[] parameters = null, Exception exception = null)
-        {
-            Execute(target.Warn, target.WarnException, message, parameters, exception);
-        }
-
-        public override void Error(string message, object[] parameters = null, Exception exception = null)
-        {
-            Execute(target.Error, target.ErrorException, message, parameters, exception);
-        }
-
-        public override void FatalError(string message, object[] parameters = null, Exception exception = null)
-        {
-            Execute(target.Fatal, target.FatalException, message, parameters, exception);
-        }
-
-        private static void Execute(Action<string, object[]> log, Action<string, Exception> logException, string message, object[] parameters = null, Exception exception = null)
-        {
-            if (exception != null)
-                logException(message, exception);
-            else
-                log(message, parameters);
-        }
-
-        public Log(string name)
-        {
-            target = NLogManager.GetLogger(name);
-        }
+      switch (level) {
+      case LogLevel.Debug:
+        return NLogLevel.Debug;
+      case LogLevel.Error:
+        return NLogLevel.Error;
+      case LogLevel.FatalError:
+        return NLogLevel.Fatal;
+      case LogLevel.Warning:
+        return NLogLevel.Warn;
+      default:
+        return NLogLevel.Info;
+      }
     }
+
+    public override bool IsLogged(LogLevel level)
+    {
+      return target.IsEnabled(ConvertLevel(level));
+    }
+
+    public override void Write(LogEventInfo info)
+    {
+      if (info.Exception!=null)
+        target.LogException(ConvertLevel(info.Level), info.FormattedMessage, info.Exception);
+      else
+        target.Log(ConvertLevel(info.Level), info.FormattedMessage);
+    }
+
+    public Log(string name)
+    {
+      target = NLogManager.GetLogger(name);
+    }
+  }
 }
