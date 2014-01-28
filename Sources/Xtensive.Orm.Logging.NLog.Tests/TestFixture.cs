@@ -4,10 +4,7 @@
 // Created by: Dmitri Maximov
 // Created:    2013.12.13
 
-using System;
 using NUnit.Framework;
-using Xtensive.Orm.Configuration;
-using NLogManager = NLog.LogManager;
 
 namespace Xtensive.Orm.Logging.NLog.Tests
 {
@@ -17,11 +14,10 @@ namespace Xtensive.Orm.Logging.NLog.Tests
     [Test]
     public void LogManagerTest()
     {
-      var domainConfiguration = DomainConfiguration.Load("Default");
-      Domain.Build(domainConfiguration);
-
+      var logManager = LogManager.Default;
+      logManager.Initialize(new LogProvider());
       var logger = LogManager.Default.GetLog("Xtensive.Orm");
-      Assert.IsInstanceOf<Orm.Logging.NLog.Log>(logger);
+      Assert.IsInstanceOf<Log>(logger);
     }
   }
 }
