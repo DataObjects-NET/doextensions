@@ -45,6 +45,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xtensive.Orm.Logging.NLog",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xtensive.Orm.Logging.NLog.Tests", "Xtensive.Orm.Logging.NLog.Tests\Xtensive.Orm.Logging.NLog.Tests.csproj", "{5B872574-5820-4DBF-B655-65E0F6576DF1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xtensive.Orm.Logging.log4net", "Xtensive.Orm.Logging.log4net\Xtensive.Orm.Logging.log4net.csproj", "{A1047FEA-0F15-44CC-8787-5A8410272355}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xtensive.Orm.Logging.log4net.Tests", "Xtensive.Orm.Logging.log4net.Tests\Xtensive.Orm.Logging.log4net.Tests.csproj", "{FC233AB2-B5FA-4362-B396-C6110821C157}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -107,6 +111,14 @@ Global
 		{5B872574-5820-4DBF-B655-65E0F6576DF1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5B872574-5820-4DBF-B655-65E0F6576DF1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5B872574-5820-4DBF-B655-65E0F6576DF1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1047FEA-0F15-44CC-8787-5A8410272355}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1047FEA-0F15-44CC-8787-5A8410272355}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1047FEA-0F15-44CC-8787-5A8410272355}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1047FEA-0F15-44CC-8787-5A8410272355}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FC233AB2-B5FA-4362-B396-C6110821C157}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC233AB2-B5FA-4362-B396-C6110821C157}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC233AB2-B5FA-4362-B396-C6110821C157}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC233AB2-B5FA-4362-B396-C6110821C157}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -126,5 +138,7 @@ Global
 		{08F33A56-AFE1-45AF-BB6B-B0AC4EF1180C} = {7DA966E0-5AA1-42E8-A073-FE127895EBDF}
 		{7541613C-920C-432C-8C23-41D6F48FE90A} = {76F14C88-522B-45CB-828F-4DA46C07C16B}
 		{5B872574-5820-4DBF-B655-65E0F6576DF1} = {76F14C88-522B-45CB-828F-4DA46C07C16B}
+		{A1047FEA-0F15-44CC-8787-5A8410272355} = {76F14C88-522B-45CB-828F-4DA46C07C16B}
+		{FC233AB2-B5FA-4362-B396-C6110821C157} = {76F14C88-522B-45CB-828F-4DA46C07C16B}
 	EndGlobalSection
 EndGlobal
