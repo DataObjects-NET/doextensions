@@ -68,6 +68,14 @@
   <Libraries Include="$(BinariesDir)Xtensive.Orm.Tracking.dll" />
   <Libraries Include="$(BinariesDir)Xtensive.Orm.Tracking.xml" />
   <Libraries Include="$(BinariesDir)Xtensive.Orm.Tracking.txt" />
+
+  <Libraries Include="$(BinariesDir)Xtensive.Orm.Logging.NLog.dll" />
+  <Libraries Include="$(BinariesDir)Xtensive.Orm.Logging.NLog.xml" />
+  <Libraries Include="$(BinariesDir)Xtensive.Orm.Logging.NLog.txt" />
+
+  <Libraries Include="$(BinariesDir)Xtensive.Orm.Logging.log4net.dll" />
+  <Libraries Include="$(BinariesDir)Xtensive.Orm.Logging.log4net.xml" />
+  <Libraries Include="$(BinariesDir)Xtensive.Orm.Logging.log4net.txt" />
 </ItemGroup>
 
 <Target Name="InitBuildDir">
