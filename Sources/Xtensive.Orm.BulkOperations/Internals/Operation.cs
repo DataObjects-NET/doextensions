@@ -77,9 +77,10 @@ namespace Xtensive.Orm.BulkOperations
       TypeInfo =
         queryProvider.Session.Domain.Model.Hierarchies.SelectMany(a => a.Types).Single(
           a => a.UnderlyingType==entityType);
+      var mapping = Session.Domain.NodeManager.GetMapping(Session);
       PrimaryIndexes = TypeInfo.AffectedIndexes
         .Where(i => i.IsPrimary)
-        .Select(i => new PrimaryIndexMapping(i, DomainHandler.Mapping[i.ReflectedType]))
+        .Select(i => new PrimaryIndexMapping(i, mapping[i.ReflectedType]))
         .ToArray();
       QueryBuilder = Session.Services.Get<QueryBuilder>();
     }
