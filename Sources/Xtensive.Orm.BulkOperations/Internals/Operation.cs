@@ -73,11 +73,11 @@ namespace Xtensive.Orm.BulkOperations
       QueryProvider = queryProvider;
       Type entityType = typeof (T);
       Session = queryProvider.Session;
-      DomainHandler = (DomainHandler) Session.Domain.Services.Get<Providers.DomainHandler>();
+      DomainHandler = Session.Domain.Services.Get<DomainHandler>();
       TypeInfo =
         queryProvider.Session.Domain.Model.Hierarchies.SelectMany(a => a.Types).Single(
           a => a.UnderlyingType==entityType);
-      var mapping = Session.Domain.NodeManager.GetMapping(Session);
+      var mapping = Session.StorageNode.Mapping;
       PrimaryIndexes = TypeInfo.AffectedIndexes
         .Where(i => i.IsPrimary)
         .Select(i => new PrimaryIndexMapping(i, mapping[i.ReflectedType]))
