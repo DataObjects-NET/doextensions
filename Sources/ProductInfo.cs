@@ -8,8 +8,8 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
-[assembly: AssemblyVersion("${Version}.0")]
-[assembly: AssemblyFileVersion("${Version}.0")]
+[assembly: AssemblyVersion("${Version2}.0.0")]
+[assembly: AssemblyFileVersion("${Version3}.0")]
 [assembly: AssemblyInformationalVersion("${VersionName}")]
 
 #if DEBUG

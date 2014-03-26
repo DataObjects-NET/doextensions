@@ -15,6 +15,9 @@
   <VersionName Condition="'$(Modifier)'!=''">$(Version) $(Modifier)</VersionName>
   <VersionNameZip>$(VersionName.Replace(' ', '_'))</VersionNameZip>
   <VersionNameNuGet>$(VersionName.Replace(' ', '-'))</VersionNameNuGet>
+  <VersionMajor>$([System.Version]::new($(Version)).Major)</VersionMajor>
+  <VersionMinor>$([System.Version]::new($(Version)).Minor)</VersionMinor>
+  <VersionPatch>$([System.Version]::new($(Version)).Build)</VersionPatch>
 </PropertyGroup>
 
 <PropertyGroup>
@@ -36,8 +39,11 @@
 </ItemGroup>
 
 <ItemGroup>
-  <ProductVariables Include="Version">
-    <ReplacementValue>$(Version)</ReplacementValue>
+  <ProductVariables Include="Version2">
+    <ReplacementValue>$(VersionMajor).$(VersionMinor)</ReplacementValue>
+  </ProductVariables>
+  <ProductVariables Include="Version3">
+    <ReplacementValue>$(VersionMajor).$(VersionMinor).$(VersionPatch)</ReplacementValue>
   </ProductVariables>
   <ProductVariables Include="VersionName">
     <ReplacementValue>$(VersionName)</ReplacementValue>
