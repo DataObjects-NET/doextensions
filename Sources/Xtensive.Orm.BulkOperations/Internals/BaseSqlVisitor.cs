@@ -286,6 +286,12 @@ namespace Xtensive.Orm.BulkOperations
         VisitInternal(expression);
     }
 
+    public virtual void Visit(SqlCustomFunctionCall node)
+    {
+      foreach (SqlExpression expression in node.Arguments)
+        VisitInternal(expression);
+    }
+
     public virtual void Visit(SqlIf node)
     {
       VisitInternal(node.Condition);
