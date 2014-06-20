@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <Version>4.6.8</Version>
-    <Modifier>RC</Modifier>
+    <Version>4.6.7</Version>
+    <Modifier>Final</Modifier>
     <DOVersion>4.6.7</DOVersion>
   </PropertyGroup>
 </Project>
