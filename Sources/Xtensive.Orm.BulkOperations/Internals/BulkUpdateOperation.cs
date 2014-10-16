@@ -115,7 +115,10 @@ namespace Xtensive.Orm.BulkOperations
         if (ex1!=null && ex1.NodeType==ExpressionType.Convert)
           ex = ex1.Operand;
         var member = (PropertyInfo) ((MemberExpression) ex).Member;
+        if (member.ReflectedType!=TypeInfo.UnderlyingType)
+          member = TypeInfo.UnderlyingType.GetProperty(member.Name);
         lambda = (LambdaExpression) expression.Item2;
+        
         descriptors.Add(
           new SetDescriptor(TypeInfo.Fields.First(a => a.UnderlyingProperty==member), lambda.Parameters[0], lambda.Body));
       }

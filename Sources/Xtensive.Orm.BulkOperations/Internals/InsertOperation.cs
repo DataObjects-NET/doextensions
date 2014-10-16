@@ -43,10 +43,10 @@ namespace Xtensive.Orm.BulkOperations
             return ex;
           memberInitCount++;
           descriptors = (from MemberAssignment assigment in ex.Bindings
-            select
-              new SetDescriptor(
-                TypeInfo.Fields.First(a => a.UnderlyingProperty==assigment.Member), parameter, assigment.Expression)).
-            ToList();
+                         let propertyInfo = (assigment.Member==TypeInfo.UnderlyingType) 
+                           ? assigment.Member 
+                           : TypeInfo.UnderlyingType.GetProperty(assigment.Member.Name)
+                         select new SetDescriptor(TypeInfo.Fields.First(a => a.UnderlyingProperty==propertyInfo), parameter, assigment.Expression)).ToList();
           return ex;
         });
       AddKey(descriptors);
