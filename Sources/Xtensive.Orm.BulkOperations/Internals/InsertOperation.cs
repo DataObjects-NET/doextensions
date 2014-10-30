@@ -42,11 +42,17 @@ namespace Xtensive.Orm.BulkOperations
           if (memberInitCount > 0)
             return ex;
           memberInitCount++;
-          descriptors = (from MemberAssignment assignment in ex.Bindings
-                         let propertyInfo = (assignment.Member==TypeInfo.UnderlyingType) 
-                           ? assignment.Member 
-                           : TypeInfo.UnderlyingType.GetProperty(assignment.Member.Name)
-                         select new SetDescriptor(TypeInfo.Fields.First(a => a.UnderlyingProperty==propertyInfo), parameter, assignment.Expression)).ToList();
+          descriptors = new List<SetDescriptor>();
+          foreach (MemberAssignment assignment in ex.Bindings) {
+            var fieldInfo = TypeInfo.Fields.FirstOrDefault(a => a.UnderlyingProperty==assignment.Member);
+            if (fieldInfo==null)
+              if (assignment.Member.ReflectedType.IsAssignableFrom(TypeInfo.UnderlyingType)) {
+                var property = TypeInfo.UnderlyingType.GetProperty(assignment.Member.Name);
+                fieldInfo = TypeInfo.Fields.FirstOrDefault(field => field.UnderlyingProperty==property);
+              }
+            descriptors.Add(
+              new SetDescriptor(fieldInfo, parameter, assignment.Expression));
+          }
           return ex;
         });
       AddKey(descriptors);
