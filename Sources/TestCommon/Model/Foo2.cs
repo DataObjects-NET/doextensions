@@ -17,11 +17,11 @@ namespace TestCommon.Model
     [Key(0)]
     public decimal Id { get; set; }
 
-    [Field]
+    [Field(Length = 32)]
     [Key(1)]
     public string Id2 { get; set; }
 
-    [Field]
+    [Field(Length = 200)]
     public string Name { get; set; }
 
     [Field]

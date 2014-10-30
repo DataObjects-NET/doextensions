@@ -116,8 +116,15 @@ namespace Xtensive.Orm.BulkOperations
           ex = ex1.Operand;
         var member = (PropertyInfo) ((MemberExpression) ex).Member;
         lambda = (LambdaExpression) expression.Item2;
+        var propertyInfo = TypeInfo.Fields.FirstOrDefault(a => a.UnderlyingProperty==member);
+        if (propertyInfo==null) {
+          if (member.ReflectedType.IsAssignableFrom(TypeInfo.UnderlyingType)) {
+            member = TypeInfo.UnderlyingType.GetProperty(member.Name);
+            propertyInfo = TypeInfo.Fields.FirstOrDefault(field => field.UnderlyingProperty==member);
+          }
+        }
         descriptors.Add(
-          new SetDescriptor(TypeInfo.Fields.First(a => a.UnderlyingProperty==member), lambda.Parameters[0], lambda.Body));
+          new SetDescriptor(propertyInfo, lambda.Parameters[0], lambda.Body));
       }
       setOperation=new SetOperation<T>(this, descriptors);
     }

@@ -3,6 +3,6 @@
   <PropertyGroup>
     <Version>5.1.0</Version>
     <Modifier>Beta 1</Modifier>
-    <DOVersion>5.0.0</DOVersion>
+    <DOVersion>5.0.2</DOVersion>
   </PropertyGroup>
 </Project>

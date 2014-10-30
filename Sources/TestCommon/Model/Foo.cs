@@ -10,7 +10,7 @@ namespace TestCommon.Model
     [Key]
     public int Id { get; set; }
 
-    [Field]
+    [Field(Length = 150)]
     public string Name { get; set; }
 
     [Field]
