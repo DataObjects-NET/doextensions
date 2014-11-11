@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <package>
   <metadata>
-    <id>$id$</id>
+    <id>Xtensive.Orm.Localization</id>
     <version>$version$</version>
-    <title>$title$</title>
-    <authors>$author$</authors>
-    <owners>$author$</owners>
+    <title>Localization extension for DataObjects.Net</title>
+    <authors>Xtensive LLC,Alexander Ovchinnikov</authors>
+    <owners>Xtensive LLC,Alexander Ovchinnikov</owners>
     <licenseUrl>http://doextensions.codeplex.com/license</licenseUrl>
     <projectUrl>http://doextensions.codeplex.com/</projectUrl>
     <iconUrl>http://dataobjects.net/img/doex-nuget.png</iconUrl>
@@ -18,5 +18,6 @@
   </metadata>
   <files>
     <file src="Readme.txt" target="Readme.txt" />
+    <file src="Lib\**\*.*" target="Lib"/>
   </files>
 </package>
