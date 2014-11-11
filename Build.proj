@@ -33,9 +33,12 @@
 </ItemGroup>
 
 <ItemGroup>
-  <Projects Include="$(SourcesDir)Extensions.sln">
-    <Properties>Configuration=$(Configuration)</Properties>
-  </Projects>
+  <ProjectsForNet40 Include="$(SourcesDir)Extensions.sln">
+    <Properties>Configuration=Net40-$(Configuration)</Properties>
+  </ProjectsForNet40>
+  <ProjectsForNet45 Include="$(SourcesDir)Extensions.sln">
+    <Properties>Configuration=Net45-$(Configuration)</Properties>
+  </ProjectsForNet45>
 </ItemGroup>
 
 <ItemGroup>
@@ -51,37 +54,91 @@
 </ItemGroup>
 
 <ItemGroup>
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Web.dll" />
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Web.xml" />
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Web.txt" />
+  <!-- Net40 Files -->
+  <Libraries Include="$(BinariesDir)Net40\Xtensive.Orm.Web.dll" />
+  <Libraries Include="$(BinariesDir)Net40\Xtensive.Orm.Web.xml" />
+  <Libraries Include="$(BinariesDir)Net40\Xtensive.Orm.Web.txt" />
   
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.BulkOperations.dll" />
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.BulkOperations.xml" />
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.BulkOperations.txt" />
+  <Libraries Include="$(BinariesDir)Net40\Xtensive.Orm.BulkOperations.dll" />
+  <Libraries Include="$(BinariesDir)Net40\Xtensive.Orm.BulkOperations.xml" />
+  <Libraries Include="$(BinariesDir)Net40\Xtensive.Orm.BulkOperations.txt" />
   
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Localization.dll" />
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Localization.xml" />
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Localization.txt" />
+  <Libraries Include="$(BinariesDir)Net40\Xtensive.Orm.Localization.dll" />
+  <Libraries Include="$(BinariesDir)Net40\Xtensive.Orm.Localization.xml" />
+  <Libraries Include="$(BinariesDir)Net40\Xtensive.Orm.Localization.txt" />
   
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Reprocessing.dll" />
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Reprocessing.xml" />
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Reprocessing.txt" />
+  <Libraries Include="$(BinariesDir)Net40\Xtensive.Orm.Reprocessing.dll" />
+  <Libraries Include="$(BinariesDir)Net40\Xtensive.Orm.Reprocessing.xml" />
+  <Libraries Include="$(BinariesDir)Net40\Xtensive.Orm.Reprocessing.txt" />
 
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Security.dll" />
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Security.xml" />
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Security.txt" />
+  <Libraries Include="$(BinariesDir)Net40\Xtensive.Orm.Security.dll" />
+  <Libraries Include="$(BinariesDir)Net40\Xtensive.Orm.Security.xml" />
+  <Libraries Include="$(BinariesDir)Net40\Xtensive.Orm.Security.txt" />
 
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Tracking.dll" />
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Tracking.xml" />
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Tracking.txt" />
+  <Libraries Include="$(BinariesDir)Net40\Xtensive.Orm.Tracking.dll" />
+  <Libraries Include="$(BinariesDir)Net40\Xtensive.Orm.Tracking.xml" />
+  <Libraries Include="$(BinariesDir)Net40\Xtensive.Orm.Tracking.txt" />
 
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Logging.NLog.dll" />
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Logging.NLog.xml" />
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Logging.NLog.txt" />
+  <Libraries Include="$(BinariesDir)Net40\Xtensive.Orm.Logging.NLog.dll" />
+  <Libraries Include="$(BinariesDir)Net40\Xtensive.Orm.Logging.NLog.xml" />
+  <Libraries Include="$(BinariesDir)Net40\Xtensive.Orm.Logging.NLog.txt" />
 
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Logging.log4net.dll" />
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Logging.log4net.xml" />
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Logging.log4net.txt" />
+  <Libraries Include="$(BinariesDir)Net40\Xtensive.Orm.Logging.log4net.dll" />
+  <Libraries Include="$(BinariesDir)Net40\Xtensive.Orm.Logging.log4net.xml" />
+  <Libraries Include="$(BinariesDir)Net40\Xtensive.Orm.Logging.log4net.txt" />
+  
+  <!-- Net45 Files -->
+  <Libraries Include="$(BinariesDir)Net45\Xtensive.Orm.Web.dll" />
+  <Libraries Include="$(BinariesDir)Net45\Xtensive.Orm.Web.xml" />
+  <Libraries Include="$(BinariesDir)Net45\Xtensive.Orm.Web.txt" />
+  
+  <Libraries Include="$(BinariesDir)Net45\Xtensive.Orm.BulkOperations.dll" />
+  <Libraries Include="$(BinariesDir)Net45\Xtensive.Orm.BulkOperations.xml" />
+  <Libraries Include="$(BinariesDir)Net45\Xtensive.Orm.BulkOperations.txt" />
+  
+  <Libraries Include="$(BinariesDir)Net45\Xtensive.Orm.Localization.dll" />
+  <Libraries Include="$(BinariesDir)Net45\Xtensive.Orm.Localization.xml" />
+  <Libraries Include="$(BinariesDir)Net45\Xtensive.Orm.Localization.txt" />
+  
+  <Libraries Include="$(BinariesDir)Net45\Xtensive.Orm.Reprocessing.dll" />
+  <Libraries Include="$(BinariesDir)Net45\Xtensive.Orm.Reprocessing.xml" />
+  <Libraries Include="$(BinariesDir)Net45\Xtensive.Orm.Reprocessing.txt" />
+
+  <Libraries Include="$(BinariesDir)Net45\Xtensive.Orm.Security.dll" />
+  <Libraries Include="$(BinariesDir)Net45\Xtensive.Orm.Security.xml" />
+  <Libraries Include="$(BinariesDir)Net45\Xtensive.Orm.Security.txt" />
+
+  <Libraries Include="$(BinariesDir)Net45\Xtensive.Orm.Tracking.dll" />
+  <Libraries Include="$(BinariesDir)Net45\Xtensive.Orm.Tracking.xml" />
+  <Libraries Include="$(BinariesDir)Net45\Xtensive.Orm.Tracking.txt" />
+
+  <Libraries Include="$(BinariesDir)Net45\Xtensive.Orm.Logging.NLog.dll" />
+  <Libraries Include="$(BinariesDir)Net45\Xtensive.Orm.Logging.NLog.xml" />
+  <Libraries Include="$(BinariesDir)Net45\Xtensive.Orm.Logging.NLog.txt" />
+
+  <Libraries Include="$(BinariesDir)Net45\Xtensive.Orm.Logging.log4net.dll" />
+  <Libraries Include="$(BinariesDir)Net45\Xtensive.Orm.Logging.log4net.xml" />
+  <Libraries Include="$(BinariesDir)Net45\Xtensive.Orm.Logging.log4net.txt" />
+</ItemGroup>
+
+<ItemGroup>
+  <!-- Directories to pack Nuget packages -->
+  <TempDirectories Include="$(MSBuildProjectDirectory)\_TempDirectory\Nuget.Xtensive.Orm.BulkOperations\Lib\Net40\" />
+  <TempDirectories Include="$(MSBuildProjectDirectory)\_TempDirectory\Nuget.Xtensive.Orm.BulkOperations\Lib\Net45\" />
+  <TempDirectories Include="$(MSBuildProjectDirectory)\_TempDirectory\Nuget.Xtensive.Orm.Localization\Lib\Net40\" />
+  <TempDirectories Include="$(MSBuildProjectDirectory)\_TempDirectory\Nuget.Xtensive.Orm.Localization\Lib\Net45\" />
+  <TempDirectories Include="$(MSBuildProjectDirectory)\_TempDirectory\Nuget.Xtensive.Orm.Logging.NLog\Lib\Net40\" />
+  <TempDirectories Include="$(MSBuildProjectDirectory)\_TempDirectory\Nuget.Xtensive.Orm.Logging.NLog\Lib\Net45\" />
+  <TempDirectories Include="$(MSBuildProjectDirectory)\_TempDirectory\Nuget.Xtensive.Orm.Logging.log4net\Lib\Net40\" />
+  <TempDirectories Include="$(MSBuildProjectDirectory)\_TempDirectory\Nuget.Xtensive.Orm.Logging.log4net\Lib\Net45\" />
+  <TempDirectories Include="$(MSBuildProjectDirectory)\_TempDirectory\Nuget.Xtensive.Orm.Reprocessing\Lib\Net40\" />
+  <TempDirectories Include="$(MSBuildProjectDirectory)\_TempDirectory\Nuget.Xtensive.Orm.Reprocessing\Lib\Net45\" />
+  <TempDirectories Include="$(MSBuildProjectDirectory)\_TempDirectory\Nuget.Xtensive.Orm.Security\Lib\Net40\" />
+  <TempDirectories Include="$(MSBuildProjectDirectory)\_TempDirectory\Nuget.Xtensive.Orm.Security\Lib\Net45\" />
+  <TempDirectories Include="$(MSBuildProjectDirectory)\_TempDirectory\Nuget.Xtensive.Orm.Tracking\Lib\Net40\" />
+  <TempDirectories Include="$(MSBuildProjectDirectory)\_TempDirectory\Nuget.Xtensive.Orm.Tracking\Lib\Net45\" />
+  <TempDirectories Include="$(MSBuildProjectDirectory)\_TempDirectory\Nuget.Xtensive.Orm.Web\Lib\Net40" />
+  <TempDirectories Include="$(MSBuildProjectDirectory)\_TempDirectory\Nuget.Xtensive.Orm.Web\Lib\Net45" />
 </ItemGroup>
 
 <Target Name="InitBuildDir">
@@ -116,15 +173,42 @@
   <MakeDir Directories="$(PackagesDir)" />
 </Target>
 
+<Target Name="InitTempDir" DependsOnTargets="CleanTempDir">
+  <MakeDir Directories="@(TempDirectories)" />
+</Target>
+
+<Target Name="CleanTempDir">
+  <RemoveDir Directories="$(MSBuildProjectDirectory)\_TemporaryDirectory\" />
+</Target>
+
 <Target Name="BuildPackages"
         Condition="'$(Configuration)'=='Release'"
-        DependsOnTargets="InitPackagesDir;BuildBinaries"
+        DependsOnTargets="InitPackagesDir;InitTempDir;BuildBinaries"
         Inputs="@(SpecFiles)" Outputs="%(Identity).Fake">
   <PropertyGroup>
     <ProjectFile>%(SpecFiles.RootDir)%(SpecFiles.Directory)%(SpecFiles.Filename).csproj</ProjectFile>
-    <BuildCommand>nuget pack "$(ProjectFile)" -version $(VersionNameNuGet) -p Configuration=Release -o "$(PackagesDir)." -symbols</BuildCommand>
+	<ProjectFileName>%(SpecFiles.Filename)</ProjectFileName>
+	<TempDirectoryForFiles>$(MSBuildProjectDirectory)\_TempDirectory\Nuget.%(SpecFiles.Filename)\</TempDirectoryForFiles>
+	<PackageLibDir>Lib\</PackageLibDir>
+	<Net40Dir>Net40\</Net40Dir>
+	<Net45Dir>Net45\</Net45Dir>
+	<ReadMeFile>$(SourcesDir)\$(ProjectFileName)\Readme.txt</ReadMeFile>
+	<NugetNuspecFileName>%(SpecFiles.Filename)</NugetNuspecFileName>
+	<NugetNuspecFilePath>%(SpecFiles.RootDir)%(SpecFiles.Directory)</NugetNuspecFilePath>
+    <BuildCommand>nuget pack "$(TempDirectoryForFiles)$(NugetNuspecFileName).nuspec" -NoPackageAnalysis -version $(VersionNameNuGet) -OutputDirectory "$(PackagesDir)." -symbols</BuildCommand>
   </PropertyGroup>
-  <Exec Command="$(BuildCommand)" />
+  <!-- Copy ReadMe file to temp directory for project -->
+  <Copy SourceFiles="$(ReadMeFile)" DestinationFiles="$(TempDirectoryForFiles)Readme.txt" />
+  <!-- Copy Nuget spec file to temp directory for project -->
+  <Copy SourceFiles="$(NugetNuspecFilePath)$(NugetNuspecFileName).nuspec" DestinationFiles="$(TempDirectoryForFiles)$(NugetNuspecFileName).nuspec" />
+  
+  <!-- Copy DLL and XML files to temp directory for project -->
+  <Copy SourceFiles="$(BinariesDir)$(Net40Dir)$(ProjectFileName).dll;$(BinariesDir)$(Net45Dir)$(ProjectFileName).dll;"
+        DestinationFiles="$(TempDirectoryForFiles)$(PackageLibDir)$(Net40Dir)$(ProjectFileName).dll;$(TempDirectoryForFiles)$(PackageLibDir)$(Net45Dir)$(ProjectFileName).dll" />
+  <Copy Condition="Exists('$(BinariesDir)$(Net40Dir)$(ProjectFileName).xml')"
+        SourceFiles="$(BinariesDir)$(Net40Dir)$(ProjectFileName).xml;$(BinariesDir)$(Net45Dir)$(ProjectFileName).xml"
+        DestinationFiles="$(TempDirectoryForFiles)$(PackageLibDir)$(Net40Dir)$(ProjectFileName).xml;$(TempDirectoryForFiles)$(PackageLibDir)$(Net45Dir)$(ProjectFileName).xml" />
+  <Exec Command="$(BuildCommand)" WorkingDirectory="$(TempDirectoryForFiles)" />
 </Target>
 
 <Target Name="CleanPackages">
@@ -140,9 +224,11 @@
 <Target Name="CopyDocumentation" Inputs="@(SpecFiles)" Outputs="%(Identity).Fake">
   <PropertyGroup>
     <SourceFile>%(SpecFiles.RootDir)%(SpecFiles.Directory)Readme.txt</SourceFile>
-    <TargetFile>$(BinariesDir)%(SpecFiles.Filename).txt</TargetFile>
+    <TargetFileForNet40>$(BinariesDir)Net40/%(SpecFiles.Filename).txt</TargetFileForNet40>
+	<TargetFileForNet45>$(BinariesDir)Net45/%(SpecFiles.Filename).txt</TargetFileForNet45>
   </PropertyGroup>
-  <Copy SourceFiles="$(SourceFile)" DestinationFiles="$(TargetFile)" SkipUnchangedFiles="true" />
+  <Copy SourceFiles="$(SourceFile)" DestinationFiles="$(TargetFileForNet40)" SkipUnchangedFiles="true" />
+  <Copy SourceFiles="$(SourceFile)" DestinationFiles="$(TargetFileForNet45)" SkipUnchangedFiles="true" />
 </Target>
 
 <Target Name="BuildZip"
@@ -161,11 +247,13 @@
 <!-- Binaries -->
 
 <Target Name="BuildBinaries" DependsOnTargets="GetDO;UpdateProductInfo">
-  <MSBuild Projects="@(Projects)" Targets="Build" />
+  <MSBuild Projects="@(ProjectsForNet40)" Targets="Build" />
+  <MSBuild Projects="@(ProjectsForNet45)" Targets="Build" />
 </Target>
 
 <Target Name="CleanBinaries" DependsOnTargets="GetDO">
-  <MSBuild Projects="@(Projects)" Targets="Clean" />
+  <MSBuild Projects="@(ProjectsForNet40)" Targets="Clean" />
+  <MSBuild Projects="@(ProjectsForNet45)" Targets="Clean" />
   <RemoveDir Directories="$(BinariesDir)" />
 </Target>
 
