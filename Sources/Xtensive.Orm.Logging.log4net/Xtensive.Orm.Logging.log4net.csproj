@@ -60,19 +60,19 @@
   </ItemGroup>
   <Choose>
     <When Condition="('$(Configuration)' == 'Net40-Debug') Or ('$(Configuration)' == 'Net40-Release')">
-	  <ItemGroup>
+      <ItemGroup>
         <Reference Include="Xtensive.Orm">
           <HintPath>..\..\Lib\DataObjects.Net\Lib\Net40\Xtensive.Orm.dll</HintPath>
         </Reference>
       </ItemGroup>
-	</When>
-	<Otherwise>
-	  <ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
         <Reference Include="Xtensive.Orm">
           <HintPath>..\..\Lib\DataObjects.Net\Lib\Net45\Xtensive.Orm.dll</HintPath>
         </Reference>
       </ItemGroup>
-	</Otherwise>
+    </Otherwise>
   </Choose>
   <ItemGroup>
     <Compile Include="..\..\_Build\ProductInfo.cs">

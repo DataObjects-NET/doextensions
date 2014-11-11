@@ -21,7 +21,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>..\..\_Build\Binaries\Debug\Net40\</OutputPath>
-	<DocumentationFile>..\..\_Build\Binaries\Debug\Net40\$(AssemblyName).xml</DocumentationFile>
+    <DocumentationFile>..\..\_Build\Binaries\Debug\Net40\$(AssemblyName).xml</DocumentationFile>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>2</WarningLevel>
@@ -32,7 +32,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>..\..\_Build\Binaries\Release\Net40\</OutputPath>
-	<DocumentationFile>..\..\_Build\Binaries\Release\Net40\$(AssemblyName).xml</DocumentationFile>
+    <DocumentationFile>..\..\_Build\Binaries\Release\Net40\$(AssemblyName).xml</DocumentationFile>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>2</WarningLevel>
@@ -42,19 +42,19 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Net45-Debug|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>..\..\_Build\Binaries\Debug\Net45\</OutputPath>
-	<DocumentationFile>..\..\_Build\Binaries\Debug\Net45\$(AssemblyName).xml</DocumentationFile>
+    <DocumentationFile>..\..\_Build\Binaries\Debug\Net45\$(AssemblyName).xml</DocumentationFile>
     <DefineConstants>DEBUG;TRACE;NET45</DefineConstants>
     <WarningLevel>2</WarningLevel>
     <DebugType>full</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
-	<TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Net45-Release|AnyCPU'">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>..\..\_Build\Binaries\Release\Net45\</OutputPath>
-	<DocumentationFile>..\..\_Build\Binaries\Release\Net45\$(AssemblyName).xml</DocumentationFile>
+    <DocumentationFile>..\..\_Build\Binaries\Release\Net45\$(AssemblyName).xml</DocumentationFile>
     <DefineConstants>TRACE;NET45</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>2</WarningLevel>
@@ -68,21 +68,21 @@
   </ItemGroup>
   <Choose>
     <When Condition="('$(Configuration)' == 'Net40-Debug') Or ('$(Configuration)' == 'Net40-Release')">
-	  <ItemGroup>
+      <ItemGroup>
         <Reference Include="Xtensive.Orm, Version=4.6.0.0, Culture=neutral, PublicKeyToken=93a6c53d77a5296c, processorArchitecture=MSIL">
           <HintPath>..\..\Lib\DataObjects.Net\Lib\Net40\Xtensive.Orm.dll</HintPath>
           <SpecificVersion>False</SpecificVersion>
         </Reference>
       </ItemGroup>
-	</When>
-	<Otherwise>
-	  <ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
         <Reference Include="Xtensive.Orm, Version=4.6.0.0, Culture=neutral, PublicKeyToken=93a6c53d77a5296c, processorArchitecture=MSIL">
           <HintPath>..\..\Lib\DataObjects.Net\Lib\Net45\Xtensive.Orm.dll</HintPath>
           <SpecificVersion>False</SpecificVersion>
         </Reference>
       </ItemGroup>
-	</Otherwise>
+    </Otherwise>
   </Choose>
   <ItemGroup>
     <Compile Include="..\..\_Build\ProductInfo.cs">
