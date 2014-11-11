@@ -1,32 +1,51 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Configuration Condition=" '$(Configuration)' == '' ">Net40-Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{5B872574-5820-4DBF-B655-65E0F6576DF1}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Xtensive.Orm.Logging.NLog.Tests</RootNamespace>
     <AssemblyName>Xtensive.Orm.Logging.NLog.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Net40Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\_Build\Binaries\$(Configuration)\</OutputPath>
+    <OutputPath>..\..\_Build\Binaries\Debug\Net40\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Net40-Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\_Build\Binaries\$(Configuration)\</OutputPath>
+    <OutputPath>..\..\_Build\Binaries\Release\Net40\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Net45-Debug|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\..\_Build\Binaries\Debug\Net45\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;NET45</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Net45-Release|AnyCPU'">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\_Build\Binaries\Release\Net45\</OutputPath>
+    <DefineConstants>TRACE;NET45</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="NLog">
@@ -38,21 +57,43 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Data.SQLite">
-      <HintPath>..\..\Lib\DataObjects.Net\Lib\Net40\System.Data.SQLite.dll</HintPath>
-    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Xtensive.Orm, Version=4.6.0.0, Culture=neutral, PublicKeyToken=93a6c53d77a5296c, processorArchitecture=MSIL">
-      <HintPath>..\..\Lib\DataObjects.Net\Lib\Net40\Xtensive.Orm.dll</HintPath>
-      <SpecificVersion>False</SpecificVersion>
-    </Reference>
-    <Reference Include="Xtensive.Orm.Sqlite, Version=5.0.0.0, Culture=neutral, PublicKeyToken=93a6c53d77a5296c, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Lib\DataObjects.Net\Lib\Net40\Xtensive.Orm.Sqlite.dll</HintPath>
-    </Reference>
   </ItemGroup>
+  
+  <Choose>
+    <When Condition="('$(Configuration)' == 'Net40-Debug') Or ('$(Configuration)' == 'Net40-Release')">
+	  <ItemGroup>
+        <Reference Include="System.Data.SQLite">
+          <HintPath>..\..\Lib\DataObjects.Net\Lib\Net40\System.Data.SQLite.dll</HintPath>
+        </Reference>
+	    <Reference Include="Xtensive.Orm, Version=4.6.0.0, Culture=neutral, PublicKeyToken=93a6c53d77a5296c, processorArchitecture=MSIL">
+          <HintPath>..\..\Lib\DataObjects.Net\Lib\Net40\Xtensive.Orm.dll</HintPath>
+          <SpecificVersion>False</SpecificVersion>
+        </Reference>
+	    <Reference Include="Xtensive.Orm.Sqlite, Version=5.0.0.0, Culture=neutral, PublicKeyToken=93a6c53d77a5296c, processorArchitecture=MSIL">
+          <SpecificVersion>False</SpecificVersion>
+          <HintPath>..\..\Lib\DataObjects.Net\Lib\Net40\Xtensive.Orm.Sqlite.dll</HintPath>
+        </Reference>
+      </ItemGroup>
+	</When>
+	<Otherwise>
+	  <ItemGroup>
+        <Reference Include="System.Data.SQLite">
+          <HintPath>..\..\Lib\DataObjects.Net\Lib\Net45\System.Data.SQLite.dll</HintPath>
+        </Reference>
+	    <Reference Include="Xtensive.Orm, Version=4.6.0.0, Culture=neutral, PublicKeyToken=93a6c53d77a5296c, processorArchitecture=MSIL">
+          <HintPath>..\..\Lib\DataObjects.Net\Lib\Net45\Xtensive.Orm.dll</HintPath>
+          <SpecificVersion>False</SpecificVersion>
+        </Reference>
+	    <Reference Include="Xtensive.Orm.Sqlite, Version=5.0.0.0, Culture=neutral, PublicKeyToken=93a6c53d77a5296c, processorArchitecture=MSIL">
+          <SpecificVersion>False</SpecificVersion>
+          <HintPath>..\..\Lib\DataObjects.Net\Lib\Net45\Xtensive.Orm.Sqlite.dll</HintPath>
+        </Reference>
+      </ItemGroup>
+	</Otherwise>
+  </Choose>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="..\..\_Build\ProductInfo.cs">
