@@ -15,6 +15,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>..\..\_Build\Binaries\Debug\Net40\</OutputPath>
+    <DocumentationFile>..\..\_Build\Binaries\Debug\Net40\$(AssemblyName).xml</DocumentationFile>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -24,6 +25,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>..\..\_Build\Binaries\Release\Net40\</OutputPath>
+    <DocumentationFile>..\..\_Build\Binaries\Release\Net40\$(AssemblyName).xml</DocumentationFile>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -32,6 +34,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Net45-Debug|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>..\..\_Build\Binaries\Debug\Net45\</OutputPath>
+    <DocumentationFile>..\..\_Build\Binaries\Debug\Net45\$(AssemblyName).xml</DocumentationFile>
     <DefineConstants>DEBUG;TRACE;NET45</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -41,7 +44,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Net45-Release|AnyCPU'">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\_Build\Binaries\Release\NET45</OutputPath>
+    <OutputPath>..\..\_Build\Binaries\Release\Net45</OutputPath>
+    <DocumentationFile>..\..\_Build\Binaries\Release\Net45\$(AssemblyName).xml</DocumentationFile>
     <DefineConstants>TRACE;NET45</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
