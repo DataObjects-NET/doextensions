@@ -77,9 +77,54 @@ namespace Xtensive.Orm.BulkOperations
 
     protected void Join(SqlQueryStatement statement, SqlSelect select)
     {
+      if (select.HasLimit)
+        JoinWhenQueryHasLimitation(statement, select);
+      else
+        JoinWhenQueryHasNoLimitation(statement, select);
+    }
+
+    protected abstract void SetStatementFrom(SqlStatement statement, SqlTable from);
+    protected abstract void SetStatementTable(SqlStatement statement, SqlTableRef table);
+    protected abstract void SetStatementWhere(SqlStatement statement, SqlExpression where);
+    protected abstract void SetStatementLimit(SqlStatement statement, SqlExpression limit);
+    protected abstract bool SupportsJoin();
+    protected abstract bool SupportsLimitation();
+
+    private void JoinWhenQueryHasLimitation(SqlStatement statement, SqlSelect select)
+    {
+      if (!SupportsLimitation() && !SupportsJoin())
+        throw new NotSupportedException("This provider does not supported limitation of affected rows.");
       var sqlTableRef = @select.From as SqlTableRef;
-      if (sqlTableRef != null)
-      {
+      if (sqlTableRef!=null)
+        SetStatementTable(statement, sqlTableRef);
+      SqlExpression whereExpression = null;
+      if (SupportsLimitation()) {
+        SetStatementLimit(statement, select.Limit);
+        whereExpression = select.Where;
+      }
+      else {
+        var queryRef = SqlDml.QueryRef(select, "source");
+        SetStatementFrom(statement, queryRef);
+        PrimaryIndexMapping indexMapping = PrimaryIndexes[0];
+        foreach (ColumnInfo columnInfo in indexMapping.PrimaryIndex.KeyColumns.Keys) {
+          var leftColumn = queryRef.Columns[columnInfo.Name];
+          var rightColumn = sqlTableRef.Columns[columnInfo.Name];
+          if (leftColumn==null || rightColumn==null)
+            throw new InvalidOperationException("Source query doesn't contain one of key columns of updated table.");
+          var columnEqualityExperssion = SqlDml.Equals(queryRef.Columns[columnInfo.Name], sqlTableRef.Columns[columnInfo.Name]);
+          if (whereExpression==null)
+            whereExpression = columnEqualityExperssion;
+          else
+            whereExpression = SqlDml.And(whereExpression, columnEqualityExperssion);
+        }
+      }
+      SetStatementWhere(statement, whereExpression);
+      JoinedTableRef = sqlTableRef;
+    }
+    private void JoinWhenQueryHasNoLimitation(SqlStatement statement, SqlSelect select)
+    {
+      var sqlTableRef = @select.From as SqlTableRef;
+      if (sqlTableRef!=null) {
         SetStatementTable(statement, sqlTableRef);
         SetStatementWhere(statement, select.Where);
         JoinedTableRef = sqlTableRef;
@@ -91,12 +136,6 @@ namespace Xtensive.Orm.BulkOperations
       else
         JoinViaIn(statement, select);
     }
-
-    protected abstract void SetStatementFrom(SqlStatement statement, SqlTable from);
-    protected abstract void SetStatementTable(SqlStatement statement, SqlTableRef table);
-    protected abstract void SetStatementWhere(SqlStatement statement, SqlExpression where);
-    protected abstract bool SupportsJoin();
-
 
     private void JoinViaIn(SqlStatement statement, SqlSelect @select)
     {

@@ -65,9 +65,20 @@ namespace Xtensive.Orm.BulkOperations
       update.Where = where;
     }
 
+    protected override void SetStatementLimit(SqlStatement statement, SqlExpression limit)
+    {
+      var update = (SqlUpdate) statement;
+      update.Limit = limit;
+    }
+
     protected override bool SupportsJoin()
     {
       return DomainHandler.Domain.StorageProviderInfo.Supports(ProviderFeatures.UpdateFrom);
+    }
+
+    protected override bool SupportsLimitation()
+    {
+      return DomainHandler.Domain.StorageProviderInfo.Supports(ProviderFeatures.UpdateLimit);
     }
 
 
