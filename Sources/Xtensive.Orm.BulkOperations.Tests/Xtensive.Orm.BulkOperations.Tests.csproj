@@ -54,6 +54,7 @@
     <Compile Include="AutoBuildTest.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Issues\IssueJira0560_ChangeFieldWhichDefinedInAncestorClassBug.cs" />
+    <Compile Include="Issues\IssueJira0565_IgnoringTakeMethodOnTranslation.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Other.cs" />
     <Compile Include="ReferenceFields.cs" />
