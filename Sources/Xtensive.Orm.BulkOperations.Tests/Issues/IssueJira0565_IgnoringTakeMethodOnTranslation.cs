@@ -5,13 +5,10 @@
 // Created:    2015.02.06
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using NUnit.Framework;
 using TestCommon.Model;
 using Xtensive.Orm.Providers;
-using Xtensive.Orm.Services;
 
 namespace Xtensive.Orm.BulkOperations.Tests.Issues
 {
@@ -107,7 +104,7 @@ namespace Xtensive.Orm.BulkOperations.Tests.Issues
       using (var transaction = session.OpenTransaction()) {
         var updated = session.Query.All<Bar>().Where(el => el.Id < 100).Union(session.Query.All<Bar>().Where(el => el.Id > 100)).Take(100).Set(el => el.Description, "UpdatedAgain").Update();
         Assert.AreEqual(100, updated);
-        var updatedList = session.Query.All<Bar>().Where(el => el.Description == "UpdatedAgain").ToList();
+        var updatedList = session.Query.All<Bar>().Where(el => el.Description=="UpdatedAgain").ToList();
         Assert.AreEqual(100, updatedList.Count);
       }
     }
@@ -122,29 +119,14 @@ namespace Xtensive.Orm.BulkOperations.Tests.Issues
       using (var transaction = session.OpenTransaction()){
         var updated = session.Query.All<Bar>().Take(200).Set(el => el.Description, "UpdatedAgain").Update();
         Assert.AreEqual(200, updated);
-        var updatedList = session.Query.All<Bar>().Where(el => el.Description == "UpdatedAgain").ToList();
+        var updatedList = session.Query.All<Bar>().Where(el => el.Description=="UpdatedAgain").ToList();
         Assert.AreEqual(200, updatedList.Count);
       }
     }
 
     [Test]
-    [ExpectedException(typeof(NotSupportedException))]
-    public void UpdateOperationWithLimitation05()
-    {
-      DoesNotSupportsUpdateLimitation();
-      using (var session = Domain.OpenSession())
-      using (session.Activate())
-      using (var transaction = session.OpenTransaction()) {
-        var updated = session.Query.All<Bar>().Where(el => el.Id < 100).Take(50).Union(session.Query.All<Bar>().Where(el => el.Id > 100).Take(50)).Set(el => el.Description, "UpdatedAgain").Update();
-        Assert.AreEqual(100, updated);
-        var updatedList = session.Query.All<Bar>().Where(el => el.Description == "UpdatedAgain").ToList();
-        Assert.AreEqual(100, updatedList.Count);
-      }
-    }
-
-    [Test]
     [ExpectedException(typeof (NotSupportedException))]
-    public void UpdateOperationWithLimitation06()
+    public void UpdateOperationWithLimitation05()
     {
       DoesNotSupportsUpdateLimitation();
       using (var session = Domain.OpenSession())
@@ -152,7 +134,7 @@ namespace Xtensive.Orm.BulkOperations.Tests.Issues
       using (var transaction = session.OpenTransaction()) {
         var updated = session.Query.All<Bar>().Where(el => el.Id < 100).Union(session.Query.All<Bar>().Where(el => el.Id > 100)).Take(100).Set(el => el.Description, "UpdatedAgain").Update();
         Assert.AreEqual(100, updated);
-        var updatedList = session.Query.All<Bar>().Where(el => el.Description == "UpdatedAgain").ToList();
+        var updatedList = session.Query.All<Bar>().Where(el => el.Description=="UpdatedAgain").ToList();
         Assert.AreEqual(100, updatedList.Count);
       }
     }
@@ -175,6 +157,8 @@ namespace Xtensive.Orm.BulkOperations.Tests.Issues
     public void DeleteOperationWithLimitation02()
     {
       SupportsDeleteLimitation();
+      if(StringComparer.InvariantCultureIgnoreCase.Compare(Domain.StorageProviderInfo.ProviderName, WellKnown.Provider.Firebird)==0)
+        IgnoreMe("Ignored due to FireBird ignores Take 50 in delete statement", null);
       using (var session = Domain.OpenSession())
       using (session.Activate())
       using (var transaction = session.OpenTransaction()) {
@@ -222,21 +206,6 @@ namespace Xtensive.Orm.BulkOperations.Tests.Issues
       using (var session = Domain.OpenSession())
       using (session.Activate())
       using (var transaction = session.OpenTransaction()) {
-        var updated = session.Query.All<Bar>().Where(el => el.Id < 100).Take(50).Union(session.Query.All<Bar>().Where(el => el.Id > 100).Take(50)).Delete();
-        Assert.AreEqual(100, updated);
-        var updatedList = session.Query.All<Bar>().ToList();
-        Assert.AreEqual(150, updatedList.Count);
-      }
-    }
-
-    [Test]
-    [ExpectedException(typeof(NotSupportedException))]
-    public void DeleteOperationWithLimitation06()
-    {
-      DoesNotSupportsDeleteLimitation();
-      using (var session = Domain.OpenSession())
-      using (session.Activate())
-      using (var transaction = session.OpenTransaction()) {
         var updated = session.Query.All<Bar>().Where(el => el.Id < 100).Union(session.Query.All<Bar>().Where(el => el.Id > 100)).Take(100).Delete();
         Assert.AreEqual(100, updated);
         var updatedList = session.Query.All<Bar>().ToList();
@@ -247,6 +216,7 @@ namespace Xtensive.Orm.BulkOperations.Tests.Issues
     [Test]
     public void UpdateOperationTableAsSource()
     {
+      SupportsUpdateLimitation();
       using (var session = Domain.OpenSession())
       using (session.Activate())
       using (var transaction = session.OpenTransaction()) {
@@ -261,31 +231,6 @@ namespace Xtensive.Orm.BulkOperations.Tests.Issues
         updatedList = session.Query.All<Bar>().Where(el => el.Description=="UpdatedAgain").ToList();
         Assert.AreEqual(250, updatedList.Count);
       }
-    }
-
-    [Test]
-    public void UpdateOperationUnionAsSource()
-    {
-      using (var session = Domain.OpenSession())
-      using (session.Activate())
-      using (var transaction = session.OpenTransaction()) {
-        var list = session.Query.All<Bar>().Where(el => el.Id < 100).Take(50).Union(session.Query.All<Bar>().Where(el => el.Id > 100).Take(50)).ToList();
-        Assert.AreEqual(100, list.Count);
-        var updated = session.Query.All<Bar>().Where(el => el.Id < 100).Take(50).Union(session.Query.All<Bar>().Where(el => el.Id > 100).Take(50)).Set(el => el.Description, "Updated").Update();
-        Assert.AreEqual(100, updated);
-        var updatedList = session.Query.All<Bar>().Where(el => el.Description == "Updated").ToList();
-        Assert.AreEqual(100, updatedList.Count);
-        updated = session.Query.All<Bar>().Set(el => el.Description, "UpdatedAgain").Update();
-        Assert.AreEqual(250, updated);
-        updatedList = session.Query.All<Bar>().Where(el => el.Description == "UpdatedAgain").ToList();
-        Assert.AreEqual(250, updatedList.Count);
-      }
-    }
-
-    [Test]
-    public void DeleteOperationTableAsSource()
-    {
-      
     }
 
     protected override void PopulateData()
