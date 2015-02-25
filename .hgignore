@@ -9,6 +9,7 @@ syntax: glob
 obj
 
 _Build
+_TempDirectory
 
 Lib/_Cache
 Lib/DataObjects.Net

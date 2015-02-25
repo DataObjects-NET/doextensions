@@ -57,9 +57,20 @@ namespace Xtensive.Orm.BulkOperations
       delete.Where = where;
     }
 
+    protected override void SetStatementLimit(SqlStatement statement, SqlExpression limit)
+    {
+      var delete = (SqlDelete) statement;
+      delete.Limit = limit;
+    }
+
     protected override bool SupportsJoin()
     {
       return DomainHandler.Domain.StorageProviderInfo.Supports(ProviderFeatures.DeleteFrom);
+    }
+
+    protected override bool SupportsLimitation()
+    {
+      return DomainHandler.Domain.StorageProviderInfo.Supports(ProviderFeatures.DeleteLimit);
     }
 
     #endregion
