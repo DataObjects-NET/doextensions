@@ -13,7 +13,7 @@
     <description>Adds support for reprocessable operations for DataObjects.Net-powered projects</description>
     <tags>DataObjects.Net Extensions Persistence ORM Reprocessing</tags>
     <dependencies>
-      <dependency id="Xtensive.Orm" version="[5.0.4-RC]" />
+      <dependency id="Xtensive.Orm" version="[5.0.0, 5.1.0)" />
     </dependencies>
   </metadata>
   <files>
