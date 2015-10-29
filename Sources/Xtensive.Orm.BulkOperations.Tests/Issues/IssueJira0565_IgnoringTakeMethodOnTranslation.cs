@@ -84,7 +84,7 @@ namespace Xtensive.Orm.BulkOperations.Tests.Issues
         var updatedCount = baseQuery.Set(el => el.Description, "UpdatedAgain").Update();
         Assert.That(updatedCount, Is.EqualTo(expectedUpdatedCount));
         var updatedList = session.Query.All<Bar>().Where(el => el.Description=="UpdatedAgain").ToList();
-        Assert.That(updatedList, Is.EqualTo(expectedUpdatedCount));
+        Assert.That(updatedList.Count, Is.EqualTo(expectedUpdatedCount));
       }
     }
 
