@@ -13,7 +13,7 @@
     <description>Adds security layer for DataObjects.Net-powered projects</description>
     <tags>DataObjects.Net Extensions Persistence ORM Security</tags>
     <dependencies>
-      <dependency id="Xtensive.Orm" version="[5.0.7-RC]" />
+      <dependency id="Xtensive.Orm" version="[5.0.7-RC2]" />
     </dependencies>
   </metadata>
   <files>
