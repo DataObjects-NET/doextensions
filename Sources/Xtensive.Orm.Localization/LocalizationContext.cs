@@ -4,8 +4,10 @@
 // Created by: Dmitri Maximov
 // Created:    2009.11.30
 
+using System;
 using System.Globalization;
 using System.Threading;
+using Xtensive.Core;
 
 namespace Xtensive.Orm.Localization
 {
@@ -61,6 +63,7 @@ namespace Xtensive.Orm.Localization
     /// Initializes a new instance of the <see cref="LocalizationContext"/> class.
     /// </summary>
     /// <param name="culture">The culture.</param>
+    /// <exception cref="ArgumentNullException"/>
     public LocalizationContext(CultureInfo culture)
       : this(culture, LocalizationPolicy.Default)
     {
@@ -71,8 +74,10 @@ namespace Xtensive.Orm.Localization
     /// </summary>
     /// <param name="culture">The culture.</param>
     /// <param name="policy">The policy.</param>
+    /// <exception cref="ArgumentNullException"/>
     public LocalizationContext(CultureInfo culture, LocalizationPolicy policy)
     {
+      ArgumentValidator.EnsureArgumentNotNull(culture, "culture");
       Culture = culture;
       CultureName = culture.Name;
       Policy = policy;
