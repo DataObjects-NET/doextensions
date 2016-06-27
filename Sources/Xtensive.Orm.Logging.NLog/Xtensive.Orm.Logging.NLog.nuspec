@@ -14,7 +14,7 @@
     <tags>DataObjects.Net Extensions Persistence ORM Logging</tags>
     <dependencies>
       <dependency id="Xtensive.Orm" version="[5.0.11-Nightly]" />
-      <dependency id="NLog" version="[2.1.0, 2.2.0)" />
+      <dependency id="NLog" version="[4.3.0, 4.4.0)" />
     </dependencies>
   </metadata>
   <files>
