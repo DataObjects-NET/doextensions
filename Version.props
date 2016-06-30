@@ -3,6 +3,6 @@
   <PropertyGroup>
     <Version>5.0.10</Version>
     <Modifier>RC</Modifier>
-    <DOVersion>5.0.9 Final</DOVersion>
+    <DOVersion>5.0.10 RC</DOVersion>
   </PropertyGroup>
 </Project>
