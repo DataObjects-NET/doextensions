@@ -13,7 +13,7 @@
     <description>Adds tracking functionality for DataObjects.Net-powered projects</description>
     <tags>DataObjects.Net Extensions Persistence ORM tracking audit</tags>
     <dependencies>
-      <dependency id="Xtensive.Orm" version="[5.0.10-RC]" />
+      <dependency id="Xtensive.Orm" version="[5.0.0, 5.1.0)" />
     </dependencies>
   </metadata>
   <files>
