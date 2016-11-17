@@ -118,6 +118,17 @@ namespace Xtensive.Orm.BulkOperations
     {
     }
 
+    public virtual void Visit(SqlContainsTable node)
+    {
+      VisitInternal(node.Asterisk);
+      foreach (SqlTableColumn column in node.Columns)
+        VisitInternal(column);
+      VisitInternal(node.SearchCondition);
+      foreach (SqlTableColumn column in node.TargetColumns)
+        VisitInternal(column);
+      VisitInternal(node.TargetTable);
+    }
+
     public virtual void Visit(SqlCreateAssertion node)
     {
     }
