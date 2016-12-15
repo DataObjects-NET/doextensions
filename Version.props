@@ -2,7 +2,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Version>5.0.11</Version>
-    <Modifier>Nightly</Modifier>
-    <DOVersion>5.0.11 Nightly</DOVersion>
+    <Modifier>RC2</Modifier>
+    <DOVersion>5.0.11 RC2</DOVersion>
   </PropertyGroup>
 </Project>
