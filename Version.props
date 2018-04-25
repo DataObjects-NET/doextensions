@@ -2,7 +2,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Version>5.0.18</Version>
-    <Modifier>Beta 1</Modifier>
+    <Modifier>Beta 2</Modifier>
     <DOVersion>5.0.18 Beta 1</DOVersion>
   </PropertyGroup>
 </Project>
