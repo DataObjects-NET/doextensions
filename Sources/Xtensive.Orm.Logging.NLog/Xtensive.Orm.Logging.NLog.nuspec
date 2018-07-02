@@ -13,7 +13,7 @@
     <description>Adds support for logging via NLog for DataObjects.Net</description>
     <tags>DataObjects.Net Extensions Persistence ORM Logging</tags>
     <dependencies>
-      <dependency id="Xtensive.Orm" version="[5.0.18-Beta-2]" />
+      <dependency id="Xtensive.Orm" version="[5.0.18-Beta-3]" />
       <dependency id="NLog" version="[4.3.0, 4.4.0)" />
     </dependencies>
   </metadata>
