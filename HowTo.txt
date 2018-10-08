@@ -3,7 +3,6 @@ How to build DataObjects.Net Extensions
 DataObjects.Net Extensions are built using MSBuild tool from .NET Framework 4.0 or later.
 At the root of repository you can find MSBuild project Build.proj.
 This project builds binaries as well as distribution packages.
-Also it is capable of fetching required DataObjects.Net version from its download site.
 
 ***Important*** 
 
@@ -19,7 +18,7 @@ separately and put in the %PATH% manually.
 
 Build.proj have multiple targets to control build process:
 
-  * GetDO - fetches DataObjects.Net of required version
+  * EnsureLocalStorageIntroduced - Makes sure that the folder declared in %DO_PACKAGE_STORE% environment variable is added as source of Nuget packages
 
   * BuildBinaries - builds all projects
   * CleanBinaries - cleans all artifacts that are produced by BuildBinaries target
@@ -27,15 +26,12 @@ Build.proj have multiple targets to control build process:
   * BuildPackages - builds NuGet packages for DataObjects.Net Extensions
   * CleanPackages - cleans all packages that are produced by BuildPackages target
   
-  * BuildZip - builds .zip archive with DataObjects.Net extensions binaries
-  * CleanZip - cleans .zip archive that is produced by BuildZip target
-  
-  * Build - combines BuildBinaries, BuildPackages and BuildZip (This is default target)
-  * Clean - combines CleanBinaries, CleanPackages and CleanZip
+  * Build - combines BuildBinaries and BuildPackages (This is default target)
+  * Clean - combines CleanBinaries, CleanPackages
   * Rebuild - invokes Clean target and then Build target
   
 By default all projects are build using Release configuration.
-Also only release configuration is allowed when NuGet or .zip packages are to be built.
+Also only release configuration is allowed when NuGet are to be built.
 To change configuration to debug you should add /p:Configuration=Debug to your MSBuild parameters.
 
 Since Build.proj is the only MSBuild project in its directory. You can omit project file name
@@ -64,14 +60,16 @@ How to clean all artifacts?
 
     > msbuild /t:Clean
 
-How to fetch required version of DataObjects.Net?
+How to make sure that local storage is added to NuGet Sources list?
 
-    > msbuild /t:GetDO
+    > msbuild /t:EnsureLocalStorageIntroduced
 
 How to develop DataObjects.Net Extensions
 =========================================
 You can develop DataObjects.Net extensions using either Visual Studio 2010 or recent SharpDevelop.
-Before opening project make sure you have fetched all required packages. This is have to be done
+Before opening project make sure you have introduced local NuGet package source.
+If specified version of DataObjects.Net is public release then it will be restored from NuGet package library
+otherwise local NuGet package storage should have the needed version. Make sure DataObjects.Net developing packages are in the local NuGet storage. This is have to be done
 everytime any package requires upgrading. When all packages are up to date you can open
 Extensions.sln from Sources folder and start developing.
 
@@ -83,7 +81,7 @@ It should look like the following:
     <PropertyGroup>
       <Version>4.5.1</Version>
       <Modifier>RC</Modifier>
-      <DOVersion>4.5.3</DOVersion>
+      <DONugetVersion>4.5.3</DONugetVersion>
     </PropertyGroup>
 
 Change the version to required. Rebuild everything using corresponding command from first section
@@ -98,4 +96,3 @@ All build artifacts are located inside _Build folder. Inside it there are many s
             Debug\      - Debug binaries
             Release\    - Release binaries
         Packages\       - NuGet packages for DataObjects.Net Extensions
-        Zip\            - .zip distribution archives
