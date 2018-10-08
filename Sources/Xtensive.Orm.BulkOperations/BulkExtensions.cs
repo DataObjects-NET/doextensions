@@ -4,6 +4,7 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using Xtensive.Orm;
 
 namespace Xtensive.Orm.BulkOperations
 {

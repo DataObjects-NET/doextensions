@@ -56,7 +56,40 @@ namespace Xtensive.Orm.Reprocessing
     {
       var result = domain.Extensions.Get<ReprocessingConfiguration>();
       if (result==null) {
-        result = ReprocessingConfiguration.Load();
+        result = ReprocessingConfiguration.LoadOrGetDefault();
+        domain.Extensions.Set(result);
+      }
+      return result;
+    }
+
+    /// <summary>
+    /// Gets the reprocessing configuration from given <paramref name="configuration"/>.
+    /// </summary>
+    /// <param name="domain">The domain.</param>
+    /// <param name="configuration"><see cref="System.Configuration.Configuration"/></param>
+    /// <returns>The reprocessing configuration.</returns>
+    public static ReprocessingConfiguration GetReprocessingConfiguration(this Domain domain, System.Configuration.Configuration configuration)
+    {
+      var result = domain.Extensions.Get<ReprocessingConfiguration>();
+      if (result==null) {
+        result = ReprocessingConfiguration.Load(configuration);
+        domain.Extensions.Set(result);
+      }
+      return result;
+    }
+
+    /// <summary>
+    /// Gets the reprocessing configuration from given <paramref name="configuration"/> and <paramref name="sectionName"/>.
+    /// </summary>
+    /// <param name="domain">The domain.</param>
+    /// <param name="configuration">Non-default application configuration<see cref="System.Configuration.Configuration"/>.</param>
+    /// <param name="sectionName">Non-default section.</param>
+    /// <returns>The reprocessing configuration.</returns>
+    public static ReprocessingConfiguration GetReprocessingConfiguration(this Domain domain, System.Configuration.Configuration configuration, string sectionName)
+    {
+      var result = domain.Extensions.Get<ReprocessingConfiguration>();
+      if (result==null) {
+        result = ReprocessingConfiguration.Load(configuration, sectionName);
         domain.Extensions.Set(result);
       }
       return result;
@@ -117,7 +150,6 @@ namespace Xtensive.Orm.Reprocessing
           return null;
         });
     }
-
 
     internal static T ExecuteInternal<T>(
       this Domain domain,

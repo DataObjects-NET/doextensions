@@ -7,6 +7,7 @@
 using System;
 using System.Reflection;
 using Xtensive.Orm.Model;
+using TypeInfo = Xtensive.Orm.Model.TypeInfo;
 
 namespace Xtensive.Orm.Localization
 {

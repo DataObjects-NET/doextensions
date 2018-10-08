@@ -22,7 +22,7 @@ namespace Xtensive.Orm.Security.Tests
           var employee = new Employee(session);
           employee.Name = "Steve Ballmer";
           employee.SetPassword("developers, developers, developers, developers");
-          Assert.IsNotNullOrEmpty(employee.PasswordHash);
+          Assert.That(employee.PasswordHash, Is.Not.Null.Or.Empty);
 
           trx.Complete();
         }
@@ -31,9 +31,9 @@ namespace Xtensive.Orm.Security.Tests
       using (var session = Domain.OpenSession()) {
         using (var trx = session.OpenTransaction()) {
 
-          Assert.IsNull(session.Authenticate("Steve Ballmer", "Steve Ballmer"));
-          Assert.IsNull(session.Authenticate("developers, developers, developers, developers", "Steve Ballmer"));
-          Assert.IsNotNull(session.Authenticate("Steve Ballmer", "developers, developers, developers, developers"));
+          Assert.That(session.Authenticate("Steve Ballmer", "Steve Ballmer"), Is.Null);
+          Assert.That(session.Authenticate("developers, developers, developers, developers", "Steve Ballmer"), Is.Null);
+          Assert.That(session.Authenticate("Steve Ballmer", "developers, developers, developers, developers"), Is.Not.Null);
 
           trx.Complete();
         }

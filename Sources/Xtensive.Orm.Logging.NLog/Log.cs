@@ -38,7 +38,7 @@ namespace Xtensive.Orm.Logging.NLog
     public override void Write(LogEventInfo info)
     {
       if (info.Exception!=null)
-        target.LogException(ConvertLevel(info.Level), info.FormattedMessage, info.Exception);
+        target.Log(ConvertLevel(info.Level), info.Exception, info.FormattedMessage);
       else
         target.Log(ConvertLevel(info.Level), info.FormattedMessage);
     }

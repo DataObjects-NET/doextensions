@@ -17,8 +17,8 @@ namespace Xtensive.Orm.Localization.Tests
 
     protected Domain Domain { get; private set; }
 
-    [TestFixtureSetUp]
-    public void TestFixtureSetUp()
+    [OneTimeSetUp]
+    public void OneTimeSetUp()
     {
       var configuration = DomainConfigurationFactory.Create();
       configuration.Types.Register(typeof (ILocalizable<>).Assembly);

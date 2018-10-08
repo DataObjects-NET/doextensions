@@ -175,7 +175,6 @@ namespace Xtensive.Orm.BulkOperations.Tests
     }
 
     [Test]
-    [ExpectedException(typeof (NotSupportedException))]
     public void UpdateWithReferenceToUpdatingEntity()
     {
       using (Session session = Domain.OpenSession()) {
@@ -185,7 +184,7 @@ namespace Xtensive.Orm.BulkOperations.Tests
           var foo3 = new Foo(session) {Name = "Test1"};
           var bar1 = new Bar(session) {Name = "Test"};
           var bar2 = new Bar(session);
-          session.Query.All<Foo>().Set(a => a.Bar, a => session.Query.All<Bar>().First(b => b.Name==a.Name)).Update();
+          Assert.Throws<NotSupportedException>(()=>session.Query.All<Foo>().Set(a => a.Bar, a => session.Query.All<Bar>().First(b => b.Name==a.Name)).Update());
           Assert.That(foo1.Bar, Is.EqualTo(bar1));
           Assert.That(foo2.Bar, Is.EqualTo(bar2));
           Assert.That(foo3.Bar, Is.Null);
@@ -197,8 +196,7 @@ namespace Xtensive.Orm.BulkOperations.Tests
     public void In()
     {
       using (Session session = Domain.OpenSession())
-      using (TransactionScope trx = session.OpenTransaction())
-      {
+      using (TransactionScope trx = session.OpenTransaction()) {
         var bar1 = new Bar(session, 1);
         var bar3 = new Bar(session, 3);
         var bar5 = new Bar(session, 5);

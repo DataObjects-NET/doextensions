@@ -4,6 +4,7 @@
 // Created by: Alexey Kulakov
 // Created:    2014.02.20
 
+using System.Reflection;
 using log4net.Core;
 using log4netLogManager = log4net.LogManager;
 using log4netLog = log4net.ILog;
@@ -41,9 +42,9 @@ namespace Xtensive.Orm.Logging.log4net
       target.Logger.Log(target.Logger.GetType(), ConvertLevel(info.Level), info.FormattedMessage, info.Exception);
     }
 
-    public Log(string name)
+    public Log(Assembly repositoryAssembly, string name)
     {
-      target = log4netLogManager.GetLogger(name);
+      target = log4netLogManager.GetLogger(repositoryAssembly, name);
     }
   }
 }

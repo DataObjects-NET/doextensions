@@ -25,14 +25,14 @@ namespace Xtensive.Orm.Tracking.Tests
       
     }
 
-    [TestFixtureSetUp]
+    [OneTimeSetUp]
     public virtual void TestFixtureSetUp()
     {
       var config = BuildConfiguration();
       Domain = BuildDomain(config);
     }
 
-    [TestFixtureTearDown]
+    [OneTimeTearDown]
     public virtual void TestFixtureTearDown()
     {
       Domain.DisposeSafely();

@@ -16,16 +16,16 @@ namespace Xtensive.Orm.Security.Tests
   {
     protected Domain Domain { get; private set; }
 
-    [TestFixtureSetUp]
-    public virtual void TestFixtureSetUp()
+    [OneTimeSetUp]
+    public virtual void OneTimeSetUp()
     {
       var config = BuildConfiguration();
       Domain = BuildDomain(config);
       PopulateData();
     }
 
-    [TestFixtureTearDown]
-    public virtual void TestFixtureTearDown()
+    [OneTimeTearDown]
+    public virtual void OneTimeTearDown()
     {
       Domain.DisposeSafely();
     }
