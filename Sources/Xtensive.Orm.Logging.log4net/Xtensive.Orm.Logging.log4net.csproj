@@ -43,7 +43,9 @@
 
   <ItemGroup>
     <PackageReference Include="log4net" Version="2.0.8" />
-    <PackageReference Include="Xtensive.Orm.Core" Version="0.1.0" />
   </ItemGroup>
+
+  <!-- Reference to Xtensive.Orm.Core package is in external file-->
+  <Import Project="..\..\OrmReference.props"/>
 
 </Project>

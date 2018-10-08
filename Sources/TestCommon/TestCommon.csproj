@@ -60,7 +60,9 @@
   <ItemGroup>
     <PackageReference Include="NUnit" Version="3.9.0" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.4.0" />
-    <PackageReference Include="Xtensive.Orm.Core" Version="0.1.0" />
   </ItemGroup>
+
+  <!-- Reference to Xtensive.Orm.Core package is in external file-->
+  <Import Project="..\..\OrmReference.props" />
 
 </Project>

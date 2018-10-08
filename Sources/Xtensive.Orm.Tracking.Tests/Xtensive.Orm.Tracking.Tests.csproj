@@ -55,7 +55,6 @@
   <ItemGroup>
     <PackageReference Include="NUnit" Version="3.9.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.9.0" />
-    <PackageReference Include="Xtensive.Orm.Core" Version="0.1.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -63,4 +62,7 @@
     <ProjectReference Include="..\Xtensive.Orm.Tracking\Xtensive.Orm.Tracking.csproj" />
   </ItemGroup>
 
+
+  <!-- Reference to Xtensive.Orm.Core package is in external file-->
+  <Import Project="..\..\OrmReference.props"/>
 </Project>
