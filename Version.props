@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <Version>5.0.16</Version>
+    <Version>0.1.0</Version>
     <Modifier>Final</Modifier>
-    <DOVersion>5.0.16</DOVersion>
+	<!-- Nuget package version -->
+    <DONugetVersion>0.1.0</DONugetVersion>
   </PropertyGroup>
 </Project>

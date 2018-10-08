@@ -13,7 +13,7 @@
   <Modifier Condition="'$(Modifier)'=='Final'"></Modifier>
   <VersionName>$(Version)</VersionName>
   <VersionName Condition="'$(Modifier)'!=''">$(Version) $(Modifier)</VersionName>
-  <VersionNameZip>$(VersionName.Replace(' ', '_'))</VersionNameZip>
+  <!--<VersionNameZip>$(VersionName.Replace(' ', '_'))</VersionNameZip>-->
   <VersionNameNuGet>$(VersionName.Replace(' ', '-'))</VersionNameNuGet>
   <VersionMajor>$([System.Version]::new($(Version)).Major)</VersionMajor>
   <VersionMinor>$([System.Version]::new($(Version)).Minor)</VersionMinor>
@@ -21,11 +21,15 @@
 </PropertyGroup>
 
 <PropertyGroup>
+  <LocalNugetStoragePath>$(DO_PACKAGE_STORE)</LocalNugetStoragePath>
+</PropertyGroup>
+
+<PropertyGroup>
   <BuildDir>$(MSBuildProjectDirectory)\_Build\</BuildDir>
   <SourcesDir>$(MSBuildProjectDirectory)\Sources\</SourcesDir>
   <BinariesDir>$(BuildDir)Binaries\$(Configuration)\</BinariesDir>
   <PackagesDir>$(BuildDir)Packages\</PackagesDir>
-  <ZipDir>$(BuildDir)Zip\</ZipDir>
+  <!--<ZipDir>$(BuildDir)Zip\</ZipDir>-->
 </PropertyGroup>
 
 <ItemGroup>
@@ -106,8 +110,20 @@
     DestinationFiles="$(BuildDir)ProductInfo.cs" />
 </Target>
 
-<Target Name="GetDO">
+<!-- 
+  Ensures that local package storage is introduced
+-->
+<Target Name="EnsureLocalStorageIntroduced">
+  <!--
   <MSBuild Projects="Lib\GetLib.proj" Properties="LibName=DataObjects.Net;LibVersion=$(DOVersion)" />
+  -->
+  <PropertyGroup>
+    <LocalNugetStoragePath>$(DO_PACKAGE_STORE)</LocalNugetStoragePath>
+    <AddSourceCommand>nuget sources add -Name "LocalNugetStorage" -source "$(LocalNugetStoragePath)"</AddSourceCommand>
+  </PropertyGroup>
+  
+  <Error Condition="'$(LocalNugetStoragePath)'==''" Text = "Local Nuget packages storage is not declared." />
+  <Exec Command="$(AddSourceCommand)" IgnoreExitCode="true" />
 </Target>
 
 <!-- NuGet packaging -->
@@ -133,6 +149,7 @@
 
 <!-- Zip packaging -->
 
+<!--
 <Target Name="InitZipDir" DependsOnTargets="CleanZip">
   <MakeDir Directories="$(ZipDir)" />
 </Target>
@@ -153,26 +170,29 @@
   </PropertyGroup>
   <Zip Files="@(Libraries)" ZipFileName="$(ZipFile)" WorkingDirectory="$(BinariesDir)" />
 </Target>
+-->
 
+<!--
 <Target Name="CleanZip">
   <RemoveDir Directories="$(ZipDir)" />
 </Target>
+-->
 
 <!-- Binaries -->
 
-<Target Name="BuildBinaries" DependsOnTargets="GetDO;UpdateProductInfo">
+<Target Name="BuildBinaries" DependsOnTargets="EnsureLocalStorageIntroduced;UpdateProductInfo">
   <MSBuild Projects="@(Projects)" Targets="Build" />
 </Target>
 
-<Target Name="CleanBinaries" DependsOnTargets="GetDO">
+<Target Name="CleanBinaries" DependsOnTargets="EnsureLocalStorageIntroduced">
   <MSBuild Projects="@(Projects)" Targets="Clean" />
   <RemoveDir Directories="$(BinariesDir)" />
 </Target>
 
 <!-- All-in-one targets  -->
 
-<Target Name="Build" DependsOnTargets="BuildBinaries;BuildPackages;BuildZip" />
-<Target Name="Clean" DependsOnTargets="CleanBinaries;CleanPackages;CleanZip" />
+<Target Name="Build" DependsOnTargets="BuildBinaries;BuildPackages" />
+<Target Name="Clean" DependsOnTargets="CleanBinaries;CleanPackages" />
 
 <Target Name="Rebuild">
   <CallTarget Targets="Clean" />
