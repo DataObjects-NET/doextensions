@@ -13,7 +13,9 @@
     <description>Adds support for easy localization for DataObjects.Net-powered domain models</description>
     <tags>DataObjects.Net Extensions Persistence ORM Localization</tags>
     <dependencies>
-      <dependency id="Xtensive.Orm" version="[5.0.16, 5.1.0)" />
+      <group targetFramework="netstandard2.0">
+        <dependency id="Xtensive.Orm.Core" version="[0.1.0]" />
+      </group>
     </dependencies>
   </metadata>
   <files>

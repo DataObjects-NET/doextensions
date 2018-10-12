@@ -13,8 +13,10 @@
     <description>Adds support for logging via log4net for DataObjects.Net</description>
     <tags>DataObjects.Net Extensions Persistence ORM Logging</tags>
     <dependencies>
-      <dependency id="Xtensive.Orm" version="[5.0.16, 5.1.0)" />
-      <dependency id="log4net" version="[2.0.3, 2.1.0)" />
+      <group targetFramework="netstandard2.0">
+        <dependency id="Xtensive.Orm.Core" version="[0.1.0]" />
+        <dependency id="log4net" version="[2.0.8, 2.1.0)" />
+      </group>
     </dependencies>
   </metadata>
   <files>
