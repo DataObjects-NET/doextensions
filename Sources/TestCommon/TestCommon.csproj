@@ -39,6 +39,7 @@
     <Compile Include="AssemblyExtensions.cs" />
     <Compile Include="CommonModelTest.cs" />
     <Compile Include="DomainConfigurationFactory.cs" />
+    <Compile Include="HasAccessToConfigurationTest.cs" />
     <Compile Include="Model\Bar.cs" />
     <Compile Include="Model\Bar2.cs" />
     <Compile Include="Model\Foo.cs" />
