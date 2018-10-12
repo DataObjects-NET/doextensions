@@ -56,7 +56,7 @@ namespace Xtensive.Orm.Reprocessing
     {
       var result = domain.Extensions.Get<ReprocessingConfiguration>();
       if (result==null) {
-        result = ReprocessingConfiguration.LoadOrGetDefault();
+        result = ReprocessingConfiguration.Load();
         domain.Extensions.Set(result);
       }
       return result;

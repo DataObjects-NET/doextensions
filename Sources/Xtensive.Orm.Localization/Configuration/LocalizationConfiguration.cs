@@ -31,7 +31,7 @@ namespace Xtensive.Orm.Localization.Configuration
 
     /// <summary>
     /// Loads the <see cref="LocalizationConfiguration"/>
-    /// from application configuration file (section with SectionName).
+    /// from application configuration file (section with <see cref="DefaultSectionName"/>).
     /// </summary>
     /// <returns>
     /// The <see cref="LocalizationConfiguration"/>.
@@ -52,17 +52,54 @@ namespace Xtensive.Orm.Localization.Configuration
     public static LocalizationConfiguration Load(string sectionName)
     {
       var section = (ConfigurationSection) ConfigurationManager.GetSection(sectionName);
+      return GetConfigurationFromSection(section);
+    }
+
+    /// <summary>
+    /// Loads the <see cref="LocalizationConfiguration"/>
+    /// from given configuration (section with <see cref="DefaultSectionName"/>).
+    /// </summary>
+    /// <param name="configuration">The configuration to load from.</param>
+    /// <returns>
+    /// The <see cref="LocalizationConfiguration"/>.
+    /// </returns>
+    public static LocalizationConfiguration Load(System.Configuration.Configuration configuration)
+    {
+      return Load(configuration, DefaultSectionName);
+    }
+
+    /// <summary>
+    /// Loads the <see cref="LocalizationConfiguration"/>
+    /// from application configuration file (section with <paramref name="sectionName"/>).
+    /// </summary>
+    /// <param name="configuration">The configuration to load from.</param>
+    /// <param name="sectionName">Name of the section.</param>
+    /// <returns>
+    /// The <see cref="LocalizationConfiguration"/>.
+    /// </returns>
+    public static LocalizationConfiguration Load(System.Configuration.Configuration configuration, string sectionName)
+    {
+      var section = (ConfigurationSection) configuration.GetSection(sectionName);
+      return GetConfigurationFromSection(section);
+    }
+
+    private static LocalizationConfiguration GetConfigurationFromSection(ConfigurationSection configurationSection)
+    {
       var result = new LocalizationConfiguration();
       result.DefaultCulture = Thread.CurrentThread.CurrentCulture;
 
-      string cultureName = section == null ? string.Empty : section.DefaultCulture.Name;
+      string cultureName = configurationSection==null
+        ? string.Empty 
+        : configurationSection.DefaultCulture.Name;
       if (string.IsNullOrEmpty(cultureName))
         return result;
 
       try {
         var culture = new CultureInfo(cultureName);
         result.DefaultCulture = culture;
-      } catch (CultureNotFoundException) {
+      }
+      catch (CultureNotFoundException)
+      {
       }
       return result;
     }

@@ -35,7 +35,7 @@ namespace Xtensive.Orm.Security.Configuration
 
     /// <summary>
     /// Loads the <see cref="SecurityConfiguration"/>
-    /// from application configuration file (section with SectionName).
+    /// from application configuration file (section with <see cref="DefaultSectionName"/>).
     /// </summary>
     /// <returns>
     /// The <see cref="SecurityConfiguration"/>.
@@ -56,14 +56,47 @@ namespace Xtensive.Orm.Security.Configuration
     public static SecurityConfiguration Load(string sectionName)
     {
       var section = (ConfigurationSection) ConfigurationManager.GetSection(sectionName);
+      return GetConfigurationFromSection(section);
+    }
+
+    /// <summary>
+    /// Loads the <see cref="SecurityConfiguration"/>
+    /// from given configuration (section with <see cref="DefaultSectionName"/>).
+    /// </summary>
+    /// <param name="configuration">Configuration to load from.</param>
+    /// <returns>The <see cref="SecurityConfiguration"/>.</returns>
+    public static SecurityConfiguration Load(System.Configuration.Configuration configuration)
+    {
+      return Load(configuration, DefaultSectionName);
+    }
+
+    /// <summary>
+    /// Loads the <see cref="SecurityConfiguration"/>
+    /// from given configuration (section with <paramref name="sectionName"/>).
+    /// </summary>
+    /// <param name="configuration">Configuration to load from.</param>
+    /// <param name="sectionName">Name of the section</param>
+    /// <returns>The <see cref="SecurityConfiguration"/>.</returns>
+    public static SecurityConfiguration Load(System.Configuration.Configuration configuration, string sectionName)
+    {
+      var configurationSection = (ConfigurationSection)configuration.GetSection(sectionName);
+      return GetConfigurationFromSection(configurationSection);
+    }
+
+    private static SecurityConfiguration GetConfigurationFromSection(ConfigurationSection configurationSection)
+    {
       var result = new SecurityConfiguration();
 
-      string hashingService = section == null ? string.Empty : section.HashingService.Name;
+      string hashingService = configurationSection==null
+        ? string.Empty 
+        : configurationSection.HashingService.Name;
       if (string.IsNullOrEmpty(hashingService))
         hashingService = "plain";
       result.HashingServiceName = hashingService.ToLowerInvariant();
 
-      string authenticationService = section == null ? string.Empty : section.AuthenticationService.Name;
+      string authenticationService = configurationSection==null 
+        ? string.Empty 
+        : configurationSection.AuthenticationService.Name;
       if (string.IsNullOrEmpty(authenticationService))
         authenticationService = "default";
       result.AuthenticationServiceName = authenticationService.ToLowerInvariant();

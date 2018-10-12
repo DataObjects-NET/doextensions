@@ -30,91 +30,55 @@ namespace Xtensive.Orm.Reprocessing.Configuration
     public Type DefaultExecuteStrategy { get; set; }
 
     /// <summary>
-    /// Loads the reprocessing configuration from default section of application configuration or gets the reprocessing configuration with default settings if there is no default section.
+    /// Loads the reprocessing configuration from default section in application configuration file.
     /// </summary>
-    /// <returns>The configuration.</returns>
-    public static ReprocessingConfiguration LoadOrGetDefault()
-    {
-      var section = (ConfigurationSection) ConfigurationManager.GetSection(ConfigurationSection.DefaultSectionName);
-      return section==null
-        ? new ReprocessingConfiguration()
-        : new ReprocessingConfiguration {
-          DefaultExecuteStrategy = section.DefaultExecuteStrategy,
-          DefaultTransactionOpenMode = section.DefaultTransactionOpenMode
-        };
-    }
-
-    /// <summary>
-    /// Loads the reprocessing configuration from default section of given <see cref="System.Configuration.Configuration"/> or gets the reprocessing configuration with default settings if there is no default section.
-    /// </summary>
-    /// <param name="configuration">Configuration from which reprocessing configuration should be loaded.</param>
-    /// <returns>The configuration.</returns>
-    public static ReprocessingConfiguration LoadOrGetDefault(System.Configuration.Configuration configuration)
-    {
-      return LoadOrGetDefault(configuration, ConfigurationSection.DefaultSectionName);
-    }
-
-    /// <summary>
-    /// Loads the reprocessing configuration from from <paramref name="sectionName"/> section of given <see cref="System.Configuration.Configuration"/> or gets the reprocessing configuration with default settings if there is no such section.
-    /// </summary>
-    /// <param name="configuration">Configuration from which reprocessing configuration should be loaded.</param>
-    /// <param name="sectionName">Name of the section.</param>
-    /// <returns>The configuration.</returns>
-    public static ReprocessingConfiguration LoadOrGetDefault(System.Configuration.Configuration configuration, string sectionName)
-    {
-      var section = (ConfigurationSection) configuration.GetSection(sectionName);
-      return section==null
-        ? new ReprocessingConfiguration()
-        : new ReprocessingConfiguration {
-          DefaultExecuteStrategy = section.DefaultExecuteStrategy,
-          DefaultTransactionOpenMode = section.DefaultTransactionOpenMode
-        };
-    }
-
+    /// <returns>The reprocessing configuration.</returns>
     public static ReprocessingConfiguration Load()
     {
-      var section = (ConfigurationSection) ConfigurationManager.GetSection(ConfigurationSection.DefaultSectionName);
-      if (section==null)
-        throw new InvalidOperationException(string.Format("Section '{0}' is not found in given configuration", ConfigurationSection.DefaultSectionName));
-      return new ReprocessingConfiguration {
-        DefaultExecuteStrategy = section.DefaultExecuteStrategy,
-        DefaultTransactionOpenMode = section.DefaultTransactionOpenMode
-      };
+      return Load(ConfigurationSection.DefaultSectionName);
     }
 
     /// <summary>
-    /// Loads the reprocessing configuration from default section of given <see cref="System.Configuration.Configuration"/>.
+    /// Loads the reprocessing configuration from sectionName section in application configuration file.
     /// </summary>
-    /// <param name="configuration"><see cref="System.Configuration.Configuration"/> from which reprocessing configuration should be loaded.</param>
+    /// <param name="sectionName">Name of the section.</param>
     /// <returns>The reprocessing configuration.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="configuration"/> is null.</exception>
-    /// <exception cref="InvalidOperationException">Default section is not represented in the <paramref name="configuration"/>.</exception>
+    public static ReprocessingConfiguration Load(string sectionName)
+    {
+      var section = (ConfigurationSection) ConfigurationManager.GetSection(sectionName);
+      return GetConfigurationFromSection(section);
+    }
+
+    /// <summary>
+    /// /// Loads the reprocessing configuration from default sectionName section in given configuration.
+    /// </summary>
+    /// <param name="configuration">The configuration to load from.</param>
+    /// <returns>The reprocessing configuration.</returns>
     public static ReprocessingConfiguration Load(System.Configuration.Configuration configuration)
     {
       return Load(configuration, ConfigurationSection.DefaultSectionName);
     }
 
     /// <summary>
-    /// Loads the reprocessing configuration from <paramref name="sectionName"/> section of given <see cref="System.Configuration.Configuration"/>.
+    /// /// Loads the reprocessing configuration from <paramref name="sectionName"/> section in given configuration file.
     /// </summary>
-    /// <param name="configuration"><see cref="System.Configuration.Configuration"/> from which reprocessing configuration should be loaded.</param>
-    /// <param name="sectionName">Name of the section.</param>
+    /// <param name="configuration">The configuration to load from.</param>
+    /// <param name="sectionName">The section to load from.</param>
     /// <returns>The reprocessing configuration.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="configuration"/> is null.</exception>
-    /// <exception cref="ArgumentNullException"><paramref name="sectionName"/> is null.</exception>
-    /// <exception cref="InvalidOperationException">Section with given name is not represented in the <paramref name="configuration"/></exception>
     public static ReprocessingConfiguration Load(System.Configuration.Configuration configuration, string sectionName)
     {
-      ArgumentValidator.EnsureArgumentNotNull(configuration, "configuration");
-      ArgumentValidator.EnsureArgumentNotNull(sectionName, "sectionName");
-
       var section = (ConfigurationSection) configuration.GetSection(sectionName);
-      if (section==null)
-        throw new InvalidOperationException(string.Format("Section '{0}' is not found in given configuration", sectionName));
-      return new ReprocessingConfiguration {
-        DefaultExecuteStrategy = section.DefaultExecuteStrategy,
-        DefaultTransactionOpenMode = section.DefaultTransactionOpenMode
-      };
+      return GetConfigurationFromSection(section);
+    }
+
+    private static ReprocessingConfiguration GetConfigurationFromSection(ConfigurationSection section)
+    {
+      return section==null
+        ? new ReprocessingConfiguration()
+        : new ReprocessingConfiguration {
+          DefaultExecuteStrategy = section.DefaultExecuteStrategy,
+          DefaultTransactionOpenMode = section.DefaultTransactionOpenMode
+        };
     }
 
     /// <summary>
