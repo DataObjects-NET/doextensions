@@ -8,7 +8,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <OutputType>Library</OutputType>
     <RootNamespace>Xtensive.Orm.Security</RootNamespace>
-    <AssemblyName>Xtensive.Orm.Security</AssemblyName>
+    <AssemblyName>Xtensive.Orm.Security.Core</AssemblyName>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\Extensions.snk</AssemblyOriginatorKeyFile>

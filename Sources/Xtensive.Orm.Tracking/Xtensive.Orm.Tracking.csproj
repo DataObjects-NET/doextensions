@@ -8,7 +8,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <OutputType>Library</OutputType>
     <RootNamespace>Xtensive.Orm.Tracking</RootNamespace>
-    <AssemblyName>Xtensive.Orm.Tracking</AssemblyName>
+    <AssemblyName>Xtensive.Orm.Tracking.Core</AssemblyName>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\Extensions.snk</AssemblyOriginatorKeyFile>
