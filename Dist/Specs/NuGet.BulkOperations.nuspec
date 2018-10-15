@@ -1,14 +1,14 @@
-<?xml version="1.0"?>
-<package>
-  <metadata>
-    <id>$id$</id>
-    <version>$version$</version>
-    <title>$title$</title>
-    <authors>$author$</authors>
-    <owners>$author$</owners>
-    <licenseUrl>http://doextensions.codeplex.com/license</licenseUrl>
-    <projectUrl>http://doextensions.codeplex.com/</projectUrl>
-    <iconUrl>http://dataobjects.net/img/doex-nuget.png</iconUrl>
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata minClientVersion="2.5">
+    <id>${PackageIdentifier}</id>
+    <version>${NuGetVersion}</version>
+    <title>${NuGetTitle}</title>
+    <authors>${NuGetAuthors}</authors>
+    <owners>${NuGetAuthors}</owners>
+    <licenseUrl>${NuGetLicenseUrl}</licenseUrl>
+    <projectUrl>${NuGetProjectUrl}</projectUrl>
+    <iconUrl>${NuGetIconUrl}</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Adds support for bulk insert, update and delete operations for DataObjects.Net-powered domain models</description>
     <tags>DataObjects.Net Extensions Persistence ORM BulkOperations</tags>
