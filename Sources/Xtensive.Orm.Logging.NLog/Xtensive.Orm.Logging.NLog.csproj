@@ -8,7 +8,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <OutputType>Library</OutputType>
     <RootNamespace>Xtensive.Orm.Logging.NLog</RootNamespace>
-    <AssemblyName>Xtensive.Orm.Logging.NLog.Core</AssemblyName>
+    <AssemblyName>Xtensive.Orm.Logging.NLog</AssemblyName>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\Extensions.snk</AssemblyOriginatorKeyFile>

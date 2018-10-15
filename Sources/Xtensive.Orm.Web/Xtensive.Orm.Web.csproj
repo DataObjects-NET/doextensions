@@ -8,7 +8,7 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <OutputType>Library</OutputType>
     <RootNamespace>Xtensive.Orm.Web</RootNamespace>
-    <AssemblyName>Xtensive.Orm.Web.Core</AssemblyName>
+    <AssemblyName>Xtensive.Orm.Web</AssemblyName>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\Extensions.snk</AssemblyOriginatorKeyFile>
