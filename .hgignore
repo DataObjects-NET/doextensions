@@ -5,6 +5,7 @@ syntax: glob
 *.suo
 *.user
 *.DotSettings
+*.vs
 
 obj
 
@@ -13,3 +14,4 @@ _TempDirectory
 
 Lib/_Cache
 Lib/DataObjects.Net
+Dist/_Work
