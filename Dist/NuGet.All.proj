@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+
+<Import Project="..\Version.props" />
+
+<PropertyGroup>
+  <Configuration Condition="'$(Configuration)'==''">Release</Configuration>
+  <BuildDir>..\_Build\</BuildDir>
+  <PackagesDir>$(BuildDir)\Dist\Packages\</PackagesDir>
+</PropertyGroup>
+
+<ItemGroup>
+  <Projects Include="NuGet.BulkOperations.proj" />
+  <Projects Include="NuGet.Localization.proj" />
+  <Projects Include="NuGet.Logging.log4net.proj" />
+  <Projects Include="NuGet.Logging.NLog.proj" />
+  <Projects Include="NuGet.Reprocessing.proj" />
+  <Projects Include="NuGet.Security.proj" />
+  <Projects Include="NuGet.Tracking.proj" />
+  <Projects Include="NuGet.Web.proj" />
+</ItemGroup>
+
+<Target Name="InitPackagesDir" DependsOnTargets="Clean">
+  <MakeDir Directories="$(PackagesDir)" />
+</Target>
+
+<Target Name="Build" DependsOnTargets="InitPackagesDir">
+  <MSBuild Projects="@(Projects)" Properties="Configuration=$(Configuration)" Targets="Build" />
+</Target>
+
+<Target Name="Clean">
+  <MSBuild Projects="@(Projects)" Properties="Configuration=$(Configuration)" Targets="Clean" />
+</Target>
+
+</Project>

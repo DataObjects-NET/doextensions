@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+
+<ItemGroup>
+  <Libs Include="Xtensive.Orm.Localization.dll" />
+  <Libs Include="Xtensive.Orm.Localization.xml" />
+</ItemGroup>
+
+<ItemGroup>
+  <ReadMe Include="$(MSBuildThisFileDirectory)..\..\Sources\Xtensive.Orm.Localization\Readme.txt" />
+</ItemGroup>
+
+</Project>

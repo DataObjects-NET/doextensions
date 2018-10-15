@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003"
+        InitialTargets="ConfigurePaths;CheckConfiguration">
+
+<PropertyGroup>
+  <Configuration Condition="'$(Configuration)'==''">Release</Configuration>
+
+  <DistSuffix Condition="'$(Configuration)'!='Release' and '$(OmitConfigurationSuffix)'!='true'">$(DistSuffix)-$(Configuration)</DistSuffix>
+  <DistVersion>$(VersionNameDist)</DistVersion>
+  <DistName>$(ProductName)-$(DistVersion)$(DistSuffix)</DistName>
+  <DistProject>$(MSBuildProjectName)</DistProject>
+
+  <BinariesPath>..\_Build\Binaries\$(Configuration)\</BinariesPath>
+  <OutputPath>..\_Build\Dist\Packages</OutputPath>
+  <WorkPath>_Work\$(Configuration)\$(DistProject)\</WorkPath>
+
+  <NetStandard20LibsPath>Lib\netstandard2.0\</NetStandard20LibsPath>
+</PropertyGroup>
+
+<ItemGroup>
+  <CopyTargets Include="CopyLibs" />
+  <CopyTargets Include="CopyReadMe" />
+</ItemGroup>
+
+<Target Name="CopyLibs">
+  <!-- NET Standard 2.0 -->
+  <Copy SourceFiles="@(Libs -> '$(BinariesPath)$(NetStandard20LibsPath)%(Identity)')"
+        DestinationFiles="$(WorkPath)$(NetStandard20LibsPath)%(Identity)" />
+</Target>
+
+<Target Name="CopyReadMe">
+  <Copy SourceFiles="@(ReadMe->'%(fullpath)')" DestinationFiles="$(WorkPath)%(filename)%(extension)" />
+</Target>
+
+<Target Name="CheckConfiguration" Condition="'$(AllowNonRelease)'!='true'">
+  <Error Condition="'$(Configuration)'!='Release'"
+         Text="'$(DistProject)' supports 'Release' configuration only" />
+</Target>
+
+<Target Name="ConfigurePaths">
+  <ConvertToAbsolutePath Paths="$(WorkPath)">
+    <Output TaskParameter="AbsolutePaths" PropertyName="AbsoluteWorkPath"/>
+  </ConvertToAbsolutePath>
+  <ConvertToAbsolutePath Paths="$(OutputPath)">
+    <Output TaskParameter="AbsolutePaths" PropertyName="AbsoluteOutputPath"/>
+  </ConvertToAbsolutePath>
+</Target>
+
+<Target Name="CleanPaths">
+  <RemoveDir Directories="$(WorkPath);$(OutputPath)" />
+</Target>
+
+<Target Name="CreatePaths" DependsOnTargets="CleanPaths">
+  <MakeDir Directories="$(WorkPath);$(OutputPath)" />
+</Target>
+
+<Target Name="CopyAll" DependsOnTargets="CreatePaths">
+  <CallTarget Targets="@(CopyTargets)" />
+</Target>
+
+<Target Name="Build" DependsOnTargets="CopyAll">
+  <CallTarget Targets="Pack" />
+</Target>
+
+<Target Name="Rebuild" DependsOnTargets="Build" />
+<Target Name="Clean" DependsOnTargets="CleanPaths" />
+		
+</Project>

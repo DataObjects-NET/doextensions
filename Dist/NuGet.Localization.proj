@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003"
+         ToolsVersion="4.0" DefaultTargets="Build">
+
+<PropertyGroup>
+  <NuGetPackageIdentifier>Xtensive.Orm.Localization.Core</NuGetPackageIdentifier>
+  <NugetPackageTitle>Localization extension for DataObjects.Net</NugetPackageTitle>
+</PropertyGroup>
+
+<Import Project="Dist.targets" />
+<Import Project="Components\Localization.targets" />
+<Import Project="Packagers\NuGet.targets" />
+
+</Project>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+
+<ItemGroup>
+  <Libs Include="Xtensive.Orm.Web.dll" />
+  <Libs Include="Xtensive.Orm.Web.xml" />
+</ItemGroup>
+
+<ItemGroup>
+  <ReadMe Include="$(MSBuildThisFileDirectory)..\..\Sources\Xtensive.Orm.Web\Readme.txt" />
+</ItemGroup>
+
+</Project>

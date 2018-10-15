@@ -13,7 +13,6 @@
   <Modifier Condition="'$(Modifier)'=='Final'"></Modifier>
   <VersionName>$(Version)</VersionName>
   <VersionName Condition="'$(Modifier)'!=''">$(Version) $(Modifier)</VersionName>
-  <!--<VersionNameZip>$(VersionName.Replace(' ', '_'))</VersionNameZip>-->
   <VersionNameNuGet>$(VersionName.Replace(' ', '-'))</VersionNameNuGet>
   <VersionMajor>$([System.Version]::new($(Version)).Major)</VersionMajor>
   <VersionMinor>$([System.Version]::new($(Version)).Minor)</VersionMinor>
@@ -28,8 +27,6 @@
   <BuildDir>$(MSBuildProjectDirectory)\_Build\</BuildDir>
   <SourcesDir>$(MSBuildProjectDirectory)\Sources\</SourcesDir>
   <BinariesDir>$(BuildDir)Binaries\$(Configuration)\</BinariesDir>
-  <PackagesDir>$(BuildDir)Packages\</PackagesDir>
-  <!--<ZipDir>$(BuildDir)Zip\</ZipDir>-->
 </PropertyGroup>
 
 <ItemGroup>
@@ -55,37 +52,9 @@
 </ItemGroup>
 
 <ItemGroup>
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Web.dll" />
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Web.xml" />
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Web.txt" />
-  
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.BulkOperations.dll" />
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.BulkOperations.xml" />
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.BulkOperations.txt" />
-  
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Localization.dll" />
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Localization.xml" />
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Localization.txt" />
-  
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Reprocessing.dll" />
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Reprocessing.xml" />
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Reprocessing.txt" />
-
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Security.dll" />
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Security.xml" />
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Security.txt" />
-
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Tracking.dll" />
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Tracking.xml" />
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Tracking.txt" />
-
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Logging.NLog.dll" />
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Logging.NLog.xml" />
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Logging.NLog.txt" />
-
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Logging.log4net.dll" />
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Logging.log4net.xml" />
-  <Libraries Include="$(BinariesDir)Xtensive.Orm.Logging.log4net.txt" />
+  <Distributions Include="Dist\NuGet.All.proj" >
+    <Properties>Configuration=$(Configuration)</Properties>
+  </Distributions>
 </ItemGroup>
 
 <Target Name="InitBuildDir">
@@ -114,9 +83,6 @@
   Ensures that local package storage is introduced
 -->
 <Target Name="EnsureLocalStorageIntroduced">
-  <!--
-  <MSBuild Projects="Lib\GetLib.proj" Properties="LibName=DataObjects.Net;LibVersion=$(DOVersion)" />
-  -->
   <PropertyGroup>
     <LocalNugetStoragePath>$(DO_PACKAGE_STORE)</LocalNugetStoragePath>
     <AddSourceCommand>nuget sources add -Name "LocalNugetStorage" -source "$(LocalNugetStoragePath)"</AddSourceCommand>
@@ -125,58 +91,6 @@
   <Error Condition="'$(LocalNugetStoragePath)'==''" Text = "Local Nuget packages storage is not declared." />
   <Exec Command="$(AddSourceCommand)" IgnoreExitCode="true" />
 </Target>
-
-<!-- NuGet packaging -->
-
-<Target Name="InitPackagesDir" DependsOnTargets="CleanPackages">
-  <MakeDir Directories="$(PackagesDir)" />
-</Target>
-
-<Target Name="BuildPackages"
-        Condition="'$(Configuration)'=='Release'"
-        DependsOnTargets="InitPackagesDir;BuildBinaries"
-        Inputs="@(SpecFiles)" Outputs="%(Identity).Fake">
-  <PropertyGroup>
-    <ProjectFile>%(SpecFiles.RootDir)%(SpecFiles.Directory)%(SpecFiles.Filename).csproj</ProjectFile>
-    <BuildCommand>nuget pack "$(ProjectFile)" -version $(VersionNameNuGet) -p Configuration=Release -o "$(PackagesDir)." -symbols</BuildCommand>
-  </PropertyGroup>
-  <Exec Command="$(BuildCommand)" />
-</Target>
-
-<Target Name="CleanPackages">
-  <RemoveDir Directories="$(PackagesDir)" />
-</Target>
-
-<!-- Zip packaging -->
-
-<!--
-<Target Name="InitZipDir" DependsOnTargets="CleanZip">
-  <MakeDir Directories="$(ZipDir)" />
-</Target>
-
-<Target Name="CopyDocumentation" Inputs="@(SpecFiles)" Outputs="%(Identity).Fake">
-  <PropertyGroup>
-    <SourceFile>%(SpecFiles.RootDir)%(SpecFiles.Directory)Readme.txt</SourceFile>
-    <TargetFile>$(BinariesDir)%(SpecFiles.Filename).txt</TargetFile>
-  </PropertyGroup>
-  <Copy SourceFiles="$(SourceFile)" DestinationFiles="$(TargetFile)" SkipUnchangedFiles="true" />
-</Target>
-
-<Target Name="BuildZip"
-        Condition="'$(Configuration)'=='Release'"
-        DependsOnTargets="InitZipDir;BuildBinaries;CopyDocumentation">
-  <PropertyGroup>
-    <ZipFile>$(ZipDir)DataObjects.Net-Extensions-$(VersionNameZip).zip</ZipFile>
-  </PropertyGroup>
-  <Zip Files="@(Libraries)" ZipFileName="$(ZipFile)" WorkingDirectory="$(BinariesDir)" />
-</Target>
--->
-
-<!--
-<Target Name="CleanZip">
-  <RemoveDir Directories="$(ZipDir)" />
-</Target>
--->
 
 <!-- Binaries -->
 
@@ -189,10 +103,21 @@
   <RemoveDir Directories="$(BinariesDir)" />
 </Target>
 
+<!-- Distribution -->
+<Target Name="BuildDist"
+        DependsOnTargets="UpdateProductInfo;BuildBinaries">
+  <MSBuild Projects="@(Distributions)" Targets="Build" />
+</Target>
+
+<Target Name="CleanDist" DependsOnTargets="UpdateProductInfo">
+  <MSBuild Projects="@(Distributions)" Targets="Clean" />
+  <RemoveDir Directories="_Build\Dist\$(Configuration)" />
+</Target>
+
 <!-- All-in-one targets  -->
 
-<Target Name="Build" DependsOnTargets="BuildBinaries;BuildPackages" />
-<Target Name="Clean" DependsOnTargets="CleanBinaries;CleanPackages" />
+<Target Name="Build" DependsOnTargets="BuildDist" />
+<Target Name="Clean" DependsOnTargets="CleanBinaries;CleanDist" />
 
 <Target Name="Rebuild">
   <CallTarget Targets="Clean" />

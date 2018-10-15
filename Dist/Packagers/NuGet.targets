@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003"
+         ToolsVersion="4.0" InitialTargets="CheckSpec">
+
+<Import Project= "..\..\MSBuild\Tasks.targets" />
+<Import Project= "..\..\Version.props" />
+
+<PropertyGroup>
+  <SpecName>$(MSBuildProjectName)</SpecName>
+  <SpecTemplateFile>Specs\$(SpecName).nuspec</SpecTemplateFile>
+</PropertyGroup>
+
+<PropertyGroup>
+  <Modifier Condition="'$(Modifier)'=='Final'"></Modifier>
+  <VersionName>$(Version)</VersionName>
+  <VersionName Condition="'$(Modifier)'!=''">$(Version) $(Modifier)</VersionName>
+</PropertyGroup>
+
+<ItemGroup>
+  <CopyTargets Include="GenerateSpec" />
+</ItemGroup>
+
+<ItemGroup>
+  <ProductVariables Include="PackageIdentifier">
+    <ReplacementValue>$(NuGetPackageIdentifier)</ReplacementValue>
+  </ProductVariables>
+  <ProductVariables Include="NuGetVersion">
+    <ReplacementValue>$(VersionName.Replace(' ', '-'))</ReplacementValue>
+  </ProductVariables>
+  <ProductVariables Include="NuGetTitle">
+    <ReplacementValue>$(NuGetPackageTitle)</ReplacementValue>
+  </ProductVariables>
+  <ProductVariables Include="NuGetAuthors">
+    <ReplacementValue>Xtensive LLC, Alexander Ovchinnikov</ReplacementValue>
+  </ProductVariables>
+  <ProductVariables Include="NuGetLicenseUrl">
+    <ReplacementValue>https://bitbucket.org/xtensive/doextensions/wiki/License</ReplacementValue>
+  </ProductVariables>
+  <ProductVariables Include="NuGetProjectUrl">
+    <ReplacementValue>https://bitbucket.org/xtensive/doextensions/</ReplacementValue>
+  </ProductVariables>
+  <ProductVariables Include="NuGetIconUrl">
+    <ReplacementValue>http://dataobjects.net/img/do-nuget.png</ReplacementValue>
+  </ProductVariables>
+</ItemGroup>
+
+<Target Name="CheckSpec">
+  <Error Condition="!Exists('$(SpecTemplateFile)')" Text="'$(SpecTemplateFile)' does not exist" />
+</Target>
+
+<Target Name="GenerateSpec">
+  <TemplateFile
+    Template="$(SpecTemplateFile)"
+    OutputFilename="$(AbsoluteWorkPath)$(SpecName).nuspec"
+    Tokens="@(ProductVariables)" />
+</Target>
+
+<Target Name="Pack">
+  <PropertyGroup>
+    <PackCommand>nuget pack -NoPackageAnalysis -OutputDirectory "$(AbsoluteOutputPath)." $(SpecName).nuspec  -Symbols</PackCommand>
+  </PropertyGroup>
+  <Exec Command="$(PackCommand)" WorkingDirectory="$(WorkPath)" />
+  <Message Importance="high" Text="NuGet package '$(SpecName)' created" />
+</Target>
+
+</Project>
