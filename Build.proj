@@ -95,6 +95,7 @@
 <!-- Binaries -->
 
 <Target Name="BuildBinaries" DependsOnTargets="EnsureLocalStorageIntroduced;UpdateProductInfo">
+  <MSBuild Projects="@(Projects)" Targets="Restore"/>
   <MSBuild Projects="@(Projects)" Targets="Build" />
 </Target>
 
