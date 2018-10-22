@@ -11,7 +11,7 @@
   <DistProject>$(MSBuildProjectName)</DistProject>
 
   <BinariesPath>..\_Build\Binaries\$(Configuration)\</BinariesPath>
-  <OutputPath>..\_Build\Dist\Packages</OutputPath>
+  <OutputPath>..\_Build\Packages</OutputPath>
   <WorkPath>_Work\$(Configuration)\$(DistProject)\</WorkPath>
 
   <NetStandard20LibsPath>Lib\netstandard2.0\</NetStandard20LibsPath>
