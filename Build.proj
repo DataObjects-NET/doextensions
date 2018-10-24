@@ -92,9 +92,27 @@
   <Exec Command="$(AddSourceCommand)" IgnoreExitCode="true" />
 </Target>
 
+<Target Name="ClearGlobalNuget">
+    <PropertyGroup>
+    <NuGetGlobalStorage>$(NUGET_PACKAGES)</NuGetGlobalStorage>
+	<NuGetGlobalStorage Condition ="'$(NuGetGlobalStorage)'==''">$(RestorePackagesPath)</NuGetGlobalStorage>
+	<NuGetGlobalStorage Condition ="'$(NuGetGlobalStorage)'==''">$(USERPROFILE)/.nuget/packages</NuGetGlobalStorage>
+	<NugetPackageDir>$(NuGetGlobalStorage)/xtensive.orm.core</NugetPackageDir>
+  </PropertyGroup>
+  <ItemGroup>
+   <FilesToDelete Include="$(NugetPackageDir)\**\*.*" />
+  </ItemGroup>
+  
+  <Delete Files="@(FilesToDelete)" />
+  <RemoveDir Directories="$(NugetPackageDir)" />  
+</Target>
+
 <!-- Binaries -->
 
-<Target Name="BuildBinaries" DependsOnTargets="EnsureLocalStorageIntroduced;UpdateProductInfo">
+<Target Name="BuildBinaries" DependsOnTargets="EnsureLocalStorageIntroduced;ClearGlobalNuget;UpdateProductInfo">
+  <PropertyGroup>
+    <RestoreNoCache>true</RestoreNoCache>
+  </PropertyGroup>
   <MSBuild Projects="@(Projects)" Targets="Restore"/>
   <MSBuild Projects="@(Projects)" Targets="Build" />
 </Target>
