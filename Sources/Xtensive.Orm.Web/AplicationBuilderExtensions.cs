@@ -8,13 +8,13 @@ namespace Xtensive.Orm.Web
   {
     public static IApplicationBuilder UseSessionManager(this IApplicationBuilder builder)
     {
-      return builder.UseMiddleware<SessionManagerMiddleware>();
+      return builder.UseMiddleware<SessionManager>();
     }
 
     public static IApplicationBuilder UseSessionManager(this IApplicationBuilder builder, Func<Pair<Session, System.IDisposable>> sessionProvider)
     {
-      SessionManagerMiddleware.SessionProvider = sessionProvider;
-      return builder.UseMiddleware<SessionManagerMiddleware>();
+      SessionManager.SessionProvider = sessionProvider;
+      return builder.UseMiddleware<SessionManager>();
     }
   }
 }
