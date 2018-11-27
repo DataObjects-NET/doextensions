@@ -8,8 +8,8 @@ The extension provides integration points between DataObjects.Net internal loggi
 
 Prerequisites
 -------------
-DataObjects.Net 5.0 or later (http://dataobjects.net)
-NLog 2.1 or later (http://nlog-project.org)
+DataObjects.Net Core 0.1 or later or later (http://dataobjects.net)
+NLog 4.5 or later (http://nlog-project.org)
 
 Implementation
 --------------

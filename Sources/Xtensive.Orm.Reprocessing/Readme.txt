@@ -9,7 +9,7 @@ should represent a separate block of logic, usually a delegate of a method and b
 
 Prerequisites
 -------------
-DataObjects.Net 4.5 or later (http://dataobjects.net)
+DataObjects.Net Core 0.1 or later (http://dataobjects.net)
 
 Implementation
 --------------

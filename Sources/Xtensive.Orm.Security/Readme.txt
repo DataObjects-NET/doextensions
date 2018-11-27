@@ -9,7 +9,7 @@ There are 2 main parts that can also be used separately: authentication services
 
 Prerequisites
 -------------
-DataObjects.Net 4.5 or later (http://dataobjects.net)
+DataObjects.Net 0.1 or later (http://dataobjects.net)
 
 Implementation
 --------------
