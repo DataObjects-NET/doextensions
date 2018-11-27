@@ -110,9 +110,13 @@ namespace Xtensive.Orm.Web
       catch (Exception)
       {
         HasErrors = true;
+        throw;
+      }
+      finally
+      {
+        AfterActions(context);
       }
 
-      AfterActions(context);
     }
 
     private static Domain GetDomain(HttpContext context)
