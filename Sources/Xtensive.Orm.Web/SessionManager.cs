@@ -72,7 +72,7 @@ namespace Xtensive.Orm.Web
     }
 
     /// <summary>
-    /// 
+    /// Gets provided session.
     /// </summary>
     /// <exception cref="InvalidOperationException">Session hasn't been opened yet</exception>
     public Session Session
