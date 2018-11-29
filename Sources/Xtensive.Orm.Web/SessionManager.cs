@@ -158,7 +158,7 @@ namespace Xtensive.Orm.Web
 
     private void ProvideSession(Domain domain, HttpContext context)
     {
-      if (sessionAndTransactionPair.Value.First == null)
+      if (sessionAndTransactionPair.Value.First!=null)
         throw new InvalidOperationException("Session has already provided.");
 
       Pair<Session, IDisposable> pair;
