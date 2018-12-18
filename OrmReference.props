@@ -2,6 +2,11 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="Version.props" />
   <ItemGroup>
-    <PackageReference Include="Xtensive.Orm.Core" Version="$(DONugetVersion)" />
+	<PackageReference Include="Xtensive.Orm.Core" Version="$(DONugetVersion)" />
+	<PackageReference Include="Xtensive.Orm.Firebird.Core" Version="$(DONugetVersion)" />
+	<PackageReference Include="Xtensive.Orm.MySql.Core" Version="$(DONugetVersion)" />
+	<PackageReference Include="Xtensive.Orm.PostgreSql.Core" Version="$(DONugetVersion)" />
+	<PackageReference Include="Xtensive.Orm.Oracle.Core" Version="$(DONugetVersion)" />
+	<PackageReference Include="Xtensive.Orm.Sqlite.Core" Version="$(DONugetVersion)" />
   </ItemGroup>
 </Project>
