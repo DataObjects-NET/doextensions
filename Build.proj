@@ -109,7 +109,7 @@
 
 <!-- Binaries -->
 
-<Target Name="BuildBinaries" DependsOnTargets="EnsureLocalStorageIntroduced;ClearGlobalNuget;UpdateProductInfo">
+<Target Name="BuildBinaries" DependsOnTargets="EnsureLocalStorageIntroduced;UpdateProductInfo">
   <PropertyGroup>
     <RestoreNoCache>true</RestoreNoCache>
   </PropertyGroup>
