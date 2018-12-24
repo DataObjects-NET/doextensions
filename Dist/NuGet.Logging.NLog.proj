@@ -4,7 +4,7 @@
 
 <PropertyGroup>
   <NuGetPackageIdentifier>Xtensive.Orm.Logging.NLog.Core</NuGetPackageIdentifier>
-  <NugetPackageTitle>DataObjects.Net logging provider for NLog</NugetPackageTitle>
+  <NugetPackageTitle>DataObjects.Net Core logging provider for NLog</NugetPackageTitle>
 </PropertyGroup>
 
 <Import Project="Dist.targets" />

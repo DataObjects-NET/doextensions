@@ -4,7 +4,7 @@
 
 <PropertyGroup>
   <NuGetPackageIdentifier>Xtensive.Orm.Security.Core</NuGetPackageIdentifier>
-  <NugetPackageTitle>Security extension for DataObjects.Net</NugetPackageTitle>
+  <NugetPackageTitle>Security extension for DataObjects.Net Core</NugetPackageTitle>
 </PropertyGroup>
 
 <Import Project="Dist.targets" />

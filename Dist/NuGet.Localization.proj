@@ -4,7 +4,7 @@
 
 <PropertyGroup>
   <NuGetPackageIdentifier>Xtensive.Orm.Localization.Core</NuGetPackageIdentifier>
-  <NugetPackageTitle>Localization extension for DataObjects.Net</NugetPackageTitle>
+  <NugetPackageTitle>Localization extension for DataObjects.Net Core</NugetPackageTitle>
 </PropertyGroup>
 
 <Import Project="Dist.targets" />

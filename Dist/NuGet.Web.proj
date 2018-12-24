@@ -4,7 +4,7 @@
 
 <PropertyGroup>
   <NuGetPackageIdentifier>Xtensive.Orm.Web.Core</NuGetPackageIdentifier>
-  <NugetPackageTitle>ASP.NET Core support extension for DataObjects.Net</NugetPackageTitle>
+  <NugetPackageTitle>ASP.NET Core support extension for DataObjects.Net Core</NugetPackageTitle>
 </PropertyGroup>
 
 <Import Project="Dist.targets" />

@@ -4,7 +4,7 @@
 
 <PropertyGroup>
   <NuGetPackageIdentifier>Xtensive.Orm.BulkOperations.Core</NuGetPackageIdentifier>
-  <NugetPackageTitle>Bulk operations extension for DataObjects.Net</NugetPackageTitle>
+  <NugetPackageTitle>Bulk operations extension for DataObjects.Net Core</NugetPackageTitle>
 </PropertyGroup>
 
 <Import Project="Dist.targets" />
