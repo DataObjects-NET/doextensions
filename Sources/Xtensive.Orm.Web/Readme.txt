@@ -4,16 +4,17 @@ Xtensive.Orm.Web
 
 Summary
 -------
-The extension adds integration for DataObjects.Net and ASP.NET. It contains SessionManager class 
-which is an implementation of IHttpModule and automatically provides Session and transaction for each web request.
+The extension adds integration for DataObjects.Net Core and ASP.NET Core. It contains SessionManager class
+which is middleware and can be used as part of ASP.NET Core Pipeline. SessionManager opens session and transaction on going down the pipeline
+and disposes them on going up the pipeline.
 
 SessionManager has the following features:
 1. When Session.Current is accessed, and there is no current Session, it will provide a new instance of Session.
-   In that case a new transaction will be created. It will be committed on successful completion of http request, 
+   In that case a new transaction will be created. It will be committed when the pipeline execution returns to SessionManager without any exception, 
    otherwise it will be rolled back.
-2. Setting SessionManager.Demand().Error to true will lead to rollback of this transaction.
+2. Setting SessionManager.Demand().HasErrors to true will lead to rollback of this transaction.
 3. SessionManager.Current (and SessionManager.Demand()) returns the instance of SessionManager 
-   bound to the current HttpContext, i.e. current SessionManager. 
+   bound to the current pipeline execution, i.e. current SessionManager. 
    Its Session property (if not null) is the same value as the one provided by Session.Current.
 
 Note that presence of SessionManager does not prevent you from creating Sessions manually.
@@ -24,66 +25,43 @@ in your code (directly or indirectly). So e.g. requests to static web pages won'
 
 Prerequisites
 -------------
-DataObjects.Net 4.5 or later (http://dataobjects.net)
+DataObjects.Net Core  0.1 or later (http://dataobjects.net)
 
 Implementation
 --------------
-1. Register SessionManager in HttpModulesSection in web.config file.
+To start using SessionManager it should be added to ASP.NET Middleware pipeline in Startup class like in example below
 
-web.config: 
-
-<configuration>
-  <system.web>
-    <httpModules>
-      <add name="SessionManager" type="Xtensive.Orm.Web.SessionManager, Xtensive.Orm.Web"/>
-    </httpModules>
-  </system.web>
-</configuration>
-
-2. Set SessionManager.DomainBuilder property in Application_Start method of your Global.asax.cs file.
-
-using Xtensive.Orm.Web;
-
-public class Global : System.Web.HttpApplication
+public class Startup
 {
-  protected void Application_Start(object sender, EventArgs e)
+  public Startup(IConfiguration configuration)
   {
-    SessionManager.DomainBuilder = DomainBuilder.Build;
+    
+  }
+
+  public void ConfigureServices(IServiceCollection services)
+  {
+    // Configure services
+  }
+
+  public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+  {
+    // Configure parts of the pipeline which are before SessionManager.
+    // It will be unable to use SessionManager functionality in these parts
+    // For instance,
+    app.UseStaticFiles()
+
+    // Add session manager to the pipeline
+    app.UseSessionManager();
+	
+    // Configure parts of the pipeline which are after SessionManager. 
+    // These parts will work with SessionManager.
+	
+    // For instance, MVC controllers will be able to query data using DataObjects.Net
+    app.UseMvc(routes =>
+    {
+      routes.MapRoute(
+                name: "default",
+                template: "{controller=Home}/{action=Index}/{id?}");
+    });
   }
 }
-
-Demo
-----
-  public partial class EditCustomer : System.Web.UI.Page
-  {
-    protected void Page_Load(object sender, EventArgs e)
-    {
-      // Session is provided automatically, transaction also starts
-      var session = Session.Demand();
-      var id = Request["customerId"];
-      if (!string.IsNullOrEmpty(id)) {
-        var customerId = int.Parse(id);
-        var customer = session.Query.Single<Customer>(customerId);
-      }
-      ...
-    }
-
-    protected void Save(object sender, EventArgs e)
-    {
-      try {
-        var session = Session.Demand();
-        if (customer==null)
-          customer = new Customer(session);
-        customer.Name = textName.Text;
-        ...
-        Back();
-      }
-      catch(InvalidOperationException exception) {
-        // This will roll back the transaction on end of http request
-        SessionManager.Current.HasErrors = true;
-      }
-    }
-
-References
-----------
-http://doextensions.codeplex.com
