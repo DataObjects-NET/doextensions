@@ -14,8 +14,8 @@
     <tags>DataObjects.Net Extensions Persistence ORM tracking audit</tags>
     <dependencies>
       <group targetFramework="netstandard2.0">
-        <dependency id="Xtensive.Orm.Core" version="[0.1.0-Beta-2]" />
-        <dependency id="System.Configuration.ConfigurationManager" version="[4.4.0]" />
+        <dependency id="Xtensive.Orm.Core" version="[0.1.0-Beta-3]" />
+        <dependency id="System.Configuration.ConfigurationManager" version="[4.5.0, 4.6.0)" />
       </group>
     </dependencies>
   </metadata>
