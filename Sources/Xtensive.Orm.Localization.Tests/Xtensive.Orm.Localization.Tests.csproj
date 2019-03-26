@@ -31,6 +31,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="AccessToLocalizationOnUpgrade.cs" />
     <Compile Include="DirectEditTest.cs" />
     <Compile Include="CurrentThreadTest.cs" />
     <Compile Include="LocalizationScopeTest.cs" />
