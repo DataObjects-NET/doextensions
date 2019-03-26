@@ -22,7 +22,7 @@ namespace Xtensive.Orm.Localization.Tests
     {
       var configuration = DomainConfigurationFactory.Create();
       configuration.Types.Register(typeof (ILocalizable<>).Assembly);
-      configuration.Types.Register(typeof (AutoBuildTest).Assembly);
+      configuration.Types.Register(typeof (AutoBuildTest).Assembly, typeof (AutoBuildTest).Namespace);
       Domain = Domain.Build(configuration);
       PopulateDatabase();
     }

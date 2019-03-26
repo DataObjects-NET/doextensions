@@ -28,8 +28,15 @@ namespace Xtensive.Orm.Localization
 
     private void TryInitialize()
     {
+      // if there is a context then query is from upgrade handler
+      // so it is right to initialize localization here and allow user to
+      // perform query.
+      // Following initialization in IModule will be skipped
+      if (Upgrade.UpgradeScope.CurrentContext!=null)
+        TypeLocalizationMap.Initialize(Domain);
+
       var map = Domain.Extensions.Get<TypeLocalizationMap>();
-      if (map != null)
+      if (map!=null)
         visitor = new LocalizationExpressionVisitor(map);
     }
 
