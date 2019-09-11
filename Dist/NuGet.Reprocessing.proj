@@ -3,7 +3,7 @@
          ToolsVersion="4.0" DefaultTargets="Build">
 
 <PropertyGroup>
-  <NuGetPackageIdentifier>Xtensive.Orm.Reporcessing.Core</NuGetPackageIdentifier>
+  <NuGetPackageIdentifier>Xtensive.Orm.Reprocessing.Core</NuGetPackageIdentifier>
   <NugetPackageTitle>Operation reprocessing extension for DataObjects.Net Core</NugetPackageTitle>
 </PropertyGroup>
 
