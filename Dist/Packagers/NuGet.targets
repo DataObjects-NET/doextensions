@@ -27,6 +27,9 @@
   <ProductVariables Include="NuGetVersion">
     <ReplacementValue>$(VersionName.Replace(' ', '-'))</ReplacementValue>
   </ProductVariables>
+  <ProductVariables Include="DONugetVersion">
+    <ReplacementValue>$(DONugetVersion)</ReplacementValue>
+  </ProductVariables>
   <ProductVariables Include="NuGetTitle">
     <ReplacementValue>$(NuGetPackageTitle)</ReplacementValue>
   </ProductVariables>
