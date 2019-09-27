@@ -2,8 +2,8 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Version>0.1.0</Version>
-    <Modifier>Beta 2 ST 100</Modifier>
+    <Modifier>Beta 2 ST 101</Modifier>
 	<!-- Nuget package version -->
-    <DONugetVersion>0.1.0-Beta-2-ST-100</DONugetVersion>
+    <DONugetVersion>0.1.0-Beta-2-ST-101</DONugetVersion>
   </PropertyGroup>
 </Project>
