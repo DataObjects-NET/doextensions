@@ -122,7 +122,7 @@
         Inputs="@(SpecFiles)" Outputs="%(Identity).Fake">
   <PropertyGroup>
     <ProjectFile>%(SpecFiles.RootDir)%(SpecFiles.Directory)%(SpecFiles.Filename).csproj</ProjectFile>
-    <BuildCommand>nuget pack "$(ProjectFile)" -version $(VersionNameNuGet) -p Configuration=Release -o "$(PackagesDir)." -symbols</BuildCommand>
+    <BuildCommand>nuget pack "$(ProjectFile)" -version $(VersionNameNuGet) -Properties Configuration=Release -OutputDirectory "$(PackagesDir)." -symbols</BuildCommand>
   </PropertyGroup>
   <Exec Command="$(BuildCommand)" />
 </Target>
