@@ -1,15 +1,9 @@
-syntax: glob
-
 *ReSharper*
-
 *.suo
 *.user
 *.DotSettings
-
 obj
-
 _Build
 _TempDirectory
-
-Lib/_Cache
-Lib/DataObjects.Net
+Lib\_Cache
+Lib\DataObjects.Net
