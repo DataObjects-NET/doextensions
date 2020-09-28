@@ -43,12 +43,14 @@ namespace Xtensive.Orm.Localization.Tests
       configuration.Types.Register(typeof (ILocalizable<>).Assembly);
       configuration.Types.Register(typeof (AutoBuildTest).Assembly, typeof (AutoBuildTest).Namespace);
       configuration.DefaultSchema = DefaultNodeSchema;
+      configuration.UpgradeMode = DomainUpgradeMode.Recreate;
       return configuration;
     }
 
     [Test]
     public void Node1Test01()
     {
+      
       using (var session = Domain.OpenSession()) {
         session.SelectStorageNode(WellKnown.DefaultNodeId);
         using (var transaction = session.OpenTransaction()) {
