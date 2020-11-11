@@ -11,10 +11,11 @@
 </PropertyGroup>
 
 <PropertyGroup>
+  <DistFile>$(LibName)-$(LibVersion).zip</DistFile>
   <!-- old format support -->
-  <DistFile Condition="'$(LibVersion.Contains(' '))'=='true'">$(LibName)-$(LibVersion.Replace(' ', '_')).zip</DistFile>
+  <DistFile Condition="$(LibVersion.Contains(' '))">$(LibName)-$(LibVersion.Replace(' ', '_')).zip</DistFile>
   <!-- new format support -->
-  <DistFile Condition="'$(LibVersion.Contains('-'))'=='true'">$(LibName)-$(LibVersion.Replace('-', '_')).zip</DistFile>
+  <DistFile Condition="$(LibVersion.Contains('-'))">$(LibName)-$(LibVersion.Replace('-', '_')).zip</DistFile>
   <DistUrl>http://get.dataobjects.net/Download/$(DistFile)</DistUrl>
   <DistFilePath>$(CachePath)$(DistFile)</DistFilePath>
   <Marker>$(DistFilePath).unpacked</Marker>
