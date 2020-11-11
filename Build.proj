@@ -12,9 +12,9 @@
 <PropertyGroup>
   <Modifier Condition="'$(Modifier)'=='Final'"></Modifier>
   <VersionName>$(Version)</VersionName>
-  <VersionName Condition="'$(Modifier)'!=''">$(Version) $(Modifier)</VersionName>
-  <VersionNameZip>$(VersionName.Replace(' ', '_'))</VersionNameZip>
-  <VersionNameNuGet>$(VersionName.Replace(' ', '-'))</VersionNameNuGet>
+  <VersionName Condition="'$(Modifier)'!=''">$(Version)-$(Modifier)</VersionName>
+  <VersionNameZip>$(VersionName.Replace('-', '_'))</VersionNameZip>
+  <VersionNameNuGet>$(VersionName)</VersionNameNuGet>
   <VersionMajor>$([System.Version]::new($(Version)).Major)</VersionMajor>
   <VersionMinor>$([System.Version]::new($(Version)).Minor)</VersionMinor>
   <VersionPatch>$([System.Version]::new($(Version)).Build)</VersionPatch>
