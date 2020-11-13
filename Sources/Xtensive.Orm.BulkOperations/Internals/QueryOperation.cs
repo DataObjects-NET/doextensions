@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using Xtensive.Core;
 using Xtensive.Orm.Linq;
 using Xtensive.Orm.Model;
 using Xtensive.Orm.Rse;
@@ -136,14 +137,16 @@ namespace Xtensive.Orm.BulkOperations
       var columns = new List<ColumnInfo>();
       foreach (ColumnInfo columnInfo in indexMapping.PrimaryIndex.KeyColumns.Keys)
       {
-        SqlSelect s = select.ShallowClone();
+        SqlSelect s = (SqlSelect) select.Clone();
         foreach (ColumnInfo column in columns)
         {
-          SqlBinary ex = SqlDml.Equals(SqlDml.TableColumn(s.From, column.Name), SqlDml.TableColumn(table, column.Name));
+          SqlBinary ex = SqlDml.Equals(s.From[column.Name], table[column.Name]);
           s.Where = s.Where.IsNullReference() ? ex : SqlDml.And(s.Where, ex);
         }
+        var existingColumns = s.Columns.ToChainedBuffer();
         s.Columns.Clear();
-        s.Columns.Add(SqlDml.TableColumn(s.From, columnInfo.Name));
+        var columnToAdd = existingColumns.First(c => c.Name==columnInfo.Name);
+        s.Columns.Add(columnToAdd);
         SqlBinary @in = SqlDml.In(SqlDml.TableColumn(table, columnInfo.Name), s);
         @where = @where.IsNullReference() ? @in : SqlDml.And(@where, @in);
         columns.Add(columnInfo);
